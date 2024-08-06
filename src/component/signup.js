@@ -83,6 +83,12 @@ const Signup = () => {
       })
     } catch (error) {
       console.log(error);
+      swal({
+        text: "unable to sent OTP",
+        icon: "error",
+        buttons: true,
+        
+      });
     }
   }
 
@@ -115,7 +121,7 @@ const Signup = () => {
             name="message"
             value={OTP}
             onChange={(e) => setOTP(e.target.value)}
-            class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+            class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:bg-red-400 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
           />
         </div>
         </div>
@@ -141,7 +147,7 @@ const Signup = () => {
             name="message"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+            class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:bg-red-400 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
           />
         </div>
       </div>
@@ -156,7 +162,7 @@ const Signup = () => {
             name="message"
             value={form.mobile}
             onChange={(e) => setForm({ ...form, mobile: e.target.value })}
-            class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+            class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:bg-red-400 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
           />
         </div>
       </div>
@@ -171,7 +177,7 @@ const Signup = () => {
             name="message"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
-            class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+            class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:bg-red-400 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
           />
         </div>
       </div>
