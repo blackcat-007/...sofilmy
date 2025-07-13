@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/blackcat-007/...sofilmy/assets/banner.png" alt="SoFilmy Logo" width="480" />
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752396989/Ping_Nest_3_icqpmk.png" alt="SoFilmy Logo" width="480" />
 </p>
 
 <blockquote>
