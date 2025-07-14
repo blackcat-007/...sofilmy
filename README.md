@@ -115,7 +115,8 @@ cd ...sofilmy
 <hr />
 
 <h2>📄 License</h2>
-<p>This project is licensed under the <strong>MIT License</strong>.</p>
+<p>This project is licensed under the <strong><a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License 2.0</a></strong>.</p>
+<p>&copy; 2025 Shubho. All rights reserved under the Apache License 2.0.</p>
 
 <hr />
 
