@@ -174,6 +174,45 @@ Firebase wasn’t used because it's "easy" — it was chosen because it **aligns
 ✅ Frontend-first, backend-powerful
 ---
 
+
+<hr />
+
+<h2>📄 License</h2>
+<p>This project is licensed under the <strong><a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License 2.0</a></strong>.</p>
+<p>&copy; 2025 Shubho. All rights reserved under the Apache License 2.0.</p>
+
+<hr />
+
+<h2>👨‍💻 Author</h2>
+<p>Built with ❤️ by <a href="https://github.com/blackcat-007">Shubho (blackcat-007)</a></p>
+
+<h2>🤝 Contributing</h2>
+<p>Want to improve SoFilmy? Fork the repo and open a PR!</p>
+
+<h2>💬 Contact</h2>
+<ul>
+  <li><a href="https://github.com/blackcat-007">GitHub</a></li>
+ <li><a href="https://linkedin.com/in/shubhodeepmukherjeewebdev">LinkedIn</a></li>
+ <li><a href="shubhodeepmukherjee24@gmail.com">Gmail</a></li>
+</ul>
+
+<hr />
+
+<h2>📸 Screenshots</h2>
+<figcaption align="center"> <h3>Sign in & Sign up with quick email id verification system </h3> </figcaption>
+<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395200/Screenshot_2025-07-13_131026_hcup52.png" alt="Chat UI Screenshot" width="600" />
+<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395662/Screenshot_2025-07-13_140400_rosaco.png" alt="Chat UI Screenshot" width="600" />
+<figcaption align="center"> <h3> Home Page  </h3></figcaption>
+<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395202/Screenshot_2025-07-13_131001_nv85gn.png" alt="Chat UI Screenshot" width="600" />
+<figcaption align="center"> <h3> Film Analysis section </h3></figcaption>
+<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395212/Screenshot_2025-07-13_135334_rkuqg2.png" alt="Chat UI Screenshot" width="600" />
+<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395201/Screenshot_2025-07-13_135347_ixpibn.png" alt="Chat UI Screenshot" width="600" />
+<figcaption align="center"> <h3>New Post Section </h3> </figcaption>
+<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395200/Screenshot_2025-07-13_135303_bjh77r.png" alt="Chat UI Screenshot" width="600" />
+<figcaption align="center"> <h3> Dedicated Discussion Room for cinephiles all over the world</h3> </figcaption>
+<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395210/Screenshot_2025-07-13_135319_qzwqon.png" alt="Chat UI Screenshot" width="600" />
+
+
 ## 🚧 Planned & Future Features
 
 To continue evolving SoFilmy into a more powerful, community-driven cinephile network, several features are under consideration and/or in active planning:
@@ -220,42 +259,3 @@ To continue evolving SoFilmy into a more powerful, community-driven cinephile ne
 ---
 
 🎯 These future features will gradually roll out as SoFilmy grows, enhancing both social interactivity and content depth for cinephiles around the world.
-
-<hr />
-
-<h2>📄 License</h2>
-<p>This project is licensed under the <strong><a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License 2.0</a></strong>.</p>
-<p>&copy; 2025 Shubho. All rights reserved under the Apache License 2.0.</p>
-
-<hr />
-
-<h2>👨‍💻 Author</h2>
-<p>Built with ❤️ by <a href="https://github.com/blackcat-007">Shubho (blackcat-007)</a></p>
-
-<h2>🤝 Contributing</h2>
-<p>Want to improve SoFilmy? Fork the repo and open a PR!</p>
-
-<h2>💬 Contact</h2>
-<ul>
-  <li><a href="https://github.com/blackcat-007">GitHub</a></li>
- <li><a href="https://linkedin.com/in/shubhodeepmukherjeewebdev">LinkedIn</a></li>
- <li><a href="shubhodeepmukherjee24@gmail.com">Gmail</a></li>
-</ul>
-
-<hr />
-
-<h2>📸 Screenshots</h2>
-<figcaption align="center"> <h3>Sign in & Sign up with quick email id verification system </h3> </figcaption>
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395200/Screenshot_2025-07-13_131026_hcup52.png" alt="Chat UI Screenshot" width="600" />
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395662/Screenshot_2025-07-13_140400_rosaco.png" alt="Chat UI Screenshot" width="600" />
-<figcaption align="center"> <h3> Home Page  </h3></figcaption>
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395202/Screenshot_2025-07-13_131001_nv85gn.png" alt="Chat UI Screenshot" width="600" />
-<figcaption align="center"> <h3> Film Analysis section </h3></figcaption>
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395212/Screenshot_2025-07-13_135334_rkuqg2.png" alt="Chat UI Screenshot" width="600" />
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395201/Screenshot_2025-07-13_135347_ixpibn.png" alt="Chat UI Screenshot" width="600" />
-<figcaption align="center"> <h3>New Post Section </h3> </figcaption>
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395200/Screenshot_2025-07-13_135303_bjh77r.png" alt="Chat UI Screenshot" width="600" />
-<figcaption align="center"> <h3> Dedicated Discussion Room for cinephiles all over the world</h3> </figcaption>
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395210/Screenshot_2025-07-13_135319_qzwqon.png" alt="Chat UI Screenshot" width="600" />
-
-
