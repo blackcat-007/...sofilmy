@@ -172,6 +172,54 @@ Firebase wasn’t used because it's "easy" — it was chosen because it **aligns
 ✅ Real-time performance  
 ✅ Secure and scalable out-of-the-box  
 ✅ Frontend-first, backend-powerful
+---
+
+## 🚧 Planned & Future Features
+
+To continue evolving SoFilmy into a more powerful, community-driven cinephile network, several features are under consideration and/or in active planning:
+
+### 💬 Direct Messaging (DM)
+- One-to-one chat system for private film discussions
+- Delivered via Firebase Realtime Database or Firestore subcollections
+- Optional message encryption for privacy
+
+### 🔔 Push Notifications
+- Browser and mobile push for:
+  - New comments/replies on your post
+  - Reactions to your reviews
+  - New chat messages in discussion rooms
+- Will use Firebase Cloud Messaging (FCM)
+
+### 🏷️ User Tagging System
+- Mention users with `@username` in posts/comments
+- Tagged users receive instant notifications
+- Enables directed discussion threads and collaboration
+
+### 📌 Saved Posts & Watchlist
+- Users can bookmark insightful reviews or film analyses
+- Integrated with personal dashboards
+- Future feature: sync watch history with other streaming platforms
+
+### 📈 Community Leaderboard
+- Gamified experience for top reviewers, most liked posts, etc.
+- Encourages quality contributions and consistent engagement
+- Can organise movie watch parties where cinephiles can watch a film together
+
+### 🛠 Admin & Moderation Panel
+- Admin dashboard for managing flagged posts or users
+- Auto-moderation using Firebase Functions + custom logic
+
+### 🌐 Multi-Room Chat / Topic Channels
+- Themed chat rooms by genre (e.g., Sci-Fi Club, Indie Buffs, etc.)
+- Room creation with user-generated tags
+
+### 📊 Analytics Dashboard (for Admins)
+- Track user activity, post reach, and platform engagement
+- Helps guide content moderation and feature decisions
+
+---
+
+🎯 These future features will gradually roll out as SoFilmy grows, enhancing both social interactivity and content depth for cinephiles around the world.
 
 <hr />
 
