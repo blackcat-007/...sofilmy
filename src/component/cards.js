@@ -24,19 +24,34 @@ function Cards() {
      getData()
     },[])
   return (
-    <div className='flex flex-wrap justify-between mt-2 px-3'>
-        {loading?<div className='w-full flex justify-center items-center min-h-screen h-94'><BallTriangle height={70} width={70}radius={5} color="#4fa94d" ariaLabel="ball-triangle-loading"/></div>:
-           datas.map((e,i)=>{
-            return (
-        
-     <Link to={`/details/${e.id}`}> <div key={i} className=' card  p-3 transform transition-transform duration-300 hover:translate-y-4 hover:scale-105 hover: shadow-lg hover: shadow-red-500 mt-10'><img className="h-25 md:h-72"src={e.image} alt="avengers-endgame"></img>
-      <h1><span className='text-red-400 mr-1'>Name:</span>{e.name}</h1>
-      <h2 className="flex items-center"><span className='text-red-400 mr-2'>Rating:</span><ReactStars size={20} half={true} value={e.rating/e.user} edit={false}/></h2>
-      <h3><span className='text-red-400 mr-2'>Year:</span>{e.year}</h3>
-      </div></Link>
-            )})}
-        
-    </div>
+   <div className="grid grid-cols-1 md:grid-cols-2 gap-10 px-3 mt-4 sm:mx-5">
+  {loading ? (
+    <div className="col-span-full flex justify-center items-center min-h-screen">
+      <BallTriangle height={70} width={70} radius={5} color="#4fa94d" ariaLabel="ball-triangle-loading" />
+    </div>   
+  ) : (
+    datas.map((e, i) => (
+      <Link to={`/details/${e.id}`} key={i}>
+        <div className="card p-4 bg-white rounded shadow-md transition-transform duration-300 transform hover:translate-y-2 hover:scale-105 hover:shadow-red-500 h-full">
+          <img className="w-56 h-72 object-cover mb-3 rounded" src={e.image} alt={e.name} />
+          <h1><span className="text-red-400 mr-1">Name:</span>{e.name}</h1>
+          <h2 className="flex items-center">
+            <span className="text-red-400 mr-2">Rating:</span>
+            <div className="flex items-center">
+              <ReactStars size={20} half={true} value={e.rating / e.user} edit={false} />
+            </div>
+             
+          </h2>
+           <p className="text-gray-500 truncate overflow-hidden whitespace-nowrap">
+  {e.description}
+</p>
+          <h3><span className="text-red-400 mr-2">Year:</span>{e.year}</h3>
+        </div>
+      </Link>
+    ))
+  )}
+</div>
+
     )}
 
 

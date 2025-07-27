@@ -1,6 +1,8 @@
 
 import './App.css';
 import Header from "./component/header";
+import Footer from "./component/footer";
+import SecondBar from "./component/secondbar";
 import Cards from "./component/cards";
 import {Routes,Route} from "react-router-dom";
 import Addmovies from "./component/addmovies";
@@ -19,7 +21,8 @@ function App() {
       
       <Header/>
       <Routes>
-        <Route path="/" element={<Cards/>}/>
+
+        <Route path="/" element={<SecondBar/>}/>
         <Route path="/addmovies" element={<Addmovies/>}/>
         <Route path="/details/:id" element={<Details/>}/>
         <Route path="/login" element={<Login/>}/>
@@ -28,7 +31,8 @@ function App() {
         
       
       </Routes>
-      
+      <Footer/>
+
     </div>
     </Appstate.Provider>
   );

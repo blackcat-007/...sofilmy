@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 
 function Reviews({id,prevRating,totalusers}) {
     const useAppstate=useContext(Appstate)
+     // Check localStorage along with Appstate
+  const isLoggedIn = useAppstate.login || localStorage.getItem("login") === "true";
     const navigate = useNavigate();
     const[rating,setRating]=useState(0);
     const[loader,setLoading]=useState(false);
@@ -16,42 +18,65 @@ function Reviews({id,prevRating,totalusers}) {
     const[form,setForm]=useState("");
     const[data,setData]=useState([]);
     const [newAdded, setNewAdded] = useState(0);
-    const addReviews=async ()=>{
-        setLoading(true);
-        if(useAppstate.login){
-        await addDoc(reviewsRef,{
-            movieid:id,
-            name:useAppstate.username,
-            rating:rating,
-            thoughts:form,
-            timestamp:new Date().getTime()
+   const addReviews = async () => {
+    if (!isLoggedIn) {
+        navigate('/login');
+        return;
+    }
 
-
+    // Validate inputs
+    if (rating === 0 || form.trim() === "") {
+        swal({
+            title: 'Missing Fields',
+            text: 'Please give a rating and write your thoughts before submitting.',
+            icon: 'warning',
+            buttons: false,
+            timer: 2500
         });
-        const ref=doc(db,"movies",id);
-        await updateDoc(ref,{
-            rating:rating+prevRating,
-            user:totalusers+1,
+        return;
+    }
 
-        })
+    setLoading(true);
+
+    try {
+        await addDoc(reviewsRef, {
+            movieid: id,
+            name: localStorage.getItem("username"),
+            rating: rating,
+            thoughts: form,
+            timestamp: new Date().getTime()
+        });
+
+        const ref = doc(db, "movies", id);
+        await updateDoc(ref, {
+            rating: rating + prevRating,
+            user: totalusers + 1,
+        });
+
         setRating(0);
         setForm("");
         setNewAdded(newAdded + 1);
+
         swal({
-            name:'successfully added',
-            icon:'success',
-            buttons:false,
-            timer:3000
+            title: 'Review Added',
+            text: 'Thanks for your feedback!',
+            icon: 'success',
+            buttons: false,
+            timer: 3000
+        });
+    } catch (err) {
+        console.error("Error adding review: ", err);
+        swal({
+            title: 'Error',
+            text: 'Something went wrong while submitting your review.',
+            icon: 'error',
+            buttons: true,
+        });
+    }
 
+    setLoading(false);
+};
 
-        })
-    }
-    else{
-        navigate('/login')
-    }
-       
-        setLoading(false)
-    }
     useEffect(()=>{
         async function getData(){
             setReviewLoading(true);
