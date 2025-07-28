@@ -13,12 +13,12 @@ function Logout1() {
 
     return (
        
-           <h1 className="text-lg cursor-pointer">
+           <h1 className="text-sm cursor-pointer">
             <Button onClick={handleLogout}>
               <span className="text-green-400">
-                Logout
+                
               </span>
-              <Logout className="ml-2 text-white" />
+              <Logout fontSize='small' className="ml-2 text-white" />
             </Button>
           </h1>
         

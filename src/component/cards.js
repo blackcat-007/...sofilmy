@@ -24,7 +24,7 @@ function Cards() {
      getData()
     },[])
   return (
-   <div className="grid grid-cols-1 md:grid-cols-2 gap-10 px-3 mt-4 sm:mx-5">
+   <div className="grid grid-cols-1 md:grid-cols-4 gap-10 px-3 mt-4 sm:mx-5">
   {loading ? (
     <div className="col-span-full flex justify-center items-center min-h-screen">
       <BallTriangle height={70} width={70} radius={5} color="#4fa94d" ariaLabel="ball-triangle-loading" />
@@ -33,7 +33,7 @@ function Cards() {
     datas.map((e, i) => (
       <Link to={`/details/${e.id}`} key={i}>
         <div className="card p-4 bg-white rounded shadow-md transition-transform duration-300 transform hover:translate-y-2 hover:scale-105 hover:shadow-red-500 h-full">
-          <img className="w-56 h-72 object-cover mb-3 rounded" src={e.image} alt={e.name} />
+         <div className='flex justify-center'> <img className="w-56 h-72 object-cover mb-3 rounded" src={e.image} alt={e.name} /></div>
           <h1><span className="text-red-400 mr-1">Name:</span>{e.name}</h1>
           <h2 className="flex items-center">
             <span className="text-red-400 mr-2">Rating:</span>
