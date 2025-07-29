@@ -22,8 +22,8 @@ const ChatSection = ({ user }) => {
   const sendMessage = async () => {
     if (newMessage.trim() === "") return; // Prevent empty messages
     await addDoc(collection(db, "messages"), {
-      uid: user.uid,
-      displayName: user.displayName,
+     // uid: user.uid,
+      from:localStorage.getItem("username"),
       text: newMessage,
       timestamp: serverTimestamp(),
     });
