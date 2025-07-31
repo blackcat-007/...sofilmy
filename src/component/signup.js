@@ -22,11 +22,11 @@ const Signup = () => {
     email: "",
   });
  
-  const [showEmailForm, setShowEmailForm] = useState(false);
+ // const [showEmailForm, setShowEmailForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [OTP, setOTP] = useState("");
- const [method, setMethod] = useState(""); // "email" | "phone" | ""
+ //const [method, setMethod] = useState(""); // "email" | "phone" | ""
 
   const [isPhoneShow, setIsPhoneShow] = useState(true);
 
@@ -109,6 +109,7 @@ const Signup = () => {
       const salt = bcrypt.genSaltSync(10);
       var hash = bcrypt.hashSync(form.password, salt);
       await addDoc(usersRef, {
+        uid: window.confirmationResult.user.uid,
         name: form.name,
         password: hash,
         mobile: form.mobile
@@ -123,8 +124,12 @@ const Signup = () => {
   try {
     const result = await createUserWithEmailAndPassword(auth, `${form.email}`, form.password);
     await addDoc(usersRef, {
+      uid: result.user.uid,
+      email: form.email,
+      password: bcrypt.hashSync(form.password, 10), // Hash the password
+      createdAt: new Date(),
       name: form.name,
-      mobile: form.mobile,
+      //mobile: form.mobile,
       authProvider: "email"
     });
     swal("Success", "Account created with email/password!", "success");
@@ -142,6 +147,8 @@ const handleGoogleSignup = async () => {
     const user = result.user;
 
     await addDoc(usersRef, {
+      uid: user.uid,
+      createdAt: new Date(),
       name: user.displayName,
       mobile: user.phoneNumber || "N/A",
       authProvider: "google",

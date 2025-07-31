@@ -11,23 +11,37 @@ const ChatSection = ({selectedUser}) => {
 
   useEffect(() => {
     // Fetch user data from localStorage
-    const storedUser = localStorage.getItem("username");
+    const storedUser = localStorage.getItem("userId");
     if (storedUser) {
       setUser(storedUser);
     }
   }, []);
-  useEffect(() => {
-    const q = query(collection(db, "messages"), orderBy("timestamp"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setMessages(
-        snapshot.docs.map((doc) => ({
-          id: doc.id,
-          data: doc.data(),
-        }))
-      );
-    });
-    return unsubscribe;
-  }, []);
+ useEffect(() => {
+  if (!user || !selectedUser?.id) return;
+
+  const q = query(collection(db, "messages"), orderBy("timestamp"));
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const filteredMessages = snapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        data: doc.data(),
+      }))
+      .filter((msg) => {
+        const from = msg.data.fromId;
+        const to = msg.data.toId;
+
+        return (
+          (from === user && to === selectedUser.uid) ||
+          (from === selectedUser.uid && to === user)
+        );
+      });
+
+    setMessages(filteredMessages);
+  });
+
+  return unsubscribe;
+}, [selectedUser, user]);
+
 useEffect(() => {
   if (bottomRef.current) {
     bottomRef.current.scrollIntoView({ behavior: "smooth" });
@@ -37,8 +51,10 @@ useEffect(() => {
   const sendMessage = async () => {
     if (newMessage.trim() === "") return; // Prevent empty messages
     await addDoc(collection(db, "messages"), {
-     // uid: user.uid,
-      from:localStorage.getItem("username"),
+      fromId: user,
+      fromName: localStorage.getItem("username"),
+      toId: selectedUser.uid,
+      toName: selectedUser.name,
       text: newMessage,
       timestamp: serverTimestamp(),
     });
@@ -61,7 +77,8 @@ useEffect(() => {
    
 <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
   {messages.map((msg) => {
-    const isSender = msg.data.from === user;
+   const isSender = msg.data.fromId === user;
+
 
     return (
       <div

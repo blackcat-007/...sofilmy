@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getFirestore, collection, getDocs, query, where } from 'firebase/firestore';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import ChatSection from './chatsection';
 
 const db = getFirestore();
@@ -8,30 +8,36 @@ const ChatUsers = () => {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState(null); // ✅ You forgot this
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserList, setShowUserList] = useState(true); // 👈 collapse toggle
 
   const fetchUsers = async (searchTerm = '') => {
     setLoading(true);
     try {
+      const currentUserId = localStorage.getItem("userId");
       const usersRef = collection(db, 'users');
-      let q = usersRef;
+      const snapshot = await getDocs(usersRef);
 
-      if (searchTerm.trim()) {
-        const term = searchTerm.trim().toLowerCase();
-        q = query(usersRef, where('name', '>=', term), where('name', '<=', term + '\uf8ff'));
-      }
-
-      const snapshot = await getDocs(q);
-      const userList = snapshot.docs.map(doc => ({
+      let userList = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
       }));
+
+      userList = userList.filter(user => user.uid !== currentUserId);
+
+      if (searchTerm.trim()) {
+        const term = searchTerm.trim().toLowerCase();
+        userList = userList.filter(user =>
+          (user.name && user.name.toLowerCase().includes(term)) ||
+          (user.email && user.email.toLowerCase().includes(term))
+        );
+      }
+
       setUsers(userList);
 
-      // Update selectedUser if user list changes
       if (selectedUserId) {
-        const found = userList.find(u => u.name === selectedUserId);
+        const found = userList.find(u => u.id === selectedUserId);
         setSelectedUser(found || null);
       }
     } catch (error) {
@@ -53,12 +59,31 @@ const ChatUsers = () => {
     const user = users.find(u => u.id === id);
     setSelectedUserId(id);
     setSelectedUser(user || null);
+    setShowUserList(false); // 👈 Hide user list on small screen after selecting
   };
 
   return (
-    <div className="flex flex-row items-start justify-center w-full h-full bg-gray-900 text-white p-4 gap-4">
+    <div className="w-full h-full bg-gray-900 text-white flex flex-col md:flex-row">
+      
+      {/* Collapse toggle button for mobile */}
+      <div className="md:hidden flex justify-between items-center px-4 py-2 bg-black border-b border-gray-700">
+        <h2 className="text-lg font-bold">Chat App</h2>
+        {selectedUser && (
+          <button
+            onClick={() => setShowUserList(!showUserList)}
+            className="bg-green-600 px-3 py-1 rounded text-sm"
+          >
+            {showUserList ? 'Go to Chat' : 'Back to Users'}
+          </button>
+        )}
+      </div>
+
       {/* User List */}
-      <section className="p-4 w-full max-w-sm bg-black rounded-md shadow-lg">
+      <section
+        className={`md:block w-full md:max-w-sm p-4 bg-black shadow-lg md:rounded-md transition-all duration-300 ease-in-out ${
+          showUserList ? 'block' : 'hidden'
+        }`}
+      >
         <form onSubmit={handleSearch} className="mb-4 flex gap-2">
           <input
             type="text"
@@ -99,7 +124,11 @@ const ChatUsers = () => {
       </section>
 
       {/* Chat Section */}
-      <div className="flex-1">
+      <div
+        className={`flex-1 p-4 ${
+          showUserList && !window.matchMedia('(min-width: 768px)').matches ? 'hidden' : 'block'
+        }`}
+      >
         {selectedUser ? (
           <ChatSection selectedUser={selectedUser} />
         ) : (

@@ -1,11 +1,13 @@
 import React, { useState, useContext } from "react";
 import { TailSpin } from "react-loader-spinner";
 import { Link, useNavigate } from "react-router-dom";
-import { query, where, getDocs } from "firebase/firestore";
+import { query, where, getDocs,addDoc } from "firebase/firestore";
 import { usersRef } from "../firebase/firebase";
 import { Appstate } from "../App";
 import bcrypt from "bcryptjs";
 import swal from "sweetalert";
+
+
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -50,8 +52,11 @@ function Login() {
           userFound = true;
           useAppstate.setLogin(true);
           useAppstate.setUsername(_data.name);
+         // useAppstate.setUserId(doc.id);
+
           localStorage.setItem("login", "true");
           localStorage.setItem("username", _data.name);
+          localStorage.setItem("userId", doc.id);
 
           swal({
             title: "Logged In",
@@ -96,8 +101,10 @@ function Login() {
 
       useAppstate.setLogin(true);
       useAppstate.setUsername(user.displayName || "User");
+      //useAppstate.setUserId(user.uid);
       localStorage.setItem("login", "true");
       localStorage.setItem("username", user.displayName || "User");
+      localStorage.setItem("userId", user.uid);
 
       swal({
         title: "Logged In",
@@ -119,24 +126,45 @@ function Login() {
   };
 
   const handleGoogleLogin = async () => {
-    try {
-      setLoading(true);
-      await setPersistence(auth, browserLocalPersistence);
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+  try {
+    setLoading(true);
+    await setPersistence(auth, browserLocalPersistence);
 
-      useAppstate.setLogin(true);
-      useAppstate.setUsername(user.displayName);
-      localStorage.setItem("login", "true");
-      localStorage.setItem("username", user.displayName);
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
 
-      swal("Success", "Logged in with Google", "success");
-      navigate("/");
-    } catch (error) {
-      swal("Error", error.message, "error");
+    // Set app state and localStorage
+    useAppstate.setLogin(true);
+    useAppstate.setUsername(user.displayName);
+    //useAppstate.setUserId(user.uid);
+    localStorage.setItem("login", "true");
+    localStorage.setItem("username", user.displayName);
+    localStorage.setItem("userId", user.uid);
+    localStorage.setItem("accessToken", user.stsTokenManager.accessToken);
+    // Check if user already exists in Firestore
+    const quer = query(usersRef, where("uid", "==", user.uid));
+    const querySnapshot = await getDocs(quer);
+
+    if (querySnapshot.empty) {
+      // If user doesn't exist, add to Firestore
+      await addDoc(usersRef, {
+  uid: user.uid,
+  name: user.displayName,
+  email: user.email,
+  createdAt: new Date(),
+  authProvider: "google",
+});
+
     }
-    setLoading(false);
-  };
+
+    swal("Success", "Logged in with Google", "success");
+    navigate("/");
+  } catch (error) {
+    swal("Error", error.message, "error");
+  }
+  setLoading(false);
+};
+
 
   return (
     <div className="w-full flex flex-col mt-8 items-center">
