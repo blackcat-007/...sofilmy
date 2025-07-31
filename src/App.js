@@ -11,6 +11,7 @@ import { createContext,useState } from 'react';
 import Login from './component/login';
 import Signup from './component/signup';
 import ChatSection from './component/chatsection';
+import ChatUsers from './component/chatusers';
 const Appstate=createContext()
 function App() {
   const[login,setLogin]=useState(false)
@@ -27,7 +28,7 @@ function App() {
         <Route path="/details/:id" element={<Details/>}/>
         <Route path="/login" element={<Login/>}/>
         <Route path="/signup" element={<Signup/>}/>
-        <Route path="/chatsection" element={<ChatSection/>}/>
+        <Route path="/filmychat" element={<ChatUsers/>}/>
         
       
       </Routes>

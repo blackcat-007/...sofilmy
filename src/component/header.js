@@ -12,7 +12,7 @@ function Header() {
   const isLoggedIn = useAppstate.login || localStorage.getItem("login") === "true";
 
   return (
-    <div className="sticky top-0 z-10 bg-black text-red-500 border-b-2 border-cyan-100 px-4 py-3 flex flex-row items-center justify-between gap-2 overflow-x-auto whitespace-nowrap">
+    <div className="sticky top-0 z-20 bg-black text-red-500 border-b-2 border-cyan-100 px-4 py-3 flex flex-row items-center justify-between gap-2 overflow-x-auto whitespace-nowrap">
 
       {/* Logo */}
       <Link to={'/'} className="flex-shrink-0">
@@ -27,7 +27,7 @@ function Header() {
         {isLoggedIn ? (
           <>
             {/* Chat Button */}
-            <Link to={'/chatsection'}>
+            <Link to={'/filmychat'}>
               <div className="relative group">
                 <Button className="hover:bg-slate-900 flex items-center overflow-hidden px-3 py-2">
                   {/* Sliding Text */}
