@@ -106,6 +106,7 @@ function Login() {
       localStorage.setItem("username", user.displayName || "User");
       localStorage.setItem("userId", user.uid);
 
+
       swal({
         title: "Logged In",
         icon: "success",
@@ -141,6 +142,7 @@ function Login() {
     localStorage.setItem("username", user.displayName);
     localStorage.setItem("userId", user.uid);
     localStorage.setItem("accessToken", user.stsTokenManager.accessToken);
+    localStorage.setItem("userImage", user.photoURL);
     // Check if user already exists in Firestore
     const quer = query(usersRef, where("uid", "==", user.uid));
     const querySnapshot = await getDocs(quer);
@@ -150,6 +152,7 @@ function Login() {
       await addDoc(usersRef, {
   uid: user.uid,
   name: user.displayName,
+  image: user.photoURL,
   email: user.email,
   createdAt: new Date(),
   authProvider: "google",

@@ -64,7 +64,7 @@ useEffect(() => {
   return (
     <>
 
-  <div className="relative w-full h-[calc(100vh-5rem)] bg-black text-white flex flex-col">
+  <div className="relative w-full h-[calc(100vh-8rem)] bg-black text-white flex flex-col">
   {/* Background Image */}
   <img
     className="absolute top-0 left-0 w-full h-full object-cover z-0"
@@ -74,10 +74,20 @@ useEffect(() => {
 
   {/* Chat Content */}
   <div className="relative z-10 flex flex-col h-full w-full">
-   
-<div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
-  {messages.map((msg) => {
-   const isSender = msg.data.fromId === user;
+    {/* selectedUser detail */}
+    <div className="p-4 border-b border-white bg-red-700 bg-opacity-80 flex">
+      <img
+        src={selectedUser.image || "/cinephile.png"}
+        alt="User Avatar"
+        className="w-8 h-8 rounded-full mr-2"
+      />
+      <h2 className="text-lg font-semibold">{selectedUser.name}</h2>
+      
+    </div>
+
+    <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
+      {messages.map((msg) => {
+        const isSender = msg.data.fromId === user;
 
 
     return (
@@ -89,7 +99,7 @@ useEffect(() => {
           {/* Avatar (only if NOT sender) */}
           {!isSender && (
             <img
-              src={msg.data.photoURL || ""}
+              src={selectedUser.image || "/cinephile.png"}
               alt="User avatar"
               className="w-6 h-6 rounded-full"
             />
@@ -109,7 +119,7 @@ useEffect(() => {
           {/* Avatar (only if sender) */}
           {isSender && (
             <img
-              src={msg.data.photoURL || ""}
+              src={localStorage.getItem("userImage") || "/cinephile.png"}
               alt="User avatar"
               className="w-6 h-6 rounded-full"
             />
@@ -134,10 +144,13 @@ useEffect(() => {
         placeholder="Type a message"
       />
       <button
-        className="ml-2 text-white bg-green-600 w-16 h-10 border rounded-3xl"
+        className="ml-2 text-white bg-green-600 w-20 h-10 "
         onClick={sendMessage}
+        style={{
+          clipPath: "polygon(10% 0%, 90% 0%, 100% 16%, 89% 34%, 100% 51%, 89% 70%, 100% 85%, 90% 100%, 10% 100%, 0% 85%, 11% 70%, 0% 51%, 11% 34%, 0% 16%, 10% 0%    /* close at top-left inward again */)"
+        }}
       >
-        Send
+        <span className="border-x-2 border-white py-4 px-2 ">Send</span>
       </button>
     </div>
   </div>
