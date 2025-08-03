@@ -89,8 +89,9 @@ const ChatUsers = () => {
             type="text"
             placeholder="Search users..."
             value={search}
+            
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-grow px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+            className="flex-grow px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300 text-black "
           />
           <button
             type="submit"
