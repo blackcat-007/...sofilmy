@@ -12,6 +12,8 @@ import Login from './component/login';
 import Signup from './component/signup';
 import ChatSection from './component/chatsection';
 import ChatUsers from './component/chatusers';
+import Profile from './component/profile';
+import Sidebar from './component/sidebar';
 const Appstate=createContext()
 function App() {
   const[login,setLogin]=useState(false)
@@ -21,6 +23,7 @@ function App() {
     <div className="App relative">
       
       <Header/>
+      <Sidebar/>
       <Routes>
 
         <Route path="/" element={<SecondBar/>}/>
@@ -29,6 +32,7 @@ function App() {
         <Route path="/login" element={<Login/>}/>
         <Route path="/signup" element={<Signup/>}/>
         <Route path="/filmychat" element={<ChatUsers/>}/>
+        <Route path="/profile" element={<Profile/>}/>
         
       
       </Routes>
