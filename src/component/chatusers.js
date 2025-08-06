@@ -86,7 +86,7 @@ const ChatUsers = () => {
   };
 
   return (
-    <div className="w-full h-full bg-gray-900 text-white flex flex-col md:flex-row">
+    <div className="w-auto h-full  bg-gray-900 text-white flex flex-col md:flex-row ml-11">
       
       {/* Mobile Top Bar */}
       <div className="md:hidden flex justify-between items-center px-4 py-2 bg-black border-b border-gray-700">

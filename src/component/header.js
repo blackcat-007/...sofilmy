@@ -75,8 +75,7 @@ function Header() {
               </div>
             </Link>
 
-            {/* Logout */}
-            <Logout1 />
+           
           </>
         ) : (
           <Link to={'/login'}>
