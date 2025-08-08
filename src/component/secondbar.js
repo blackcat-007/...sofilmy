@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Analysis from "./analysis";
 import MovieLists from "./movielists";
 import NewReleases from "./newreleases";
-
+import { ToastContainer, toast } from 'react-toastify';
 const options = [
     { label: "Analysis", value: "analysis" },
     { label: "Movie Lists", value: "movielists" },
@@ -11,7 +11,7 @@ const options = [
 
 export default function SecondBar() {
     const [selected, setSelected] = useState("analysis");
-
+    const notify = () => toast("Feature coming soon!");
     const renderComponent = () => {
         switch (selected) {
             case "analysis":
@@ -35,7 +35,11 @@ export default function SecondBar() {
         {options.map((option) => (
           <button
             key={option.value}
-            onClick={() => setSelected(option.value)}
+            onClick={() => {
+              // Notify for new releases and movie lists
+              if (option.value === "newreleases" || option.value === "movielists") notify();
+              else setSelected(option.value);
+            }}
             className={`text-white font-semibold text-lg transition-colors ${
               selected === option.value
                 ? "text-red-500 border-b-2 border-red-500"
@@ -44,7 +48,15 @@ export default function SecondBar() {
           >
             {option.label}
           </button>
+         
         ))}
+       <ToastContainer position="top-right"  autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover toastStyle={{ backgroundColor: "black", color: "white",
+  }}
+  progressStyle={{
+    background: "linear-gradient(to right, red, green)",
+  }}
+/>
+
       </div>
 
       {/* 🔍 Search Bar - Right Side */}

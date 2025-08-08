@@ -19,6 +19,7 @@
     "react-router-dom": "^6.26.0",
     "react-scripts": "^5.0.1",
     "react-stars": "^2.2.5",
+    "react-toastify": "^11.0.5",
     "sweet-alert": "^2.0.5",
     "sweetalert": "^2.1.2",
     "web-vitals": "^2.1.4"
