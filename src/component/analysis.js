@@ -6,7 +6,7 @@ import { moviesRef } from '../firebase/firebase';
 import {Link} from "react-router-dom";
 
 
-function Cards() {
+function Analysis() {
     const [datas,setData]=useState([]);
     const[loading , setloader]=useState(false);
     useEffect(()=>{
@@ -55,4 +55,4 @@ function Cards() {
     )}
 
 
-export default Cards
+export default Analysis;

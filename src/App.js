@@ -3,7 +3,7 @@ import './App.css';
 import Header from "./component/header";
 import Footer from "./component/footer";
 import SecondBar from "./component/secondbar";
-import Cards from "./component/cards";
+import Analysis from "./component/analysis";
 import {Routes,Route} from "react-router-dom";
 import Addmovies from "./component/addmovies";
 import Details from "./component/details";
@@ -14,6 +14,7 @@ import ChatSection from './component/chatsection';
 import ChatUsers from './component/chatusers';
 import Profile from './component/profile';
 import Sidebar from './component/sidebar';
+import Home from './component/home';
 const Appstate=createContext()
 function App() {
   const[login,setLogin]=useState(false)
@@ -23,10 +24,11 @@ function App() {
     <div className="App relative">
       
       <Header/>
-      <Sidebar/>
+      {/* <Sidebar/> */}
       <Routes>
 
-        <Route path="/" element={<SecondBar/>}/>
+        <Route path="/" element={<Home/>}/>
+       
         <Route path="/addmovies" element={<Addmovies/>}/>
         <Route path="/details/:id" element={<Details/>}/>
         <Route path="/login" element={<Login/>}/>

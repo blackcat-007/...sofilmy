@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Cards from "./cards";
+import Analysis from "./analysis";
 import MovieLists from "./movielists";
 import NewReleases from "./newreleases";
 
@@ -15,7 +15,7 @@ export default function SecondBar() {
     const renderComponent = () => {
         switch (selected) {
             case "analysis":
-                return <Cards />;
+                return <Analysis />;
             case "movielists":
                 return <MovieLists />;
             case "newreleases":
@@ -27,7 +27,7 @@ export default function SecondBar() {
 
     return (
        <div>
-  <div className="fixed top-[4.5rem] left-0 w-full z-50">
+  <div className="fixed top-[4.5rem] left-0 w-full z-10">
     <div className="backdrop-blur bg-black/70 flex items-center justify-between px-6 py-3">
       
       {/* 🔘 Option Buttons - Left Side */}
@@ -69,8 +69,8 @@ export default function SecondBar() {
 
   {/* Your main content */}
   <div className="mt-16 px-6">
-    {/* {renderComponent()} */}
-    <Cards />
+     {renderComponent()}
+   
   </div>
 </div>
 
