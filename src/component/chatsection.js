@@ -144,14 +144,18 @@ useEffect(() => {
         placeholder="Type a message"
       />
       <button
-        className="ml-2 text-white bg-green-600 w-20 h-10 "
-        onClick={sendMessage}
-        style={{
-          clipPath: "polygon(10% 0%, 90% 0%, 100% 16%, 89% 34%, 100% 51%, 89% 70%, 100% 85%, 90% 100%, 10% 100%, 0% 85%, 11% 70%, 0% 51%, 11% 34%, 0% 16%, 10% 0%    /* close at top-left inward again */)"
-        }}
-      >
-        <span className="border-x-2 border-white py-4 px-2 ">Send</span>
-      </button>
+  className="ml-2 text-white bg-green-600 w-20 h-10 flex justify-center items-center"
+  onClick={sendMessage}
+  style={{
+    clipPath:
+      "polygon(10% 0%, 90% 0%, 100% 16%, 89% 34%, 100% 51%, 89% 70%, 100% 85%, 90% 100%, 10% 100%, 0% 85%, 11% 70%, 0% 51%, 11% 34%, 0% 16%, 10% 0%)",
+  }}
+>
+  <span className="border-x-2 py-4 px-2 border-white border-dashed flex justify-center items-center">
+    Send
+  </span>
+</button>
+
     </div>
   </div>
 </div>
