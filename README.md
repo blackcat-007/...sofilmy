@@ -9,7 +9,7 @@
 <h1 align="center">SoFilmy</h1>
 
 <p align="center">
-  <em>A community-driven platform for movie lovers to share thoughts, rate analysis, and connect through film discussions.</em>
+  <em> "Sofilmy – Where every cinephile’s reel meets for real! From mood-based picks to epic debates, lights, camera… connect!" 🎥</em>
 </p>
 
 <hr />
