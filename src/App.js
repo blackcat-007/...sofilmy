@@ -15,6 +15,7 @@ import ChatUsers from './component/chatusers';
 import Profile from './component/profile';
 import Sidebar from './component/sidebar';
 import Home from './component/home';
+import FindPeople from './component/findpeople';
 const Appstate=createContext()
 function App() {
   const[login,setLogin]=useState(false)
@@ -35,8 +36,8 @@ function App() {
         <Route path="/signup" element={<Signup/>}/>
         <Route path="/filmychat" element={<ChatUsers/>}/>
         <Route path="/profile" element={<Profile/>}/>
-        
-      
+        <Route path="/findpeople" element={<FindPeople/>}/>
+
       </Routes>
       
 

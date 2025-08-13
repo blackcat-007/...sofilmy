@@ -12,10 +12,9 @@ const Profileicon = () => (
 
 </Link>
  <div className="flex flex-col items-center p-3 text-white text-xs">
-  
+  <Link to="/findpeople">
     <PersonAddAltTwoToneIcon className="text-white text-5xl" />
-  
-  
+</Link>
 </div>
 </div>
 );
