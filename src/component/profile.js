@@ -47,18 +47,34 @@ const Profile = () => {
      if (!userData) return <div className="text-center py-8 text-red-500">User not found.</div>;
 
     return (
-        <div className="max-w-md mx-auto mt-10 p-6 bg-slate-600 shadow-md rounded-md text-center">
-            <img
-                src={userData.photoURL}
-                alt="Profile"
-                className="w-24 h-24 mx-auto rounded-full border border-gray-300 mb-4"
-            />
-            <h2 className="text-xl font-semibold">{userData.name}</h2>
-            <p className="text-gray-600">{userData.email}</p>
-            <p className="text-sm text-gray-400 mt-2">Joined on {new Date(userData.createdAt).toLocaleDateString()}</p>
-             {/* Logout */}
-                        <Logout1 />
-        </div>
+        <div className="max-w-md mx-auto mt-10 p-6 bg-gradient-to-br from-[#1a1a1a] to-[#141414] border border-gray-800 rounded-xl shadow-lg text-center">
+    {/* Profile Image */}
+    <img
+        src={userData.photoURL || "/default-avatar.png"}
+        alt="Profile"
+        className="w-24 h-24 mx-auto rounded-full object-cover border-4 border-[#00ff99] shadow-md mb-4"
+    />
+
+    {/* Name */}
+    <h2 className="text-2xl font-bold text-white">{userData.name}</h2>
+
+    {/* Email */}
+    <p className="text-gray-400 text-sm">{userData.email}</p>
+
+    {/* Joined Date */}
+    <p className="text-sm text-[#00ff99] mt-2">
+        Joined on {new Date(userData.createdAt).toLocaleDateString()}
+    </p>
+
+    {/* Divider */}
+    <div className="my-4 border-t border-gray-700"></div>
+
+    {/* Logout Button */}
+    <div className="flex justify-center">
+        <Logout1 className="bg-[#ff4d4d] hover:bg-red-600 text-white px-6 py-2 rounded-lg shadow-md transition-all" />
+    </div>
+</div>
+
     );
 };
 
