@@ -7,8 +7,8 @@
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^5.16.6",
     "@mui/material": "^5.16.6",
-    "@react-three/drei": "^9.92.6",
-    "@react-three/fiber": "^8.15.14",
+    "@react-three/drei": "^9.56.3",
+    "@react-three/fiber": "^8.13.7",
     "@react-three/postprocessing": "^2.15.10",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -28,7 +28,7 @@
     "react-toastify": "^11.0.5",
     "sweet-alert": "^2.0.5",
     "sweetalert": "^2.1.2",
-    "three": "^0.160.1",
+    "three": "^0.154.0",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

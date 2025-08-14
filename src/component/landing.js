@@ -2,6 +2,8 @@ import React, { Suspense, useRef } from "react";
 import { motion } from "framer-motion";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Environment, OrbitControls, useGLTF, Sparkles } from "@react-three/drei";
+import { useEffect } from "react";
+
 import {
   Film as FilmIcon,
   Users,
@@ -68,8 +70,11 @@ function PopcornModel(props) {
   });
   return (
     <Float speed={1.2} rotationIntensity={0.2} floatIntensity={0.6}>
-      <primitive ref={ref} object={scene} {...props} />
-    </Float>
+  <group ref={ref}>
+    <primitive object={scene} {...props} />
+  </group>
+</Float>
+
   );
 }
 
@@ -80,7 +85,7 @@ function Scene() {
     <Canvas
       dpr={[1, 2]}
       camera={{ position: [0, 1.2, 4.2], fov: 45 }}
-      className="absolute inset-0 -z-10"
+      className="absolute inset-0 "
       shadows
     >
       {/* Lights */}
@@ -95,13 +100,15 @@ function Scene() {
       </mesh>
 
       {/* Elements */}
-      <Suspense fallback={null}>
+      <Suspense fallback={<mesh><boxGeometry /><meshBasicMaterial color="hotpink" /></mesh>}>
         <group position={[0, -0.2, 0]}> 
           <FilmReel position={[-1.6, 0.1, 0]} />
           <PopcornModel scale={0.9} position={[1.4, -0.1, 0]} />
         </group>
         <Sparkles count={60} scale={[6, 2, 2]} size={1.5} speed={0.25} opacity={0.3} color="#ffffff" />
-        <Environment preset="studio" />
+        <ambientLight intensity={0.5} />
+<directionalLight position={[10, 10, 5]} intensity={1.5} />
+
       </Suspense>
 
       {/* For debugging while designing, can toggle controls */}
@@ -174,8 +181,9 @@ function Landing() {
       }}
     >
       {/* 3D Canvas Background */}
+      
       <Scene />
-
+     
       {/* Subtle grid overlay for texture */}
       <div
         aria-hidden
