@@ -11,7 +11,7 @@ const options = [
 
 export default function SecondBar() {
     const [selected, setSelected] = useState("analysis");
-    const notify = () => toast("Feature coming soon!");
+    const notify = () => toast("Feature coming soon!🍿🎞️ 🎥");
     const renderComponent = () => {
         switch (selected) {
             case "analysis":

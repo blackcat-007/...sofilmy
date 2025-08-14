@@ -5,6 +5,7 @@ import {
   getDocs
 } from "firebase/firestore";
 import { Link } from "react-router-dom";
+import Sidebar from "./sidebar";
 
 const db = getFirestore();
 
@@ -94,6 +95,7 @@ function FindPeople() {
           </li>
         ))}
       </ul>
+      <Sidebar />
     </div>
   );
 }

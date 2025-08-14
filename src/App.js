@@ -16,6 +16,7 @@ import Profile from './component/profile';
 import Sidebar from './component/sidebar';
 import Home from './component/home';
 import FindPeople from './component/findpeople';
+import Landing from './component/landing';
 const Appstate=createContext()
 function App() {
   const[login,setLogin]=useState(false)
@@ -29,7 +30,7 @@ function App() {
       <Routes>
 
         <Route path="/" element={<Home/>}/>
-       
+      
         <Route path="/addmovies" element={<Addmovies/>}/>
         <Route path="/details/:id" element={<Details/>}/>
         <Route path="/login" element={<Login/>}/>
@@ -37,7 +38,7 @@ function App() {
         <Route path="/filmychat" element={<ChatUsers/>}/>
         <Route path="/profile" element={<Profile/>}/>
         <Route path="/findpeople" element={<FindPeople/>}/>
-
+        <Route path="/landing" element={<Landing/>}/>
       </Routes>
       
 

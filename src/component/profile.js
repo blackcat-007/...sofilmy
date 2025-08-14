@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import Logout1 from './logout';
+import Sidebar from './sidebar';
 const Profile = () => {
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -73,6 +74,7 @@ const Profile = () => {
     <div className="flex justify-center">
         <Logout1 className="bg-[#ff4d4d] hover:bg-red-600 text-white px-6 py-2 rounded-lg shadow-md transition-all" />
     </div>
+    <Sidebar />
 </div>
 
     );
