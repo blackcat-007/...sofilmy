@@ -17,6 +17,8 @@ import Sidebar from './component/sidebar';
 import Home from './component/home';
 import FindPeople from './component/findpeople';
 import Landing from './component/landing';
+
+
 const Appstate=createContext()
 function App() {
   const[login,setLogin]=useState(false)
@@ -39,6 +41,9 @@ function App() {
         <Route path="/profile" element={<Profile/>}/>
         <Route path="/findpeople" element={<FindPeople/>}/>
         <Route path="/landing" element={<Landing/>}/>
+         
+              
+
       </Routes>
       
 

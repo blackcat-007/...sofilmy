@@ -1,4 +1,4 @@
-import React, { Suspense, useRef } from "react";
+import React, { Suspense, useRef,useState } from "react";
 import { motion } from "framer-motion";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Environment, OrbitControls, useGLTF, Sparkles } from "@react-three/drei";
@@ -16,6 +16,7 @@ import {
   Clapperboard,
 } from "lucide-react";
 import Footer from "./footer";
+import SoFilmyHero from "./sofilmyhero";
 
 // ----- 3D ELEMENTS -----
 function FilmReel(props) {
@@ -58,9 +59,9 @@ function FilmReel(props) {
   );
 }
 
-function PopcornModel(props) {
-  // Replace the src below with your hosted GLB path, e.g. "/models/popcorn.glb"
-  const { scene } = useGLTF("/models/popcorn.glb", true);
+function FilmCameraModel(props) {
+  // Replace the src below with your hosted GLB path, e.g. "/models/filmclapper.glb"
+  const { scene } = useGLTF("/models/filmclapper.glb", true);
   const ref = useRef();
   useFrame((state) => {
     if (!ref.current) return;
@@ -78,16 +79,117 @@ function PopcornModel(props) {
   );
 }
 
+useGLTF.preload && useGLTF.preload("/models/filmclapper.glb");
+
+function PopcornModel(props) {
+  const { scene } = useGLTF("/models/popcorn.glb", true);
+  const ref = useRef();
+
+  // Store last pointer position
+  const [lastX, setLastX] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Auto float animation
+  useFrame((state) => {
+    if (!ref.current) return;
+    if (!isDragging) { // Only float when not dragging
+      const t = state.clock.getElapsedTime();
+      ref.current.rotation.y += 0.001; // Slow auto spin
+      ref.current.position.y = Math.sin(t * 0.8) * 0.06;
+    }
+  });
+
+  const handlePointerDown = (e) => {
+    e.stopPropagation();
+    setIsDragging(true);
+    setLastX(e.clientX || e.touches?.[0]?.clientX);
+  };
+
+  const handlePointerUp = () => {
+    setIsDragging(false);
+    setLastX(null);
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isDragging) return;
+    const x = e.clientX || e.touches?.[0]?.clientX;
+    const deltaX = x - lastX;
+    if (ref.current) {
+      ref.current.rotation.y += deltaX * 0.005; // Sensitivity
+    }
+    setLastX(x);
+  };
+
+  return (
+    <Float speed={1.2} rotationIntensity={0.2} floatIntensity={0.6}>
+      <group
+        ref={ref}
+        {...props}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerMove={handlePointerMove}
+        onPointerOut={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onTouchStart={handlePointerDown}
+        onTouchEnd={handlePointerUp}
+        onTouchMove={handlePointerMove}
+      >
+        <primitive object={scene} />
+      </group>
+    </Float>
+  );
+}
+
 useGLTF.preload && useGLTF.preload("/models/popcorn.glb");
 
-function Scene() {
+
+
+{/*function Scene() {
   return (
     <Canvas
       dpr={[1, 2]}
       camera={{ position: [0, 1.2, 4.2], fov: 45 }}
-      className="absolute inset-0 "
+      className="absolute inset-0 z-10 h-[20rem] w-full bg-black mt-10"
       shadows
     >
+      {/* Lights 
+      <ambientLight intensity={0.25} />
+      <directionalLight position={[4, 6, 3]} intensity={1.2} castShadow color="#34d399" />
+      <directionalLight position={[-6, 3, -2]} intensity={0.6} color="#ef4444" />
+
+      {/* Ground subtle 
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.1, 0]} receiveShadow>
+        <planeGeometry args={[40, 40]} />
+        <shadowMaterial opacity={0.25} />
+      </mesh>
+
+      {/* Elements */
+      /*<Suspense fallback={<mesh><boxGeometry /><meshBasicMaterial color="hotpink" /></mesh>} >
+        <group position={[0, -0.2, 0]} scale={1.2} >
+          <FilmReel scale={1} position={[-1.6, 0.1, 0]} />
+          <FilmCameraModel scale={0.5} position={[0.8, 0.1, 1.5]} />
+        </group>
+        <Sparkles count={3000} scale={[20, 8, 8]} size={4.5} speed={0.25} opacity={0.3} color="#ffffff" />
+        <ambientLight intensity={0.5} />
+<directionalLight position={[10, 10, 5]} intensity={1.5} />
+
+      </Suspense>
+
+      {/* For debugging while designing, can toggle controls
+      {/* <OrbitControls makeDefault /> 
+    </Canvas>
+  );
+}
+*/}
+function TouchScene() {
+  return (
+    <div className="w-[100px] aspect-square mx-auto ">
+  <Canvas
+    dpr={[1, 2]}
+    camera={{ position: [0, 1.2, 4.2], fov: 45 }}
+    className="absolute inset-0 z-10"
+    shadows
+  >
       {/* Lights */}
       <ambientLight intensity={0.25} />
       <directionalLight position={[4, 6, 3]} intensity={1.2} castShadow color="#34d399" />
@@ -100,12 +202,12 @@ function Scene() {
       </mesh>
 
       {/* Elements */}
-      <Suspense fallback={<mesh><boxGeometry /><meshBasicMaterial color="hotpink" /></mesh>}>
-        <group position={[0, -0.2, 0]}> 
-          <FilmReel position={[-1.6, 0.1, 0]} />
-          <PopcornModel scale={0.9} position={[1.4, -0.1, 0]} />
+      <Suspense fallback={<mesh><boxGeometry /><meshBasicMaterial color="hotpink" /></mesh>} >
+        <group position={[0, -0.2, 0]} scale={1.2} >
+         
+          <PopcornModel scale={5.5} position={[0, -0.1, 0]} />
         </group>
-        <Sparkles count={60} scale={[6, 2, 2]} size={1.5} speed={0.25} opacity={0.3} color="#ffffff" />
+        
         <ambientLight intensity={0.5} />
 <directionalLight position={[10, 10, 5]} intensity={1.5} />
 
@@ -114,7 +216,8 @@ function Scene() {
       {/* For debugging while designing, can toggle controls */}
       {/* <OrbitControls makeDefault /> */}
     </Canvas>
-  );
+  </div> 
+  )
 }
 
 // ----- UI ANIM HELPERS -----
@@ -171,7 +274,7 @@ const FeatureCard = ({ title, desc, Icon, i }) => (
 function Landing() {
   return (
     <div
-      className="relative min-h-screen w-full overflow-hidden bg-[#0b0f0c] text-white "
+      className="relative min-h-screen w-full overflow-hidden  text-white  bg-transparent z-10"
       onMouseMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         const x = ((e.clientX - r.left) / r.width) * 100;
@@ -181,29 +284,24 @@ function Landing() {
       }}
     >
       {/* 3D Canvas Background */}
-      
-      <Scene />
-     
+      <motion.div className="absolute inset-0 z-0">
+      <SoFilmyHero />
+      </motion.div>
+      {/* <Scene />*/}
+
       {/* Subtle grid overlay for texture */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:48px_48px] -z-10"
-      />
+     <div
+  aria-hidden
+  className="pointer-events-none absolute inset-0 
+    bg-[linear-gradient(rgba(139,0,0,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(0,100,0,0.6)_1px,transparent_1px)] 
+    bg-[size:48px_48px] z-0"
+/>
 
       {/* Navbar */}
+      <section className="relative z-10 mt-96 top-2">
       <header className="relative z-10 top-0">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-b from-green-700 to-green-600 shadow-lg">
-              <PopcornIcon className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <span className="block bg-gradient-to-b from-red-400 to-red-600 bg-clip-text text-2xl font-extrabold tracking-tight text-transparent">
-                ...So<span className=" bg-gradient-to-b from-gray-400 to-white bg-clip-text text-2xl font-extrabold tracking-tight text-transparent">Filmy</span>
-              </span>
-              <span className="text-xs text-zinc-400">Cinephile Club</span>
-            </div>
-          </div>
+          
 
           <div className="hidden items-center gap-6 md:flex">
             <a href="#features" className="text-sm text-zinc-300 hover:text-white">Features</a>
@@ -211,21 +309,7 @@ function Landing() {
             <a href="#community" className="text-sm text-zinc-300 hover:text-white">Community</a>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Monochrome gradients only */}
-            <button
-              onClick={onLogin}
-              className="rounded-xl bg-gradient-to-b from-red-700 to-red-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_6px_24px_rgba(239,68,68,0.35)] hover:from-red-600 hover:to-red-500"
-            >
-              Log in
-            </button>
-            <button
-              onClick={onSignup}
-              className="rounded-xl bg-gradient-to-b from-green-700 to-green-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_6px_24px_rgba(34,197,94,0.35)] hover:from-green-600 hover:to-green-500"
-            >
-              Sign up
-            </button>
-          </div>
+          
         </nav>
       </header>
 
@@ -233,15 +317,17 @@ function Landing() {
       <section className="relative z-10 mx-auto max-w-7xl px-6 pt-12 pb-24 md:pt-16">
         <div className="grid items-center gap-12 md:grid-cols-2">
           <div>
+            <div className="flex *:items-center gap-3 mb-4">
+              <TouchScene />
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7 }}
               className="text-balance text-4xl font-extrabold leading-tight md:text-6xl"
             >
-              Meet, discuss, and <span className="bg-gradient-to-b from-green-400 to-green-600 bg-clip-text text-transparent">live movies</span>.
+              <div> Meet, discuss, and <span className="bg-gradient-to-b from-green-400 to-green-600 bg-clip-text text-transparent">live movies</span>.</div>
             </motion.h1>
-
+            </div>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -282,6 +368,7 @@ function Landing() {
                 <span>"Where every cinephile’s reel meets for real! From mood-based picks to epic debates, lights, camera… connect!"</span>
               </div>
             </motion.div>
+           
           </div>
 
           {/* Mock preview card stack */}
@@ -415,6 +502,57 @@ function Landing() {
           ))}
         </div>
       </section>
+      {/* SCROLL CARDS — cinematic poster peeks */}
+<section className="py-16 px-6">
+  <div className="max-w-6xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+    >
+      <h3 className="text-2xl font-bold">Spotlight Picks</h3>
+      <p className="text-gray-400 mt-2">
+        A scrolling parade of posters with reveal animations — swipe or scroll.
+      </p>
+    </motion.div>
+
+    {/* Horizontal scroll container */}
+    <div
+      className="mt-8 -mx-6 px-6 py-4 overflow-x-auto overflow-y-hidden no-scrollbar"
+      style={{
+        WebkitOverflowScrolling: "touch", // smooth iOS scrolling
+        scrollSnapType: "x mandatory",    // snap to cards
+      }}
+    >
+      <div className="flex gap-6">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <motion.div
+            key={i}
+            whileHover={{ y: -8, scale: 1.03 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: i * 0.06 }}
+            className="min-w-[220px] md:min-w-[260px] bg-[#0f0f10] rounded-xl shadow-lg border border-gray-800 overflow-hidden scroll-snap-align-start"
+          >
+            {/* Poster placeholder */}
+            <div className="h-[320px] md:h-[380px] bg-gradient-to-b from-gray-800 to-black flex items-end">
+              <div className="p-4">
+                <div className="text-sm text-gray-400">2024</div>
+                <div className="text-lg font-semibold mt-1">Cinephile Pick {i + 1}</div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-800 flex items-center justify-between">
+              <div className="text-sm text-gray-300">by Critic-ish</div>
+              <div className="text-xs text-gray-400">Mood: melancholic</div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* Community CTA */}
       <section id="community" className="relative z-10 mx-auto max-w-7xl px-6 pb-28">
@@ -448,7 +586,9 @@ function Landing() {
           <div className="pointer-events-none absolute -right-40 -top-40 h-80 w-80 rotate-12 rounded-3xl bg-gradient-to-b from-red-600/20 to-green-600/20 blur-2xl" />
         </motion.div>
       </section>
+      
 
+</section>
       {/* Footer */}
       
         <Footer />

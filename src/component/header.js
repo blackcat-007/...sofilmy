@@ -16,9 +16,10 @@ function Header() {
 
       {/* Logo */}
       <Link to={'/'} className="flex-shrink-0">
-        <span className="text-2xl sm:text-3xl font-bold">
-          ...So<span className="text-white">Filmy</span>
-        </span>
+        <span className="block bg-gradient-to-b from-red-400 to-red-600 bg-clip-text text-2xl font-extrabold tracking-tight text-transparent">
+                ...So<span className=" bg-gradient-to-b from-gray-400 to-white bg-clip-text text-2xl font-extrabold tracking-tight text-transparent">Filmy</span>
+              </span>
+              <span className="text-xs text-zinc-400">Cinephile Club</span>
       </Link>
 
       {/* Buttons */}
