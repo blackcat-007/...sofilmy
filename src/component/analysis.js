@@ -24,7 +24,7 @@ function Analysis() {
      getData()
     },[])
   return (
-   <div className="grid grid-cols-1 md:grid-cols-4 gap-10 px-3 mt-4 sm:mx-5">
+   <div className="grid grid-cols-1 md:grid-cols-4 gap-10 px-3 sm:mt-4 mt-24 sm:mx-5">
   {loading ? (
     <div className="col-span-full flex justify-center items-center min-h-screen">
       <BallTriangle height={70} width={70} radius={5} color="#4fa94d" ariaLabel="ball-triangle-loading" />

@@ -47,7 +47,7 @@ const Profile = () => {
     if (loading) return <div className="text-center py-8 text-gray-500">Loading...</div>;
      if (!userData) return <div className="text-center py-8 text-red-500">User not found.</div>;
 
-    return (
+    return (<>
         <div className="max-w-md mx-auto mt-10 p-6 bg-gradient-to-br from-[#1a1a1a] to-[#141414] border border-gray-800 rounded-xl shadow-lg text-center">
     {/* Profile Image */}
     <img
@@ -74,9 +74,10 @@ const Profile = () => {
     <div className="flex justify-center">
         <Logout1 className="bg-[#ff4d4d] hover:bg-red-600 text-white px-6 py-2 rounded-lg shadow-md transition-all" />
     </div>
-    <Sidebar />
+    
 </div>
-
+<Sidebar />
+</>
     );
 };
 

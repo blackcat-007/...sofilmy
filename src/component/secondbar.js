@@ -27,7 +27,7 @@ export default function SecondBar() {
 
     return (
        <div>
-  <div className="fixed top-[4.5rem] left-0 w-full z-10">
+  <div className="fixed top-[4.5rem] left-0 w-full z-10 mt-7">
     <div className="backdrop-blur bg-black/70 flex items-center justify-between px-6 py-3">
       
       {/* 🔘 Option Buttons - Left Side */}

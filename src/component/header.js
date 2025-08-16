@@ -6,26 +6,30 @@ import { Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { Appstate } from "../App";
 import Logout1 from "./logout";
+import AnimatedSubtitle from "./subtitle";
 
 function Header() {
-  const useAppstate = useContext(Appstate);
-  const isLoggedIn = useAppstate.login || localStorage.getItem("login") === "true";
+   const { login, username } = useContext(Appstate);
 
   return (
     <div className="sticky top-0 z-20 bg-black text-red-500 border-b-2 border-cyan-100 px-4 py-3 flex flex-row items-center justify-between gap-2 overflow-x-auto whitespace-nowrap">
 
       {/* Logo */}
+     < div className="flex flex-col">
       <Link to={'/'} className="flex-shrink-0">
-        <span className="block bg-gradient-to-b from-red-400 to-red-600 bg-clip-text text-2xl font-extrabold tracking-tight text-transparent">
-                ...So<span className=" bg-gradient-to-b from-gray-400 to-white bg-clip-text text-2xl font-extrabold tracking-tight text-transparent">Filmy</span>
-              </span>
-              <span className="text-xs text-zinc-400">Cinephile Club</span>
-      </Link>
+        <span className="block bg-gradient-to-b from-red-400 to-red-600 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+                ...So<span className=" bg-gradient-to-b from-gray-400 to-white bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">Filmy</span><AnimatedSubtitle />
 
+              </span>
+              
+      </Link>
+      
+{login ? (<span className=" md:ml-2 text-xs  ">Welcome, {username} 👋</span>) : null}
+</div>
       {/* Buttons */}
       <div className="flex flex-row items-center gap-2 sm:gap-4 ml-auto flex-wrap">
 
-        {isLoggedIn ? (
+        {login ? (
           <>
             {/* Chat Button */}
             <Link to={'/filmychat'}>

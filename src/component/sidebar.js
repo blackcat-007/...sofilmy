@@ -21,7 +21,7 @@ const Profileicon = () => (
 
 const Sidebar = () => {
   return (
-    <div className="fixed bg-black shadow-lg flex items-center justify-center z-50 pt-4 sm:top-32 sm:left-0 sm:flex-col sm:w-12 sm:h-screen bottom-0 w-full h-16  sm:border-r-2 border-red-500 border-t-2">
+    <div className="fixed bg-black shadow-lg flex items-center justify-center z-50 pt-4  sm:top-44 sm:left-0 sm:flex-col sm:w-12 sm:h-screen bottom-0 w-full h-16  sm:border-r-2 border-red-500 border-t-2">
       <Profileicon />
       {/* Add more icons here */}
 </div>

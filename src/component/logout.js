@@ -5,9 +5,13 @@ function Logout1() {
     const handleLogout = () => {
         if (window.confirm('Are you sure you want to log out?')) {
             localStorage.removeItem('username');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userImage');
+            localStorage.removeItem('accessToken');
+            
             localStorage.setItem('login', 'false');
             // Optionally redirect to login page or home
-            window.location.href = '/login';
+            window.location.href = '/';
         }
     };
 

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect,Suspense ,useMemo} from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, OrbitControls,Text,useGLTF } from "@react-three/drei";
+import { Canvas, useFrame,useLoader } from "@react-three/fiber";
+import { Float, OrbitControls,Text,useGLTF,useTexture,Sparkles } from "@react-three/drei";
 import { motion } from "framer-motion";
 import { EffectComposer, Bloom, Noise, Vignette } from "@react-three/postprocessing";
 import * as THREE from "three";
@@ -66,38 +66,50 @@ function Clapper({ position, color }) {
 }
 
 // ---------- Ticket ----------
-function Ticket({ position, color }) {
+function Ticket({ position, textureUrl = "/images/ticket.png" }) {
   const mesh = useRef();
-useFrame((state) => {
-  const meshRef = mesh.current;
-  if (!meshRef) return;
 
-  const geom = meshRef.geometry;
-  if (!geom) return;
+  // Load ticket image texture
+  const texture = useLoader(THREE.TextureLoader, textureUrl);
 
-  const posAttr = geom.attributes?.position;
-  if (!posAttr?.array) return; // <- 🔒 ultimate guard
+  // Make sure texture covers the whole plane
+  texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.repeat.set(1, 1);
 
-  const positions = posAttr.array;
-  const time = state.clock.getElapsedTime();
+  useFrame((state) => {
+    const meshRef = mesh.current;
+    if (!meshRef) return;
 
-  for (let i = 0; i < positions.length; i += 3) {
-    const x = positions[i];
-    positions[i + 2] = Math.sin(time * 2 + x * 2) * 0.2;
-  }
-  posAttr.needsUpdate = true;
-});
+    const geom = meshRef.geometry;
+    if (!geom) return;
+
+    const posAttr = geom.attributes?.position;
+    if (!posAttr?.array) return;
+
+    const positions = posAttr.array;
+    const time = state.clock.getElapsedTime();
+
+    for (let i = 0; i < positions.length; i += 3) {
+      const x = positions[i];
+      positions[i + 2] = Math.sin(time * 2 + x * 2) * 0.2;
+    }
+    posAttr.needsUpdate = true;
+  });
 
   return (
     <Float speed={1.5}>
       <mesh ref={mesh} position={position}>
-        <boxGeometry args={[2, 1, 0.05]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} />
+        {/* Plane for ticket */}
+        <planeGeometry args={[2, 1]} />
+        <meshStandardMaterial
+          map={texture}
+           side={THREE.DoubleSide}   // 👈 renders both front & back
+          transparent={true}
+        />
       </mesh>
     </Float>
   );
 }
-
 // ---------- Realistic Film Strip ----------
 function FilmStrip({ position, color }) {
   const mesh = useRef();
@@ -184,7 +196,7 @@ function ProjectorDust() {
   const particles = useRef();
   useEffect(() => {
     const geometry = new THREE.BufferGeometry();
-    const count = 500;
+    const count = 1500;
     const positions = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       positions[i * 3] = (Math.random() - 0.5) * 3;
@@ -214,6 +226,7 @@ function ProjectorDust() {
     <points ref={particles}>
       <bufferGeometry />
       <pointsMaterial size={0.02} color={"white"} transparent opacity={0.4} />
+      
     </points>
   );
 }
@@ -260,6 +273,20 @@ function Title3D() {
     </group>
   );
 }
+//------3D posters ------
+function Poster3D({ imageUrl, position, rotation }) {
+  const texture = useTexture(imageUrl);
+
+  return (
+    <Float speed={1} rotationIntensity={0.2} floatIntensity={0.2}>
+      <mesh position={position} rotation={rotation}>
+        <planeGeometry args={[3, 4.5]} />
+        <meshStandardMaterial map={texture} />
+      </mesh>
+    </Float>
+  );
+}
+
 // ----- 3D ELEMENTS -----
 function FilmReelcircle(props) {
   const group = useRef();
@@ -324,6 +351,64 @@ function FilmCameraModel(props) {
 useGLTF.preload && useGLTF.preload("/models/filmclapper.glb");
 // ---------- Main Component ----------
 export default function SoFilmyHero() {
+
+  const posters = [
+    
+    
+    "/images/12angrymen.jpg",
+    "/images/2001spaceoddyssy.jpg",
+    "/images/alien.jpg",
+    "/images/aparajito.jpg",
+    "/images/godfather.jpg",
+    "/images/apursangsar.jpg",
+    "/images/bladerunner.jpg",
+    "/images/bladerunner2049.jpg",
+    "/images/darkknight.jpg",
+    "/images/diehard.jpg",
+    "/images/drive.jpg",
+    "/images/fargo.jpg",
+    "/images/fightclub.jpg",
+    "/images/forestgump.jpg",
+    "/images/gladiator.jpg",
+    "/images/godfather.jpg",
+    "/images/goodfellas.jpg",
+    "/images/heat.jpg",
+    "/images/inception.jpg",
+    "/images/ingloriousbastards.jpg",
+    "/images/interstellar.jpg",
+    "/images/jaws.jpg",
+    "/images/jurassicpark.jpg",
+    "/images/lalaland.jpg",
+    "/images/madmaxfury.jpg",
+    "/images/memento.jpg",
+    "/images/memoriesofmurder.jpg",
+    "/images/nocountryforoldman.jpg",
+    "/images/oldboy.jpg",
+    "/images/parasite.jpg",
+    "/images/patherpanchali.jpg",
+    "/images/psycho.jpg",
+    "/images/pulpfiction.jpg",
+    "/images/ragingbull.jpg",
+    "/images/reservoirdogs.jpg",
+    "/images/rocky.jpg",
+    "/images/schindlerslist.jpg",
+    "/images/starwars.jpg",
+    "/images/taxidriver.jpg",
+    "/images/terminator.jpg",
+    "/images/the_shawshank_redemption_posterlarge_0-675188670.jpg",
+    "/images/theraid.jpg",
+    "/images/therewillbeblood.jpg",
+    "/images/theshinning.jpg",
+    "/images/thething.jpg",
+    "/images/theusualsuspects.jpg",
+    "/images/vertigo.jpg",
+    "/images/whiplash.jpg",
+
+
+  ];
+
+ const radius = 10; // adjust circle radius
+
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
 
   const handleMouseMove = (e) => {
@@ -349,51 +434,75 @@ export default function SoFilmyHero() {
 
   return (
   
-    <div className="sticky w-full h-full bg-black text-white  ">
-      <section
-        className="relative h-screen flex flex-col items-center justify-center"
-        onMouseMove={handleMouseMove}
-      >
-        <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <div className="w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,255,136,0.1),transparent)]"></div>
-        </div>
+   <div className="relative w-full min-h-screen mt-20 bg-black text-white ">
+  <section
+    className="relative h-screen sm:h-[80vh] flex flex-col items-center justify-center"
+    onMouseMove={handleMouseMove}
+  >
+    {/* Background gradient */}
+    <div className="absolute inset-0 opacity-20 pointer-events-none">
+      <div className="w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,255,136,0.1),transparent)]"></div>
+    </div>
 
-        <Canvas camera={{ position: [0, 0, 7], fov: 50 }}>
-           
-          <ambientLight intensity={0.3} />
-          <spotLight
-            position={[0, 0, 10]}
-            angle={0.4}
-            penumbra={1}
-            intensity={1.5}
-            color={"white"}
-            castShadow
-          />
-          <pointLight position={[5, 5, 5]} color={"#ff003c"} intensity={1.2} />
-          <pointLight position={[-5, -5, -5]} color={"#00ff88"} intensity={1.2} />
+    <Canvas
+     camera={{
+  position: [0, window.innerWidth < 768 ? 5 : 1.5, window.innerWidth < 768 ? 10 : 7],
+  fov: window.innerWidth < 768 ? 65 : 50
+}}
 
-          <ProjectorDust />
-<Suspense fallback={<mesh><boxGeometry /><meshBasicMaterial color="hotpink" /></mesh>}>
-          <FilmReel position={[pointer.x * 2, pointer.y * 2, 1]} color="#ff003c" />
-          <FilmReelcircle position={[0, 0, -5]} scale={1} />
-          <FilmCameraModel position={[0, -1.5, 3]} scale={0.5} />
-          <Clapper position={[-2 + pointer.x, 1 + pointer.y, -3]} color="#00ff88" />
-          <Ticket position={[2 + pointer.x, -1.5 + pointer.y, 1]} color="#ff003c" />
-          <FilmStrip position={[0, 2, -1]} color="#00ff88" />
-          <Title3D />
-          <OrbitControls enableZoom={false} enablePan={false} />
-          <EffectComposer>
-            <Bloom luminanceThreshold={0} luminanceSmoothing={0.9} intensity={1.2} />
-            <Noise opacity={0.15} />
-            <Vignette eskil={false} offset={0.1} darkness={1.1} />
-          </EffectComposer>
-          </Suspense>
-        </Canvas>
+      dpr={[1, 2]}
+    >
+      <Sparkles count={20} scale={[20, 8, 8]} size={4.5} speed={0.25} opacity={0.3} color="#ffffff" />
+      <ambientLight intensity={0.3} />
+      <spotLight
+        position={[0, 0, 10]}
+        angle={0.4}
+        penumbra={1}
+        intensity={1.5}
+        color={"white"}
+        castShadow
+      />
+      <pointLight position={[5, 5, 5]} color={"#ff003c"} intensity={1.2} />
+      <pointLight position={[-5, -5, -5]} color={"#00ff88"} intensity={1.2} />
 
-       
-      </section>
-   
-      </div>
     
+
+      <Suspense fallback={<mesh><boxGeometry /><meshBasicMaterial color="hotpink" /></mesh>}>
+        <FilmReel position={[pointer.x * 2, pointer.y * 2, 1]} scale={window.innerWidth < 768 ? 0.6 : 1} color="#ff003c" />
+        <FilmReelcircle position={[0, 0, -5]} scale={window.innerWidth < 768 ? 0.8 : 1} />
+        <FilmCameraModel position={[0, -1.5, 3]} scale={window.innerWidth < 768 ? 0.3 : 0.5} />
+        <Clapper position={[-2 + pointer.x, 1 + pointer.y, -3]} scale={window.innerWidth < 768 ? 0.6 : 1} color="#00ff88" />
+        <Ticket position={[2 + pointer.x, -1.5 + pointer.y, 1]} scale={window.innerWidth < 768 ? 0.6 : 1} color="#ff003c" />
+        <FilmStrip position={[0, 2, -1]} scale={window.innerWidth < 768 ? 0.8 : 1} color="#00ff88" />
+        <Title3D />
+         
+        {/* Posters arranged circularly */}
+        {posters.map((url, i) => {
+          const angle = (2 * Math.PI * i) / posters.length;
+          const x = (window.innerWidth < 768 ? radius * 0.7 : radius) * Math.cos(angle);
+          const z = (window.innerWidth < 768 ? radius * 0.7 : radius) * Math.sin(angle);
+          const rotation = [0, -angle, 0];
+          return (
+            <Poster3D
+              key={i}
+              imageUrl={url}
+              position={[x, 0, z]}
+              scale={window.innerWidth < 768 ? 0.6 : 1}
+              rotation={rotation}
+            />
+          );
+        })}
+
+        <OrbitControls enableZoom={false} enablePan={false} />
+        <EffectComposer>
+          <Bloom luminanceThreshold={0} luminanceSmoothing={0.9} intensity={1.2} />
+          <Noise opacity={0.15} />
+          <Vignette eskil={false} offset={0.1} darkness={1.1} />
+        </EffectComposer>
+      </Suspense>
+    </Canvas>
+  </section>
+</div>
+
   );
 }

@@ -47,6 +47,7 @@ function FindPeople() {
   }, []);
 
   return (
+    <>
     <div className="min-h-screen bg-[#121212] text-gray-200 p-6">
       {/* Search Bar */}
       <div className="max-w-3xl mx-auto mb-8">
@@ -95,8 +96,10 @@ function FindPeople() {
           </li>
         ))}
       </ul>
-      <Sidebar />
+      
     </div>
+    <Sidebar />
+    </>
   );
 }
 

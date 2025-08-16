@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Environment, OrbitControls, useGLTF, Sparkles } from "@react-three/drei";
 import { useEffect } from "react";
-
+import * as THREE from "three";
 import {
   Film as FilmIcon,
   Users,
@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import Footer from "./footer";
 import SoFilmyHero from "./sofilmyhero";
+import FunkyCursor from "./funkycursor";
+import { Link } from "react-router-dom";
 
 // ----- 3D ELEMENTS -----
 function FilmReel(props) {
@@ -85,60 +87,62 @@ function PopcornModel(props) {
   const { scene } = useGLTF("/models/popcorn.glb", true);
   const ref = useRef();
 
-  // Store last pointer position
-  const [lastX, setLastX] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const pointer = useRef({ x: 0, y: 0 });
 
-  // Auto float animation
-  useFrame((state) => {
+  // Track mouse position globally
+  const handlePointerMove = (e) => {
     if (!ref.current) return;
-    if (!isDragging) { // Only float when not dragging
-      const t = state.clock.getElapsedTime();
-      ref.current.rotation.y += 0.001; // Slow auto spin
+    // Normalize X/Y between -1 and 1
+    const x = (e.clientX / window.innerWidth) * 2 - 1;
+    const y = -(e.clientY / window.innerHeight) * 2 + 1;
+    pointer.current = { x, y };
+  };
+
+  useEffect(() => {
+    window.addEventListener("mousemove", handlePointerMove);
+    return () => window.removeEventListener("mousemove", handlePointerMove);
+  }, []);
+
+  useFrame((state, delta) => {
+    if (!ref.current) return;
+    const t = state.clock.getElapsedTime();
+
+    if (hovered) {
+      // Orbit / follow mouse rotation
+      const targetRotY = pointer.current.x * Math.PI * 0.5; // rotate left/right
+      const targetRotX = pointer.current.y * Math.PI * 0.2; // tilt up/down
+      ref.current.rotation.y = THREE.MathUtils.lerp(
+        ref.current.rotation.y,
+        targetRotY,
+        0.1
+      );
+      ref.current.rotation.x = THREE.MathUtils.lerp(
+        ref.current.rotation.x,
+        targetRotX,
+        0.1
+      );
+    } else {
+      // Idle animation (float + slow spin)
+      ref.current.rotation.y += 0.0015;
       ref.current.position.y = Math.sin(t * 0.8) * 0.06;
     }
   });
-
-  const handlePointerDown = (e) => {
-    e.stopPropagation();
-    setIsDragging(true);
-    setLastX(e.clientX || e.touches?.[0]?.clientX);
-  };
-
-  const handlePointerUp = () => {
-    setIsDragging(false);
-    setLastX(null);
-  };
-
-  const handlePointerMove = (e) => {
-    if (!isDragging) return;
-    const x = e.clientX || e.touches?.[0]?.clientX;
-    const deltaX = x - lastX;
-    if (ref.current) {
-      ref.current.rotation.y += deltaX * 0.005; // Sensitivity
-    }
-    setLastX(x);
-  };
 
   return (
     <Float speed={1.2} rotationIntensity={0.2} floatIntensity={0.6}>
       <group
         ref={ref}
         {...props}
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        onPointerMove={handlePointerMove}
-        onPointerOut={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-        onTouchStart={handlePointerDown}
-        onTouchEnd={handlePointerUp}
-        onTouchMove={handlePointerMove}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
       >
         <primitive object={scene} />
       </group>
     </Float>
   );
 }
+
 
 useGLTF.preload && useGLTF.preload("/models/popcorn.glb");
 
@@ -272,6 +276,83 @@ const FeatureCard = ({ title, desc, Icon, i }) => (
 );
 
 function Landing() {
+    useEffect(() => {
+  const cursor = document.createElement("div");
+  cursor.style.position = "fixed";
+  cursor.style.width = "20px";
+  cursor.style.height = "20px";
+  cursor.style.borderRadius = "50%";
+  cursor.style.pointerEvents = "none";
+  cursor.style.zIndex = "9999";
+  cursor.style.background = "radial-gradient(circle, #ff007f 0%, #ff0000 70%)";
+  cursor.style.transform = "translate(-50%, -50%)";
+  document.body.appendChild(cursor);
+
+  const stars = [];
+
+  const moveCursor = (e) => {
+    cursor.style.left = e.clientX + "px";
+    cursor.style.top = e.clientY + "px";
+
+    // create a star trail
+    const star = document.createElement("div");
+    star.innerHTML = "★";
+    star.style.position = "fixed";
+    star.style.left = e.clientX + "px";
+    star.style.top = e.clientY + "px";
+    star.style.fontSize = Math.random() * 16 + 8 + "px";
+    star.style.color = Math.random() > 0.5 ? "#ff4d4d" : "#00ff7f";
+    star.style.opacity = 1;
+    star.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 360}deg)`;
+    star.style.pointerEvents = "none";
+    star.style.zIndex = "9998";
+    document.body.appendChild(star);
+    stars.push(star);
+
+    // animate star fade & float
+    setTimeout(() => {
+      star.style.transition = "all 0.8s ease-out";
+      star.style.opacity = "0";
+      star.style.top = parseFloat(star.style.top) - 30 + "px";
+    }, 10);
+
+    // remove star safely
+    setTimeout(() => {
+      star.remove(); // ✅ safe
+      stars.shift();
+    }, 1000);
+  };
+
+  window.addEventListener("mousemove", moveCursor);
+
+  // Cleanup
+  return () => {
+    window.removeEventListener("mousemove", moveCursor);
+    cursor.remove(); // ✅ safe
+    stars.forEach((s) => s.remove()); // ✅ safe
+  };
+}, []);
+
+    const scrollRef = useRef();
+
+  useEffect(() => {
+    const el = scrollRef.current;
+
+    if (!el) return;
+
+    const onWheel = (e) => {
+      // Prevent vertical scroll
+      e.preventDefault();
+      // Scroll horizontally instead
+      el.scrollLeft += e.deltaY; // adjust multiplier if needed
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+    };
+  }, []);
   return (
     <div
       className="relative min-h-screen w-full overflow-hidden  text-white  bg-transparent z-10"
@@ -283,8 +364,9 @@ function Landing() {
         e.currentTarget.style.setProperty("--y", `${y}%`);
       }}
     >
+      
       {/* 3D Canvas Background */}
-      <motion.div className="absolute inset-0 z-0">
+      <motion.div className="fixed inset-0  ">
       <SoFilmyHero />
       </motion.div>
       {/* <Scene />*/}
@@ -298,119 +380,125 @@ function Landing() {
 />
 
       {/* Navbar */}
-      <section className="relative z-10 mt-96 top-2">
-      <header className="relative z-10 top-0">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          
+      <section className="relative  mt-96 z-10 ">
+     <header className="relative z-10 top-0">
+  <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+    <div className="hidden items-center gap-6 md:flex">
+      <a href="#features" className="text-sm text-zinc-300 hover:text-white">Features⭐</a>
+      <a href="#how" className="text-sm text-zinc-300 hover:text-white">How it works⭐</a>
+      <a href="#community" className="text-sm text-zinc-300 hover:text-white">Community⭐</a>
+    </div>
+  </nav>
+</header>
 
-          <div className="hidden items-center gap-6 md:flex">
-            <a href="#features" className="text-sm text-zinc-300 hover:text-white">Features</a>
-            <a href="#how" className="text-sm text-zinc-300 hover:text-white">How it works</a>
-            <a href="#community" className="text-sm text-zinc-300 hover:text-white">Community</a>
-          </div>
+{/* Hero */}
+<section className="relative z-10 mx-auto max-w-7xl px-6 pt-12 pb-24 md:pt-16">
+  <div className="grid items-center gap-12 md:grid-cols-2">
+    {/* Left Column */}
+    <div className="flex flex-col gap-4">
+     <div className="flex justify-center items-center">
+      <div className="flex items-center gap-3 mt-16">
+        <TouchScene />
+      </div>
+      <motion.h1
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="text-3xl font-extrabold leading-tight sm:text-4xl md:text-5xl lg:text-6xl"
+      >
+       Meet, discuss, and{" "}
+        <span className="bg-gradient-to-b from-green-400 to-green-600 bg-clip-text text-transparent">
+          live movies
+        </span>.
+      </motion.h1>
+</div>
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.7 }}
+        className="mt-4 max-w-full sm:max-w-lg text-base sm:text-lg text-zinc-300"
+      >
+        A home for cinephiles: follow folks with the same taste, debate scenes, post structured reviews with images, publish watchlists & diaries, and get film recommendations by <em>mood</em>—not just genre.
+      </motion.p>
 
-          
-        </nav>
-      </header>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.7 }}
+        className="mt-6 flex flex-wrap items-center gap-3 sm:gap-4"
+      >
+        <Link to="/signup">
+          <button
+            onClick={onSignup}
+            className="rounded-2xl bg-gradient-to-b from-green-700 to-green-600 px-5 py-3 sm:px-6 sm:py-3 text-base font-semibold text-white shadow-[0_10px_40px_rgba(34,197,94,0.35)] hover:from-green-600 hover:to-green-500"
+          >
+            Join the Club⭐
+          </button>
+        </Link>
+        <Link to="/login">
+          <button
+            onClick={onLogin}
+            className="rounded-2xl border border-white/15 bg-gradient-to-b from-red-800/60 to-red-700/60 px-5 py-3 sm:px-6 sm:py-3 text-base font-medium text-white backdrop-blur hover:from-red-700/60 hover:to-red-600/60"
+          >
+            I already have an account
+          </button>
+        </Link>
+      </motion.div>
 
-      {/* Hero */}
-      <section className="relative z-10 mx-auto max-w-7xl px-6 pt-12 pb-24 md:pt-16">
-        <div className="grid items-center gap-12 md:grid-cols-2">
-          <div>
-            <div className="flex *:items-center gap-3 mb-4">
-              <TouchScene />
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7 }}
-              className="text-balance text-4xl font-extrabold leading-tight md:text-6xl"
-            >
-              <div> Meet, discuss, and <span className="bg-gradient-to-b from-green-400 to-green-600 bg-clip-text text-transparent">live movies</span>.</div>
-            </motion.h1>
-            </div>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.7 }}
-              className="mt-4 max-w-xl text-lg text-zinc-300"
-            >
-              A home for cinephiles: follow folks with the same taste, debate scenes, post structured reviews with images, publish watchlists & diaries, and get film recommendations by <em>mood</em>—not just genre.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.7 }}
-              className="mt-8 flex flex-wrap items-center gap-4"
-            >
-              <button
-                onClick={onSignup}
-                className="rounded-2xl bg-gradient-to-b from-green-700 to-green-600 px-6 py-3 text-base font-semibold text-white shadow-[0_10px_40px_rgba(34,197,94,0.35)] hover:from-green-600 hover:to-green-500"
-              >
-                Join the Club
-              </button>
-              <button
-                onClick={onLogin}
-                className="rounded-2xl border border-white/15 bg-gradient-to-b from-red-800/60 to-red-700/60 px-6 py-3 text-base font-medium text-white backdrop-blur hover:from-red-700/60 hover:to-red-600/60"
-              >
-                I already have an account
-              </button>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="mt-8 flex items-center gap-6 text-sm text-zinc-400"
-            >
-              <div className="flex items-center gap-2">
-                <Clapperboard className="h-4 w-4" />
-                <span>"Where every cinephile’s reel meets for real! From mood-based picks to epic debates, lights, camera… connect!"</span>
-              </div>
-            </motion.div>
-           
-          </div>
-
-          {/* Mock preview card stack */}
-          <div className="relative">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.15 }}
-              className="relative rounded-3xl border border-white/10 bg-zinc-900/60 p-4 shadow-2xl backdrop-blur-xl"
-            >
-              <div className="rounded-2xl bg-black/60 p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-red-600" />
-                    <div className="h-2 w-2 rounded-full bg-zinc-500" />
-                    <div className="h-2 w-2 rounded-full bg-green-600" />
-                  </div>
-                  <span className="text-xs text-zinc-400">SoFilmy – Preview</span>
-                </div>
-                <div className="space-y-3">
-                  {[1, 2, 3, 4].map((n) => (
-                    <div key={n} className="flex items-start gap-3 rounded-xl border border-white/10 bg-zinc-950/60 p-3">
-                      <div className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-b from-red-700/40 to-red-600/40" />
-                      <div className="flex-1">
-                        <div className="mb-1 flex items-center gap-2 text-xs text-zinc-400">
-                          <span>@cinephile{n}</span>
-                          <span>•</span>
-                          <span className="rounded-full bg-green-600/20 px-2 py-0.5 text-[10px] text-green-300">spoiler‑free</span>
-                          <span className="rounded-full bg-red-600/20 px-2 py-0.5 text-[10px] text-red-300">sarcastic</span>
-                        </div>
-                        <div className="h-3 w-3/4 rounded bg-zinc-700/60" />
-                        <div className="mt-2 h-2 w-2/3 rounded bg-zinc-700/40" />
-                      </div>
-                      <div className="h-14 w-20 shrink-0 rounded-lg bg-gradient-to-b from-zinc-700 to-zinc-900" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className="mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 text-sm text-zinc-400"
+      >
+        <div className="flex items-center gap-2">
+          <Clapperboard className="h-4 w-4" />
+          <span>
+            "Where every cinephile’s reel meets for real! From mood-based picks to epic debates, lights, camera… connect!"
+          </span>
         </div>
-      </section>
+      </motion.div>
+    </div>
+
+    {/* Right Column - Mock preview card stack */}
+    <div className="relative w-full flex justify-center md:justify-end">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.15 }}
+        className="relative w-full max-w-md rounded-3xl border border-white/10 bg-zinc-900/60 p-4 shadow-2xl backdrop-blur-xl"
+      >
+        <div className="rounded-2xl bg-black/60 p-4 space-y-3">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-red-600" />
+              <div className="h-2 w-2 rounded-full bg-zinc-500" />
+              <div className="h-2 w-2 rounded-full bg-green-600" />
+            </div>
+            <span className="text-xs text-zinc-400">SoFilmy – Preview</span>
+          </div>
+          {[1, 2, 3, 4].map((n) => (
+            <div key={n} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-xl border border-white/10 bg-zinc-950/60 p-3">
+              <div className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-b from-red-700/40 to-red-600/40" />
+              <div className="flex-1 w-full space-y-1">
+                <div className="flex flex-wrap items-center gap-1 text-xs text-zinc-400">
+                  <span>@cinephile{n}</span>
+                  <span>•</span>
+                  <span className="rounded-full bg-green-600/20 px-2 py-0.5 text-[10px] text-green-300">spoiler‑free</span>
+                  <span className="rounded-full bg-red-600/20 px-2 py-0.5 text-[10px] text-red-300">sarcastic</span>
+                </div>
+                <div className="h-3 w-full sm:w-3/4 rounded bg-zinc-700/60" />
+                <div className="mt-1 h-2 w-2/3 rounded bg-zinc-700/40" />
+              </div>
+              <div className="h-14 w-20 shrink-0 rounded-lg bg-gradient-to-b from-zinc-700 to-zinc-900 mt-2 sm:mt-0" />
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  </div>
+</section>
+
 
       {/* Features */}
       <section id="features" className="relative z-10 mx-auto max-w-7xl px-6 pb-24">
@@ -504,88 +592,113 @@ function Landing() {
       </section>
       {/* SCROLL CARDS — cinematic poster peeks */}
 <section className="py-16 px-6">
-  <div className="max-w-6xl mx-auto">
-    <motion.div
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-    >
-      <h3 className="text-2xl font-bold">Spotlight Picks</h3>
-      <p className="text-gray-400 mt-2">
-        A scrolling parade of posters with reveal animations — swipe or scroll.
-      </p>
-    </motion.div>
+      <div className="max-w-6xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+        >
+          <h3 className="text-2xl font-bold">Spotlight Picks</h3>
+          <p className="text-gray-400 mt-2">
+           Your top posts will be showcased to the community.
+          </p>
+        </motion.div>
 
-    {/* Horizontal scroll container */}
-    <div
-      className="mt-8 -mx-6 px-6 py-4 overflow-x-auto overflow-y-hidden no-scrollbar"
-      style={{
-        WebkitOverflowScrolling: "touch", // smooth iOS scrolling
-        scrollSnapType: "x mandatory",    // snap to cards
-      }}
-    >
-      <div className="flex gap-6">
-        {Array.from({ length: 8 }).map((_, i) => (
+        <div
+          ref={scrollRef}
+          className="mt-8 -mx-6 px-6 py-4 overflow-x-auto overflow-y-hidden no-scrollbar"
+          style={{
+            WebkitOverflowScrolling: "touch",
+            scrollSnapType: "x mandatory",
+          }}
+        >
+          <div className="flex gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <motion.div
+                key={i}
+                whileHover={{ y: -8, scale: 1.03 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.06 }}
+                className="min-w-[220px] md:min-w-[260px] bg-[#0f0f10] rounded-xl shadow-lg border border-gray-800 overflow-hidden scroll-snap-align-start"
+              >
+                <div className="h-[320px] md:h-[380px] bg-gradient-to-b from-gray-800 to-black flex items-end">
+                  <div className="p-4">
+                    <div className="text-sm text-gray-400">2024</div>
+                    <div className="text-lg font-semibold mt-1">
+                      Cinephile Pick {i + 1}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 border-t border-gray-800 flex items-center justify-between">
+                  <div className="text-sm text-gray-300">by Critic-ish⭐</div>
+                  <div className="text-xs text-gray-400">Mood: melancholic</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+      {/* Community CTA */}
+<section id="community" className="relative z-10 mx-auto max-w-7xl px-6 pb-28">
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.5 }}
+    className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-red-600/10 via-black to-green-600/10 p-8 md:p-10"
+  >
+    <div className="relative z-10 grid gap-6 md:grid-cols-2">
+      {/* Left Column */}
+      <div>
+        <h3 className="text-2xl font-bold md:text-3xl">
+          Ready for a smarter film club?
+        </h3>
+        <p className="mt-3 text-zinc-300">
+          Keep it classy like the golden era, but move fast like a modern feed. Your taste, your tribe, your timeline.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-4">
+          <Link to="/signup">
+            <button
+              onClick={onSignup}
+              className="rounded-2xl bg-gradient-to-b from-green-700 to-green-600 px-5 py-3 md:px-6 md:py-3 font-semibold text-white shadow-[0_10px_40px_rgba(34,197,94,0.35)] hover:from-green-600 hover:to-green-500"
+            >
+              Create account⭐
+            </button>
+          </Link>
+          <Link to="/login">
+            <button
+              onClick={onLogin}
+              className="rounded-2xl bg-gradient-to-b from-red-800/70 to-red-700/70 px-5 py-3 md:px-6 md:py-3 font-medium text-white hover:from-red-700/70 hover:to-red-600/70"
+            >
+            Explore first
+          </button>
+            </Link>
+        </div>
+      </div>
+
+      {/* Right Column */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {["Watchlists", "Mood picks", "Spoiler tags", "Communities", "Diaries", "Templates"].map((tag) => (
           <motion.div
-            key={i}
-            whileHover={{ y: -8, scale: 1.03 }}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: i * 0.06 }}
-            className="min-w-[220px] md:min-w-[260px] bg-[#0f0f10] rounded-xl shadow-lg border border-gray-800 overflow-hidden scroll-snap-align-start"
+            key={tag}
+            whileHover={{ scale: 1.03 }}
+            className="rounded-2xl border border-white/10 bg-zinc-950/70 px-3 py-4 sm:px-4 sm:py-6 text-center text-xs sm:text-sm"
           >
-            {/* Poster placeholder */}
-            <div className="h-[320px] md:h-[380px] bg-gradient-to-b from-gray-800 to-black flex items-end">
-              <div className="p-4">
-                <div className="text-sm text-gray-400">2024</div>
-                <div className="text-lg font-semibold mt-1">Cinephile Pick {i + 1}</div>
-              </div>
-            </div>
-
-            <div className="p-4 border-t border-gray-800 flex items-center justify-between">
-              <div className="text-sm text-gray-300">by Critic-ish</div>
-              <div className="text-xs text-gray-400">Mood: melancholic</div>
-            </div>
+            {tag}
           </motion.div>
         ))}
       </div>
     </div>
-  </div>
+
+    {/* Decorative Gradient Circle */}
+    <div className="pointer-events-none absolute -right-32 -top-32 sm:-right-40 sm:-top-40 h-64 w-64 sm:h-80 sm:w-80 rotate-12 rounded-3xl bg-gradient-to-b from-red-600/20 to-green-600/20 blur-2xl" />
+  </motion.div>
 </section>
 
-      {/* Community CTA */}
-      <section id="community" className="relative z-10 mx-auto max-w-7xl px-6 pb-28">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.5 }}
-          className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-red-600/10 via-black to-green-600/10 p-10"
-        >
-          <div className="relative z-10 grid items-center gap-6 md:grid-cols-2">
-            <div>
-              <h3 className="text-2xl font-bold md:text-3xl">Ready for a smarter film club?</h3>
-              <p className="mt-3 text-zinc-300">Keep it classy like the golden era, but move fast like a modern feed. Your taste, your tribe, your timeline.</p>
-              <div className="mt-6 flex flex-wrap gap-4">
-                <button onClick={onSignup} className="rounded-2xl bg-gradient-to-b from-green-700 to-green-600 px-6 py-3 font-semibold text-white shadow-[0_10px_40px_rgba(34,197,94,0.35)] hover:from-green-600 hover:to-green-500">Create account</button>
-                <button onClick={onLogin} className="rounded-2xl bg-gradient-to-b from-red-800/70 to-red-700/70 px-6 py-3 font-medium text-white hover:from-red-700/70 hover:to-red-600/70">Explore first</button>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {["Watchlists", "Mood picks", "Spoiler tags", "Communities", "Diaries", "Templates"].map((tag) => (
-                <motion.div
-                  key={tag}
-                  whileHover={{ scale: 1.03 }}
-                  className="rounded-2xl border border-white/10 bg-zinc-950/70 px-4 py-6 text-center text-sm"
-                >
-                  {tag}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-          <div className="pointer-events-none absolute -right-40 -top-40 h-80 w-80 rotate-12 rounded-3xl bg-gradient-to-b from-red-600/20 to-green-600/20 blur-2xl" />
-        </motion.div>
-      </section>
       
 
 </section>
