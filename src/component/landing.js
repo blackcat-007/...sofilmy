@@ -371,22 +371,25 @@ function Landing() {
       </motion.div>
       {/* <Scene />*/}
 
-      {/* Subtle grid overlay for texture */}
-     <div
+    
+      {/* Navbar */}
+      <section className="relative  mt-96 z-10 bg-gradient-to-b to-black from-transparent bg-opacity-50 ">
+          {/* Subtle grid overlay with fade */}
+<div
   aria-hidden
   className="pointer-events-none absolute inset-0 
     bg-[linear-gradient(rgba(139,0,0,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(0,100,0,0.6)_1px,transparent_1px)] 
-    bg-[size:48px_48px] z-0"
+    bg-[size:48px_48px] z-0
+    [mask-image:linear-gradient(to_bottom,transparent,black)]
+    [mask-repeat:no-repeat] [mask-size:100%_100%]"
 />
 
-      {/* Navbar */}
-      <section className="relative  mt-96 z-10 ">
      <header className="relative z-10 top-0">
   <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
     <div className="hidden items-center gap-6 md:flex">
-      <a href="#features" className="text-sm text-zinc-300 hover:text-white">Features⭐</a>
-      <a href="#how" className="text-sm text-zinc-300 hover:text-white">How it works⭐</a>
-      <a href="#community" className="text-sm text-zinc-300 hover:text-white">Community⭐</a>
+      <a href="#features" className="text-sm text-zinc-300 hover:text-white">Features<img src="/icons/wired-lineal-237-star-rating-hover-pinch.gif" alt="Arrow right" className="inline-block ml-2 h-6 w-6 bg-transparent" /></a>
+      <a href="#how" className="text-sm text-zinc-300 hover:text-white">How it works<img src="/icons/wired-lineal-237-star-rating-hover-pinch.gif" alt="Arrow right" className="inline-block ml-2 h-6 w-6 bg-transparent" /></a>
+      <a href="#community" className="text-sm text-zinc-300 hover:text-white">Community<img src="/icons/wired-lineal-237-star-rating-hover-pinch.gif" alt="Arrow right" className="inline-block ml-2 h-6 w-6 bg-transparent" /></a>
     </div>
   </nav>
 </header>
@@ -430,9 +433,9 @@ function Landing() {
         <Link to="/signup">
           <button
             onClick={onSignup}
-            className="rounded-2xl bg-gradient-to-b from-green-700 to-green-600 px-5 py-3 sm:px-6 sm:py-3 text-base font-semibold text-white shadow-[0_10px_40px_rgba(34,197,94,0.35)] hover:from-green-600 hover:to-green-500"
+            className="rounded-2xl bg-gradient-to-b items-center flex justify-center from-green-700 to-green-600 px-5 py-3 sm:px-6 sm:py-3 text-base font-semibold text-white shadow-[0_10px_40px_rgba(34,197,94,0.35)] hover:from-green-600 hover:to-green-500"
           >
-            Join the Club⭐
+            Join the Club<img src="/icons/wired-lineal-237-star-rating-hover-pinch.gif" alt="Arrow right" className="inline-block ml-2 h-6 w-6 bg-transparent" />
           </button>
         </Link>
         <Link to="/login">
@@ -591,7 +594,7 @@ function Landing() {
         </div>
       </section>
       {/* SCROLL CARDS — cinematic poster peeks */}
-<section className="py-16 px-6">
+<section className="py-16 px-6 *:relative z-10 ">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0 }}
@@ -664,9 +667,9 @@ function Landing() {
           <Link to="/signup">
             <button
               onClick={onSignup}
-              className="rounded-2xl bg-gradient-to-b from-green-700 to-green-600 px-5 py-3 md:px-6 md:py-3 font-semibold text-white shadow-[0_10px_40px_rgba(34,197,94,0.35)] hover:from-green-600 hover:to-green-500"
+              className="rounded-2xl bg-gradient-to-b from-green-700 to-green-600 px-5 py-3 md:px-6 md:py-3 font-semibold  shadow-[0_10px_40px_rgba(34,197,94,0.35)] hover:from-green-600 hover:to-green-500"
             >
-              Create account⭐
+              Create account<img src="/icons/wired-lineal-237-star-rating-hover-pinch.gif" alt="Arrow right" className="inline-block ml-2 h-6 w-6 bg-transparent" />
             </button>
           </Link>
           <Link to="/login">

@@ -24,7 +24,7 @@ function Header() {
               
       </Link>
       
-{login ? (<span className=" md:ml-2 text-xs  ">Welcome, {username} 👋</span>) : null}
+{login ? (<span className=" md:ml-2 text-xs bg-gradient-to-b from-red-400 to-red-600 bg-clip-text">Welcome, {username} 👋</span>) : null}
 </div>
       {/* Buttons */}
       <div className="flex flex-row items-center gap-2 sm:gap-4 ml-auto flex-wrap">
@@ -37,7 +37,7 @@ function Header() {
                 <Button className="hover:bg-slate-900 flex items-center overflow-hidden px-3 py-2">
                   {/* Sliding Text */}
                   <div className="absolute left-0 top-0 bottom-0 flex items-center pr-3">
-                    <div className="bg-green-400 text-black font-semibold text-sm px-3 py-1
+                    <div className="bg-gradient-to-b from-green-400 to-green-600 text-black font-semibold text-sm px-3 py-1
                                     transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-in-out rounded-md"
                       style={{
                         clipPath: "polygon(0 23%, 9% 12%, 0 0, 100% 0, 100% 100%, 0 100%, 9% 89%, 0 76%, 9% 64%, 0 51%, 10% 37%)"
@@ -61,7 +61,7 @@ function Header() {
                 <Button className="hover:bg-slate-900 flex items-center overflow-hidden px-3 py-2 ">
                   {/* Sliding Text */}
                   <div className="absolute left-0 top-0 bottom-0 flex items-center pr-3">
-                    <div className="bg-green-400 text-black font-semibold text-sm px-3 py-1
+                    <div className="bg-gradient-to-b from-green-400 to-green-600 text-black font-semibold text-sm px-3 py-1
                                     transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-in-out rounded-md"
                       style={{
                         clipPath: "polygon(0 23%, 9% 12%, 0 0, 100% 0, 100% 100%, 0 100%, 9% 89%, 0 76%, 9% 64%, 0 51%, 10% 37%)"
@@ -85,9 +85,10 @@ function Header() {
         ) : (
           <Link to={'/login'}>
             <Button className="hover:bg-slate-900 flex items-center px-3 py-2">
-              <span className="text-green-400 text-lg">
-                Login <span className="text-xl">/</span> Signup
-              </span>
+              <span className="block bg-gradient-to-b from-green-400 to-green-600 bg-clip-text text-xl tracking-tight text-transparent">
+                Login/Signup</span>
+
+             
               <LoginIcon className="ml-2 text-white" />
             </Button>
           </Link>
