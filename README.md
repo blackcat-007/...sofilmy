@@ -198,19 +198,42 @@ Firebase wasn’t used because it's "easy" — it was chosen because it **aligns
 
 <hr />
 
-<h2>📸 Screenshots</h2>
-<figcaption align="center"> <h3>Sign in & Sign up with quick email id verification system </h3> </figcaption>
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395200/Screenshot_2025-07-13_131026_hcup52.png" alt="Chat UI Screenshot" width="600" />
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395662/Screenshot_2025-07-13_140400_rosaco.png" alt="Chat UI Screenshot" width="600" />
-<figcaption align="center"> <h3> Home Page  </h3></figcaption>
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395202/Screenshot_2025-07-13_131001_nv85gn.png" alt="Chat UI Screenshot" width="600" />
-<figcaption align="center"> <h3> Film Analysis section </h3></figcaption>
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395212/Screenshot_2025-07-13_135334_rkuqg2.png" alt="Chat UI Screenshot" width="600" />
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395201/Screenshot_2025-07-13_135347_ixpibn.png" alt="Chat UI Screenshot" width="600" />
-<figcaption align="center"> <h3>New Post Section </h3> </figcaption>
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395200/Screenshot_2025-07-13_135303_bjh77r.png" alt="Chat UI Screenshot" width="600" />
-<figcaption align="center"> <h3> Dedicated Discussion Room for cinephiles all over the world</h3> </figcaption>
-<img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395210/Screenshot_2025-07-13_135319_qzwqon.png" alt="Chat UI Screenshot" width="600" />
+<h2>📸 Previews</h2>
+ <p align="center">
+  <strong>Landing Page (if not logged/signed up)</strong><br>
+ 
+   <a href="https://res.cloudinary.com/ddcdrrav8/video/upload/v1755361269/sofiilmycompressed_w7yary.mp4">
+ <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1755360951/Screenshot_2025-08-16_213038_oc6hnd.png" width="600" />
+     </a>
+</p>
+
+<p align="center">
+  <strong>Sign in & Sign up with quick email id verification system</strong><br>
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395200/Screenshot_2025-07-13_131026_hcup52.png" width="600" />
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395662/Screenshot_2025-07-13_140400_rosaco.png" width="600" />
+</p>
+
+<p align="center">
+  <strong>Home Page(if logged in)</strong><br>
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1755360969/Screenshot_2025-08-16_213252_n8u3tr.png" width="600" />
+</p>
+
+<p align="center">
+  <strong>Film Analysis section</strong><br>
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395212/Screenshot_2025-07-13_135334_rkuqg2.png" width="600" />
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395201/Screenshot_2025-07-13_135347_ixpibn.png" width="600" />
+</p>
+
+<p align="center">
+  <strong>New Post Section</strong><br>
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395200/Screenshot_2025-07-13_135303_bjh77r.png" width="600" />
+</p>
+
+<p align="center">
+  <strong>Dedicated Discussion Room for cinephiles all over the world</strong><br>
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1755360989/Screenshot_2025-08-16_213309_w4zrud.png" width="600" />
+</p>
+
 
 
 ## 🚧 Planned & Future Features
