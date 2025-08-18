@@ -209,8 +209,8 @@ Firebase wasn’t used because it's "easy" — it was chosen because it **aligns
 
 <p align="center">
   <strong>Sign in & Sign up with quick email id verification system</strong><br>
-  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395200/Screenshot_2025-07-13_131026_hcup52.png" width="600" />
-  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395662/Screenshot_2025-07-13_140400_rosaco.png" width="600" />
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1755449835/Screenshot_2025-08-17_222406_xwkwyc.png" width="600" />
+   <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1755449819/Screenshot_2025-08-17_222343_dejklz.png" width="600" />
 </p>
 
 <p align="center">
