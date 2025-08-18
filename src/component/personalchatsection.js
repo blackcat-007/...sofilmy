@@ -1,9 +1,9 @@
 import React, { useState, useEffect,useRef } from "react";
-import { addDoc, collection, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, onSnapshot, query, orderBy, serverTimestamp  } from "firebase/firestore";
 import { db } from "../firebase/firebase"; // Adjusted import
 import ChatUsers from "./chatusers";
 
-const ChatSection = ({selectedUser}) => {
+const PersonalChatSection = ({selectedUser}) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [user, setUser] = useState("");
@@ -17,7 +17,7 @@ const ChatSection = ({selectedUser}) => {
     }
   }, []);
  useEffect(() => {
-  if (!user || !selectedUser?.id) return;
+  if (!user || !selectedUser?.uid) return;
 
   const q = query(collection(db, "messages"), orderBy("timestamp"));
   const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -35,11 +35,13 @@ const ChatSection = ({selectedUser}) => {
           (from === selectedUser.uid && to === user)
         );
       });
-
+  
     setMessages(filteredMessages);
+  ;
   });
-
+ 
   return unsubscribe;
+
 }, [selectedUser, user]);
 
 useEffect(() => {
@@ -49,6 +51,7 @@ useEffect(() => {
 }, [messages]);
 
   const sendMessage = async () => {
+   
     if (newMessage.trim() === "") return; // Prevent empty messages
     await addDoc(collection(db, "messages"), {
       fromId: user,
@@ -59,6 +62,8 @@ useEffect(() => {
       timestamp: serverTimestamp(),
     });
     setNewMessage("");
+  
+    
   };  
 
   return (
@@ -165,4 +170,4 @@ useEffect(() => {
   );
 };
 
-export default ChatSection;
+export default PersonalChatSection;

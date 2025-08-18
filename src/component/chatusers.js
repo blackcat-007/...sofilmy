@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getFirestore, collection, getDocs,doc,updateDoc,arrayUnion,arrayRemove } from 'firebase/firestore';
-import ChatSection from './chatsection';
+import PersonalChatSection from './personalchatsection';
+import GroupChatSection from './groupchatsection';
 
 const db = getFirestore();
 
@@ -175,7 +176,11 @@ const ChatUsers = () => {
         }`}
       >
         {selectedUser ? (
-          <ChatSection selectedUser={selectedUser} />
+          mode === 'groups' ? (
+            <GroupChatSection selectedUser={selectedUser} />
+          ) : (
+            <PersonalChatSection selectedUser={selectedUser} />
+          )
         ) : (
           <div className="text-gray-400 mt-4">
             Select a {mode === 'people' ? 'user' : 'group'} to start chatting
