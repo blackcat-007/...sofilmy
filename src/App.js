@@ -50,7 +50,7 @@ function App() {
           <Route path="/filmychat" element={<ChatUsers />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/findpeople" element={<FindPeople />} />
-          <Route path="/landing" element={<Landing />} />
+          
         </Routes>
       </div>
     </Appstate.Provider>

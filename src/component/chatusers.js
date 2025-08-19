@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getFirestore, collection, getDocs,doc,updateDoc,arrayUnion,arrayRemove } from 'firebase/firestore';
 import PersonalChatSection from './personalchatsection';
 import GroupChatSection from './groupchatsection';
+import AddGroup from './addgroup';
 
 const db = getFirestore();
 
@@ -14,7 +15,8 @@ const ChatUsers = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserList, setShowUserList] = useState(true);
-  
+  const [isJoined, setIsJoined] = useState(false);
+  const [addGroupOpen, setAddGroupOpen] = useState(false);
   const fetchPeople = async (searchTerm = '') => {
     setLoading(true);
     try {
@@ -77,14 +79,52 @@ const ChatUsers = () => {
     setSelectedUser(data || null);
     setShowUserList(false);
   };
+  
   const handleJoinGroup = async (groupId) => {
-    const currentUserId = localStorage.getItem("userId");
-    const groupRef = doc(db, 'group', groupId);
+  const currentUserId = localStorage.getItem("userId");
+  const groupRef = doc(db, 'group', groupId);
+
+  try {
     await updateDoc(groupRef, {
       members: arrayUnion(currentUserId)
     });
-    alert('You have joined the group!');
-  };
+
+    // Optimistic update of local state
+    setGroups((prevGroups) =>
+      prevGroups.map((g) =>
+        g.id === groupId ? { ...g, members: [...(g.members || []), currentUserId] } : g
+      )
+    );
+
+    setIsJoined(true);
+  } catch (error) {
+    console.error("Error joining group:", error);
+  }
+};
+
+const handleLeaveGroup = async (groupId) => {
+  const currentUserId = localStorage.getItem("userId");
+  const groupRef = doc(db, 'group', groupId);
+
+  try {
+    await updateDoc(groupRef, {
+      members: arrayRemove(currentUserId)
+    });
+
+    // Optimistic update of local state
+    setGroups((prevGroups) =>
+      prevGroups.map((g) =>
+        g.id === groupId
+          ? { ...g, members: (g.members || []).filter((m) => m !== currentUserId) }
+          : g
+      )
+    );
+
+    setIsJoined(false);
+  } catch (error) {
+    console.error("Error leaving group:", error);
+  }
+};
 
   return (
     <div className="sm:w-auto w-full h-full  bg-gray-900 text-white flex flex-col md:flex-row ">
@@ -122,6 +162,11 @@ const ChatUsers = () => {
           >
             Groups
           </button>
+          <button onClick={() => setAddGroupOpen(true)}>
+            {<span className="px-3 flex justify-center items-center py-1 rounded-md bg-green-600">+ Create Group</span>}
+            
+          </button>
+          {addGroupOpen ? ( <AddGroup onClose={() => setAddGroupOpen(false)} />):null}
         </div>
 
         {/* Search */}
@@ -159,8 +204,12 @@ const ChatUsers = () => {
                     <div className="text-sm text-gray-400">{item.members.length} members</div>
                   )}
                   </div>
-                  {mode === 'groups' && !item.members?.includes(localStorage.getItem("userId")) && (
-                    <button onClick={() => handleJoinGroup(item.id)} className='px-6 rounded-md bg-green-500 '>Join</button>
+                  {mode === 'groups' && (
+                    !item.members?.includes(localStorage.getItem("userId")) && !isJoined ? (
+                      <button onClick={() => handleJoinGroup(item.id)} className='px-6 rounded-md bg-green-500 '>Join</button>
+                    ) : (
+                      <button onClick={() => handleLeaveGroup(item.id)} className='px-6 rounded-md bg-red-500 '>Leave</button>
+                    )
                   )}
                 </li>
               ))
@@ -176,8 +225,8 @@ const ChatUsers = () => {
         }`}
       >
         {selectedUser ? (
-          mode === 'groups' ? (
-            <GroupChatSection selectedUser={selectedUser} />
+          mode === 'groups' ? ( selectedUser.members?.includes(localStorage.getItem("userId")) || isJoined ? (
+            <GroupChatSection selectedUser={selectedUser} />):null
           ) : (
             <PersonalChatSection selectedUser={selectedUser} />
           )
