@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { getFirestore, collection, getDocs,doc,updateDoc,arrayUnion,arrayRemove } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import PersonalChatSection from './personalchatsection';
 import GroupChatSection from './groupchatsection';
 import AddGroup from './addgroup';
+import GroupDetails from './groupdetails';
 
 const db = getFirestore();
 
@@ -15,8 +16,10 @@ const ChatUsers = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserList, setShowUserList] = useState(true);
-  const [isJoined, setIsJoined] = useState(false);
+  const [joinedGroups, setJoinedGroups] = useState(new Set()); // ✅ store joined group IDs
   const [addGroupOpen, setAddGroupOpen] = useState(false);
+  const [openGroupDetailsId, setOpenGroupDetailsId] = useState(null); // ✅ per-group details open
+
   const fetchPeople = async (searchTerm = '') => {
     setLoading(true);
     try {
@@ -42,30 +45,45 @@ const ChatUsers = () => {
   };
 
   const fetchGroups = async (searchTerm = '') => {
-    setLoading(true);
-    try {
-      const groupRef = collection(db, 'group');
-      const snapshot = await getDocs(groupRef);
-      let groupList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  setLoading(true);
+  try {
+    const currentUserId = localStorage.getItem("userId");
+    const groupRef = collection(db, 'group');
+    const snapshot = await getDocs(groupRef);
+    let groupList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      if (searchTerm.trim()) {
-        const term = searchTerm.toLowerCase();
-        groupList = groupList.filter(group =>
-          group.name && group.name.toLowerCase().includes(term)
-        );
+    // ✅ filter public/private groups
+    groupList = groupList.filter(group => {
+      if (group.access === "private") {
+        return group.members?.includes(currentUserId); // only if user is in members
       }
+      return true; // public groups always shown
+    });
 
-      setGroups(groupList);
-    } catch (error) {
-      console.error('Error fetching groups:', error);
+    // ✅ apply search filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      groupList = groupList.filter(group =>
+        group.name && group.name.toLowerCase().includes(term)
+      );
     }
-    setLoading(false);
-  };
+
+    setGroups(groupList);
+  } catch (error) {
+    console.error('Error fetching groups:', error);
+  }
+  setLoading(false);
+};
+
 
   useEffect(() => {
     if (mode === 'people') fetchPeople();
     else fetchGroups();
   }, [mode]);
+   const refreshGroups = () => {
+    fetchGroups(search);
+  };
+
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -79,55 +97,57 @@ const ChatUsers = () => {
     setSelectedUser(data || null);
     setShowUserList(false);
   };
-  
+
   const handleJoinGroup = async (groupId) => {
-  const currentUserId = localStorage.getItem("userId");
-  const groupRef = doc(db, 'group', groupId);
+    const currentUserId = localStorage.getItem("userId");
+    const groupRef = doc(db, 'group', groupId);
 
-  try {
-    await updateDoc(groupRef, {
-      members: arrayUnion(currentUserId)
-    });
+    try {
+      await updateDoc(groupRef, {
+        members: arrayUnion(currentUserId)
+      });
 
-    // Optimistic update of local state
-    setGroups((prevGroups) =>
-      prevGroups.map((g) =>
-        g.id === groupId ? { ...g, members: [...(g.members || []), currentUserId] } : g
-      )
-    );
+      setGroups((prevGroups) =>
+        prevGroups.map((g) =>
+          g.id === groupId ? { ...g, members: [...(g.members || []), currentUserId] } : g
+        )
+      );
 
-    setIsJoined(true);
-  } catch (error) {
-    console.error("Error joining group:", error);
-  }
-};
+      setJoinedGroups((prev) => new Set(prev).add(groupId)); // ✅ mark this group as joined
+    } catch (error) {
+      console.error("Error joining group:", error);
+    }
+  };
 
-const handleLeaveGroup = async (groupId) => {
-  const currentUserId = localStorage.getItem("userId");
-  const groupRef = doc(db, 'group', groupId);
+  const handleLeaveGroup = async (groupId) => {
+    const currentUserId = localStorage.getItem("userId");
+    const groupRef = doc(db, 'group', groupId);
 
-  try {
-    await updateDoc(groupRef, {
-      members: arrayRemove(currentUserId)
-    });
+    try {
+      await updateDoc(groupRef, {
+        members: arrayRemove(currentUserId)
+      });
 
-    // Optimistic update of local state
-    setGroups((prevGroups) =>
-      prevGroups.map((g) =>
-        g.id === groupId
-          ? { ...g, members: (g.members || []).filter((m) => m !== currentUserId) }
-          : g
-      )
-    );
+      setGroups((prevGroups) =>
+        prevGroups.map((g) =>
+          g.id === groupId
+            ? { ...g, members: (g.members || []).filter((m) => m !== currentUserId) }
+            : g
+        )
+      );
 
-    setIsJoined(false);
-  } catch (error) {
-    console.error("Error leaving group:", error);
-  }
-};
+      setJoinedGroups((prev) => {
+        const updated = new Set(prev);
+        updated.delete(groupId);
+        return updated;
+      });
+    } catch (error) {
+      console.error("Error leaving group:", error);
+    }
+  };
 
   return (
-    <div className="sm:w-auto w-full h-full  bg-gray-900 text-white flex flex-col md:flex-row ">
+    <div className="sm:w-auto w-full h-full bg-gray-900 text-white flex flex-col md:flex-row">
       
       {/* Mobile Top Bar */}
       <div className="md:hidden flex justify-between items-center px-4 py-2 bg-black border-b border-gray-700">
@@ -163,10 +183,9 @@ const handleLeaveGroup = async (groupId) => {
             Groups
           </button>
           <button onClick={() => setAddGroupOpen(true)}>
-            {<span className="px-3 flex justify-center items-center py-1 rounded-md bg-green-600">+ Create Group</span>}
-            
+            <span className="px-3 flex justify-center items-center py-1 rounded-md bg-green-600">+ Create Group</span>
           </button>
-          {addGroupOpen ? ( <AddGroup onClose={() => setAddGroupOpen(false)} />):null}
+          {addGroupOpen && <AddGroup onClose={() => setAddGroupOpen(false)} refreshGroups={refreshGroups} />}
         </div>
 
         {/* Search */}
@@ -191,28 +210,83 @@ const handleLeaveGroup = async (groupId) => {
             {(mode === 'people' ? users : groups).length === 0 ? (
               <li className="p-2 text-gray-500 text-center">No {mode} found</li>
             ) : (
-              (mode === 'people' ? users : groups).map((item) => (
+              (mode === 'people' ? users : groups).map((item) => {
+                const currentUserId = localStorage.getItem("userId");
+                const isMember = item.members?.includes(currentUserId) || joinedGroups.has(item.id);
+
+                return (
                 <li
-                  key={item.id}
-                  onClick={() => handleUserSelect(item.id, mode)}
-                  className={`p-3 cursor-pointer transition rounded-md flex justify-between ${
-                    selectedUserId === item.id ? 'bg-red-800' : 'hover:bg-gray-700'
-                  }`}
-                >
-                  <div className="font-medium">{item.name || item.email || item.id}
-                  {mode === 'groups' && (
-                    <div className="text-sm text-gray-400">{item.members.length} members</div>
-                  )}
-                  </div>
-                  {mode === 'groups' && (
-                    !item.members?.includes(localStorage.getItem("userId")) && !isJoined ? (
-                      <button onClick={() => handleJoinGroup(item.id)} className='px-6 rounded-md bg-green-500 '>Join</button>
-                    ) : (
-                      <button onClick={() => handleLeaveGroup(item.id)} className='px-6 rounded-md bg-red-500 '>Leave</button>
-                    )
-                  )}
-                </li>
-              ))
+  key={item.id}
+  className={`p-3 transition rounded-md flex justify-between ${
+    selectedUserId === item.id ? 'bg-red-800' : 'hover:bg-gray-700'
+  }`}
+>
+  <div className="flex flex-col w-full">
+    <button
+      onClick={() => {
+        if (mode === "people") {
+          // ✅ Directly open personal chat
+          handleUserSelect(item.id, "people");
+        } else {
+          const currentUserId = localStorage.getItem("userId");
+          const isMember = item.members?.includes(currentUserId) || joinedGroups.has(item.id);
+
+          if (isMember) {
+            // ✅ If joined, open group chat
+            handleUserSelect(item.id, "groups");
+          } else {
+            // ✅ If not joined, open details
+            setOpenGroupDetailsId(openGroupDetailsId === item.id ? null : item.id);
+          }
+        }
+      }}
+      className="text-left w-full"
+    >
+      <div className="font-medium">
+        {item.name || item.email || item.id}
+        {mode === "groups" && (
+          <div className="text-sm text-gray-400">
+            {item.members?.length || 0} members
+          </div>
+        )}
+      </div>
+    </button>
+
+    {/* Group Details - only if not joined */}
+    {mode === "groups" &&
+      openGroupDetailsId === item.id &&
+      !item.members?.includes(localStorage.getItem("userId")) &&
+      !joinedGroups.has(item.id) && (
+        <GroupDetails
+          selected={item.id}
+          onClose={() => setOpenGroupDetailsId(null)}
+        />
+      )}
+  </div>
+
+  {/* Join/Leave button (groups only) */}
+  {mode === "groups" &&
+    (item.members?.includes(localStorage.getItem("userId")) ||
+    joinedGroups.has(item.id) ? (
+      <button
+        onClick={() => handleLeaveGroup(item.id)}
+        className="px-6 rounded-md bg-red-500"
+      >
+        Leave
+      </button>
+    ) : (
+      <button
+        onClick={() => handleJoinGroup(item.id)}
+        className="px-6 rounded-md bg-green-500"
+      >
+        Join
+      </button>
+    ))}
+</li>
+
+
+                );
+              })
             )}
           </ul>
         )}
@@ -225,8 +299,10 @@ const handleLeaveGroup = async (groupId) => {
         }`}
       >
         {selectedUser ? (
-          mode === 'groups' ? ( selectedUser.members?.includes(localStorage.getItem("userId")) || isJoined ? (
-            <GroupChatSection selectedUser={selectedUser} />):null
+          mode === 'groups' ? (
+            selectedUser.members?.includes(localStorage.getItem("userId")) || joinedGroups.has(selectedUser.id) ? (
+              <GroupChatSection selectedUser={selectedUser} />
+            ) : null
           ) : (
             <PersonalChatSection selectedUser={selectedUser} />
           )

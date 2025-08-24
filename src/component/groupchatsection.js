@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { addDoc, collection, onSnapshot, query, orderBy, serverTimestamp, where, getDoc, doc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
+import GroupDetails from "./groupdetails";
 
 const GroupChatSection = ({ selectedUser }) => {
   const [messages, setMessages] = useState([]);
@@ -9,6 +10,7 @@ const GroupChatSection = ({ selectedUser }) => {
   const [username, setUsername] = useState("");
   const [userImage, setUserImage] = useState("");
   const [selectedRecipient, setSelectedRecipient] = useState(null); // for reply/direct message
+  const [groupDetailsOpen, setGroupDetailsOpen] = useState(false);
 
   const bottomRef = useRef(null);
 
@@ -51,6 +53,7 @@ const GroupChatSection = ({ selectedUser }) => {
       bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
 
   // Fetch user image from "users" collection
   const getUserImage = async (uid) => {
@@ -108,12 +111,15 @@ const GroupChatSection = ({ selectedUser }) => {
       <div className="relative z-10 flex flex-col h-full w-full">
         {/* Header */}
         <div className="p-4 border-b border-white bg-red-700 bg-opacity-80 flex">
+          <button className="flex items-center" onClick={() => setGroupDetailsOpen(true)}>
           <img
             src={selectedUser.image || "/cinephile.png"}
             alt="Group Avatar"
             className="w-8 h-8 rounded-full mr-2"
           />
           <h2 className="text-lg font-semibold">{selectedUser.name}</h2>
+          </button>
+          {groupDetailsOpen && <GroupDetails selected={selectedUser.id} onClose={() => setGroupDetailsOpen(false)} />}
         </div>
 
         {/* Messages */}
@@ -150,7 +156,11 @@ const GroupChatSection = ({ selectedUser }) => {
                     <span className="block text-xs font-semibold">
                       {msg.fromName}
                       {msg.toId && (
-                        <span className="text-blue-600 ml-1">
+                        <span className={` ml-1 ${
+                      isSender
+                        ? "text-red-200"
+                        : "text-green-800 "
+                    }`}>
                           → @{msg.toName}
                         </span>
                       )}

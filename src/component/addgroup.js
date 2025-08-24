@@ -9,7 +9,7 @@ import {
 
 const db = getFirestore();
 
-const AddGroup = ({ onClose }) => {
+const AddGroup = ({ onClose, refreshGroups }) => {
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [groupName, setGroupName] = useState("");
@@ -74,6 +74,7 @@ const AddGroup = ({ onClose }) => {
       setSelectedUsers([]);
       setGroupImage(null);
       setAccess("public");
+      if (refreshGroups) refreshGroups(); // ✅ trigger refresh in parent
       onClose && onClose();
     } catch (err) {
       console.error("Error creating group:", err);
