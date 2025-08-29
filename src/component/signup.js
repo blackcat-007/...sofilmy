@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import { TailSpin } from "react-loader-spinner";
 import { Link } from "react-router-dom";
 import {getAuth, RecaptchaVerifier, signInWithPhoneNumber,createUserWithEmailAndPassword,signInWithPopup,
-  GoogleAuthProvider} from 'firebase/auth'
+  GoogleAuthProvider,setPersistence,
+  browserLocalPersistence,} from 'firebase/auth'
+import { useContext } from "react";
+import { Appstate } from "../App";
 import app from '../firebase/firebase'
 import swal from "sweetalert";
-import { addDoc } from "firebase/firestore";
+import { addDoc,query,where,getDocs } from "firebase/firestore";
 import { usersRef } from "../firebase/firebase";
 import { useNavigate } from "react-router-dom";
 import bcrypt from 'bcryptjs';
@@ -13,6 +16,7 @@ import bcrypt from 'bcryptjs';
 
 const Signup = () => {
   const provider = new GoogleAuthProvider();
+  const useAppstate = useContext(Appstate);
 
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -140,31 +144,48 @@ const Signup = () => {
   }
   setLoading(false);
 };
-const handleGoogleSignup = async () => {
-  setLoading(true);
+  const handleGoogleSignup = async () => {
   try {
+    setLoading(true);
+    await setPersistence(auth, browserLocalPersistence);
+
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
 
-    await addDoc(usersRef, {
-      uid: user.uid,
-      createdAt: new Date(),
-      name: user.displayName,
-      mobile: user.phoneNumber || "N/A",
-      authProvider: "google",
-      email: user.email
-    });
+    // Set app state and localStorage
+    useAppstate.setLogin(true);
+    useAppstate.setUsername(user.displayName);
+    //useAppstate.setUserId(user.uid);
+    localStorage.setItem("login", "true");
+    localStorage.setItem("username", user.displayName);
+    localStorage.setItem("userId", user.uid);
+    
+    localStorage.setItem("accessToken", user.stsTokenManager.accessToken);
+    localStorage.setItem("userImage", user.photoURL);
+    // Check if user already exists in Firestore
+    const quer = query(usersRef, where("uid", "==", user.uid));
+    const querySnapshot = await getDocs(quer);
 
-    swal("Success", "Signed in with Google!", "success");
+    if (querySnapshot.empty) {
+      // If user doesn't exist, add to Firestore
+      await addDoc(usersRef, {
+  uid: user.uid,
+  name: user.displayName,
+  image: user.photoURL,
+  email: user.email,
+  createdAt: new Date(),
+  authProvider: "google",
+});
+
+    }
+
+    swal("Success", "Logged in with Google", "success");
     navigate("/");
-  } catch (err) {
-    console.error(err);
-    swal("Error", err.message, "error");
+  } catch (error) {
+    swal("Error", error.message, "error");
   }
   setLoading(false);
 };
-
-
   return (
     <div className="w-full flex flex-col mt-8 items-center">
       <h1 className="text-xl font-bold">Sign up</h1>

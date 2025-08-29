@@ -74,10 +74,12 @@ function FindPeople() {
       {/* Users List */}
       <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
         {users.map((user) => (
+          <Link to={`/profile/${user.uid}`}>
           <li
             key={user.id}
             className="flex items-center p-4 rounded-xl bg-gradient-to-br from-[#1a1a1a] to-[#141414] border border-gray-800 hover:border-[#ff4d4d] hover:scale-105 transition-all duration-300 shadow-lg"
           >
+             
             <img
               src={user.image || "/cinephile.png"}
               alt={user.name || "User"}
@@ -93,7 +95,9 @@ function FindPeople() {
             >
               Follow
             </button>
+           
           </li>
+           </Link>
         ))}
       </ul>
       

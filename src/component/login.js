@@ -141,6 +141,7 @@ function Login() {
     localStorage.setItem("login", "true");
     localStorage.setItem("username", user.displayName);
     localStorage.setItem("userId", user.uid);
+    
     localStorage.setItem("accessToken", user.stsTokenManager.accessToken);
     localStorage.setItem("userImage", user.photoURL);
     // Check if user already exists in Firestore

@@ -48,7 +48,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/filmychat" element={<ChatUsers />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:id" element={<Profile />} />
           <Route path="/findpeople" element={<FindPeople />} />
           
         </Routes>
