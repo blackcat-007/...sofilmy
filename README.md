@@ -220,13 +220,14 @@ Firebase wasn’t used because it's "easy" — it was chosen because it **aligns
 
 <p align="center">
   <strong>Film Analysis section</strong><br>
-  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395212/Screenshot_2025-07-13_135334_rkuqg2.png" width="600" />
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1756576917/Screenshot_2025-08-30_232817_waw3ey.png" width="600" />
   <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395201/Screenshot_2025-07-13_135347_ixpibn.png" width="600" />
 </p>
 
 <p align="center">
   <strong>New Post Section</strong><br>
-  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752395200/Screenshot_2025-07-13_135303_bjh77r.png" width="600" />
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1756576889/Screenshot_2025-08-30_232842_poxxtv.png" width="600" />
+    <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1756576902/Screenshot_2025-08-30_232901_kwgjcu.png" width="600" />
 </p>
 
 <p align="center">
