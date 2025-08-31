@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import React from "react";
 import SecondBar from "./secondbar";
 import Sidebar from "./sidebar";
+import Footer from "./footer";
 
 function Home() {
   return (
@@ -10,8 +11,10 @@ function Home() {
         path="/"
         element={
           <>
+           
             <SecondBar/>
             <Sidebar/>
+            <Footer/>
           </>
         }
       />
