@@ -59,6 +59,7 @@ const cls = (...arr) => arr.filter(Boolean).join(" ");
 
 function Addmovies() {
   const app = useContext(Appstate);
+  const username=localStorage.getItem("username");
   const isLoggedIn = app?.login || localStorage.getItem("login") === "true";
   const navigate = useNavigate();
 
@@ -281,6 +282,7 @@ function Addmovies() {
     try {
       const payload = {
         // Movie meta
+        postedBy: username,
         name: form.name,
         year: form.year,
         description: form.description,

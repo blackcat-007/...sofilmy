@@ -73,6 +73,20 @@ function Analysis() {
             {e.sarcasm && <span>😏 Sarcasm Included </span>}
             {e.spoilerFree && <span>🚫 Spoiler Free </span>}
           </div>
+         <span className="text-gray-500 text-left font-thin">
+  {e.postedBy && (
+    <>
+      <span className="inline-block">by {e.postedBy}</span>
+      <img
+        src="/icons/wired-lineal-237-star-rating-hover-pinch.gif"
+        alt="Arrow right"
+        className="inline-block ml-2 h-6 w-6 bg-transparent"
+      />
+    </>
+  )}
+</span>
+
+
 </div>
 
       </Link>

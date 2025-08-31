@@ -91,7 +91,7 @@ function Details() {
           {/* Analysis */}
 {movie.analysis && (
   <div className="mt-6 bg-gray-800 p-6 rounded-lg">
-    <h2 className="text-2xl font-bold text-gray-200 mb-4">Analysis</h2>
+    <h2 className="text-2xl font-bold text-gray-200 mb-4">Thoughts of {movie.postedBy}<img src="/icons/wired-lineal-237-star-rating-hover-pinch.gif" alt="Arrow right" className="inline-block ml-2 h-6 w-6 bg-transparent" /> </h2>
 
     {typeof movie.analysis === "string" ? (
       <p className="text-gray-300 text-base leading-relaxed">{movie.analysis}</p>
