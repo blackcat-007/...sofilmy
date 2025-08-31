@@ -5,8 +5,8 @@ import NewReleases from "./newreleases";
 import { ToastContainer, toast } from 'react-toastify';
 const options = [
     { label: "Analysis", value: "analysis" },
-    { label: "Movie Lists", value: "movielists" },
-    { label: "New Releases", value: "newreleases" },
+    { label: "Lists", value: "lists" },
+    { label: "Explore", value: "explore" },
 ];
 
 export default function SecondBar() {
@@ -16,9 +16,9 @@ export default function SecondBar() {
         switch (selected) {
             case "analysis":
                 return <Analysis />;
-            case "movielists":
+            case "lists":
                 return <MovieLists />;
-            case "newreleases":
+            case "explore":
                 return <NewReleases />;
             default:
                 return null;
@@ -28,16 +28,16 @@ export default function SecondBar() {
     return (
        <div>
   <div className="fixed top-[4.5rem] left-0 w-full z-10 mt-7">
-    <div className="backdrop-blur bg-black/70 flex items-center justify-between px-6 py-3">
+    <div className="backdrop-blur  bg-black/70 flex items-center justify-between px-6 py-3">
       
       {/* 🔘 Option Buttons - Left Side */}
-      <div className="flex space-x-8">
+      <div className="flex space-x-8 ml-10">
         {options.map((option) => (
           <button
             key={option.value}
             onClick={() => {
               // Notify for new releases and movie lists
-              if (option.value === "newreleases" || option.value === "movielists") notify();
+              if (option.value === "explore" || option.value === "lists") notify();
               else setSelected(option.value);
             }}
             className={`text-white font-semibold text-lg transition-colors ${
@@ -60,7 +60,7 @@ export default function SecondBar() {
       </div>
 
       {/* 🔍 Search Bar - Right Side */}
-      <div className="relative w-full max-w-sm">
+     { /*<div className="relative w-full max-w-sm">
         <input
           type="text"
           placeholder="Search..."
@@ -75,7 +75,7 @@ export default function SecondBar() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" />
         </svg>
-      </div>
+      </div>*/}
     </div>
   </div>
 
