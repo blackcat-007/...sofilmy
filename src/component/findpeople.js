@@ -50,7 +50,7 @@ function FindPeople() {
     <>
     <div className="min-h-screen bg-[#121212] text-gray-200 p-6">
       {/* Search Bar */}
-      <div className="max-w-3xl mx-auto mb-8">
+      <div className="max-w-3xl w-64 sm:w-auto sm:mx-auto ml-14 mb-8">
         <input
           type="text"
           placeholder="Search people..."
@@ -77,7 +77,7 @@ function FindPeople() {
           <Link to={`/profile/${user.uid}`}>
           <li
             key={user.id}
-            className="flex items-center p-4 rounded-xl bg-gradient-to-br from-[#1a1a1a] to-[#141414] border border-gray-800 hover:border-[#ff4d4d] hover:scale-105 transition-all duration-300 shadow-lg"
+            className="flex items-center p-4 w-72 ml-9 sm:w-auto sm:mx-auto rounded-xl bg-gradient-to-br from-[#1a1a1a] to-[#141414] border border-gray-800 hover:border-[#ff4d4d] hover:scale-105 transition-all duration-300 shadow-lg"
           >
              
             <img
