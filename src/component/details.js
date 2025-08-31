@@ -5,7 +5,7 @@ import { db } from "../firebase/firebase";
 import { MagnifyingGlass } from "react-loader-spinner";
 import Reviews from "./reviews";
 import { useParams } from "react-router-dom"; // ✅ make sure this is imported
-
+const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
 function Details() {
   const [loading, setLoader] = useState(false);
   const [movie, setMovie] = useState(null);
@@ -145,26 +145,39 @@ function Details() {
           )}
 
           {/* Watch Providers */}
-          {movie.watchProviders && (
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold text-gray-200">
-                Where to Watch
-              </h3>
-              <div className="text-gray-300 mt-2">
-                {movie.watchProviders.buy?.length > 0 && (
-                  <p>Buy: {movie.watchProviders.buy.join(", ")}</p>
-                )}
-                {movie.watchProviders.rent?.length > 0 && (
-                  <p>Rent: {movie.watchProviders.rent.join(", ")}</p>
-                )}
-                {movie.watchProviders.flatrate?.length > 0 && (
-                  <p>
-                    Streaming: {movie.watchProviders.flatrate.join(", ")}
-                  </p>
-                )}
+           <div>
+                <div className="text-lg font-semibold text-gray-200 ">Available On</div>
+                {["flatrate", "rent", "buy"].map((k) => (
+                  <div key={k} className="mb-2">
+                    <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                      {k}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {movie.watchProviders?.[k]?.length ? (
+                        movie.watchProviders[k].map((p) => (
+                          <div
+                            key={`${k}-${p.provider_id}`}
+                            className="flex items-center gap-2 bg-gray-800/50 border border-gray-700 px-2 py-1 rounded-lg"
+                          >
+                            {p.logo_path ? (
+                              <img
+                                src={`${TMDB_IMG}${p.logo_path}`}
+                                alt={p.provider_name}
+                                className="w-6 h-6 rounded"
+                              />
+                            ) : (
+                              <div className="w-6 h-6 bg-gray-600 rounded" />
+                            )}
+                            <span className="text-xs">{p.provider_name}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-sm text-gray-400">—</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-          )}
 
           {/* External Links */}
           <div className="mt-4 flex gap-4">
