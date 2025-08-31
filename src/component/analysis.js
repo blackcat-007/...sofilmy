@@ -83,7 +83,7 @@ function Analysis() {
   }, [isMobile, datas]);
 
   return (
-    <div className="relative px-3 py-8 sm:mt-4 mt-24 sm:mx-8 rounded-xl overflow-hidden">
+    <div className="relative px-3 py-8 sm:mt-4 mt-24 ml-7 sm:mx-8 rounded-xl overflow-hidden">
       {/* ✅ Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-black/30 z-[1]"></div>
@@ -100,9 +100,9 @@ function Analysis() {
       <div className="relative z-10">
         <div className="flex justify-between -mt-5">
           <h1 className="text-2xl font-bold mb-4 text-left">Top Analysis</h1>
-          <button className="bg-gradient-to-r from-red-500 to-red-900 hover:from-red-800 hover:to-red-950 text-white px-4 h-10 rounded">
+          <button className="bg-gradient-to-r from-red-500 to-red-900 hover:from-red-800 hover:to-red-950 text-white sm:px-4 px-2  sm:h-10 h-7 w-auto sm:text-base text-xs rounded">
             See more
-            <CircleArrowOutDownRight className="inline-block ml-2 h-6 w-6 bg-transparent" />
+            <CircleArrowOutDownRight className="inline-block ml-2 sm:h-6 sm:w-6 h-4 w-4 bg-transparent" />
           </button>
         </div>
 
