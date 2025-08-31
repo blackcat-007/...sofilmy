@@ -11,20 +11,11 @@ import { useNavigate } from "react-router-dom";
  * Uses your env values when available; falls back to the ones you shared.
  * Best practice: keep tokens in env (e.g. VITE_TMDB_ACCESS_TOKEN, REACT_APP_*)
  */
-const TMDB_ACCESS_TOKEN =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_TMDB_ACCESS_TOKEN) ||
-  process.env.ACCESS_TOKEN ;
-
-const TMDB_API_KEY =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_TMDB_API_KEY) ||
-  process.env.API_KEY ;
-
-const TMDB_API_URL =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_TMDB_API_URL) ||
-  process.env.API_URL ||
-  "https://api.themoviedb.org/3";
-
+const TMDB_ACCESS_TOKEN = process.env.REACT_APP_TMDB_ACCESS_TOKEN;
+const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
+const TMDB_API_URL = process.env.REACT_APP_TMDB_API_URL || "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
+
 
 /** Country preference for watch providers (India first, then fallback) */
 const PROVIDER_REGIONS = ["IN", "US", "GB"];
