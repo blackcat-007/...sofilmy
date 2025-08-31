@@ -1,55 +1,205 @@
-import React, { useEffect, useState } from 'react';
-import ReactStars from 'react-stars';
-import {useParams} from 'react-router-dom';
-import {getDoc,doc} from "firebase/firestore";
-import {db} from "../firebase/firebase";
-import { MagnifyingGlass } from 'react-loader-spinner';
-import Reviews from './reviews';
-
-
+import React, { useEffect, useState } from "react";
+import ReactStars from "react-stars";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase/firebase";
+import { MagnifyingGlass } from "react-loader-spinner";
+import Reviews from "./reviews";
+import { useParams } from "react-router-dom"; // ✅ make sure this is imported
 
 function Details() {
-    const{id}=useParams()
-    const[loading,setLoader]=useState(false)
-    const[data,setData]=useState({
-        description:"",
-         image:"",
-        name:"",
-        rating:0,
-        user:0,
-        year:""
-       
-       
-       
-    })
-    useEffect(()=>{
-        setLoader(true)
-       async function getData(){
-            const _doc=doc(db,"movies",id)
-            const _data= await getDoc(_doc,id)
-            setData(_data.data())
-            setLoader(false)
-       }
-       getData();
-       
-    },[])
+  const [loading, setLoader] = useState(false);
+  const [movie, setMovie] = useState(null);
+  const { id } = useParams();
+
+  useEffect(() => {
+    async function getData() {
+      setLoader(true);
+      try {
+        const docRef = doc(db, "movies", id); // fetch by specific id
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setMovie({ id: docSnap.id, ...docSnap.data() });
+        } else {
+          console.error("Movie not found");
+        }
+      } catch (error) {
+        console.error("Error fetching movie:", error);
+      } finally {
+        setLoader(false);
+      }
+    }
+
+    if (id) getData();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="h-96 w-full flex justify-center items-start">
+        <MagnifyingGlass
+          height={80}
+          width={80}
+          ariaLabel="magnifying-glass-loading"
+          glassColor={"pink"}
+          color={"green"}
+        />
+      </div>
+    );
+  }
+
+  if (!movie) {
+    return (
+      <div className="p-4 mt-4 text-center text-gray-400">
+        Movie not found.
+      </div>
+    );
+  }
+
   return (
-    
-    <div className='p-4 mt-4 flex justify-center  flex-col md:flex-row items-center md:items-start w-full '>
-    { loading ? <div className='h-96 w-full flex justify-center items-start'><MagnifyingGlass height={80}
-  width={80}
-  ariaLabel="magnifying-glass-loading"  glassColor={"pink"} color={"green"}/></div>:
-   <> <img className='h-96 block md:sticky md:top-24' src={data.image} alt='avengers-endgame'/>
-    <div className='mt:5 md:ml-4 ml-0 w-full md:w-1/2'><h2 className='text-2xl font-bold text-gray-300'>{data.name}</h2>
-    <span  className='text-xl'>{data.year}</span>
-    <ReactStars size={20} half={true} value={data.rating/data.user} edit={false}/>
-    <p className="mt-2">{data.description}</p>
-    <Reviews id={id} prevRating={data.rating} totalusers={data.user}/>
+    <div className="p-4 mt-4 flex flex-col items-center w-full">
+      <div className="bg-gray-900 rounded-xl p-6 shadow-lg flex flex-col md:flex-row gap-6 w-full md:w-5/6">
+        {/* Movie Poster */}
+        <img
+          className="h-96 w-72 object-cover rounded-lg"
+          src={movie.image}
+          alt={movie.name}
+        />
+
+        {/* Movie Details */}
+        <div className="flex-1">
+          <h2 className="text-3xl font-bold text-gray-200">{movie.name}</h2>
+          <div className="text-gray-400 mt-1">({movie.year})</div>
+
+          {/* Ratings */}
+          <div className="flex items-center gap-4 mt-2">
+            <ReactStars
+              size={22}
+              half={true}
+              value={movie.userStars || 0}
+              edit={false}
+            />
+            <span className="text-gray-300">
+              ⭐ {movie.tmdbRating} / 10 TMDB
+            </span>
+          </div>
+
+          {/* Description */}
+          <p className="mt-4 text-gray-300 leading-relaxed">
+            {movie.description}
+          </p>
+
+          {/* Analysis */}
+          {movie.analysis && (
+            <div className="mt-4 bg-gray-800 p-3 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-200">Analysis</h3>
+              {typeof movie.analysis === "string" ? (
+                <p className="text-gray-300 text-sm">{movie.analysis}</p>
+              ) : (
+                <ul className="list-disc list-inside text-gray-300 text-sm space-y-1">
+                  {Object.entries(movie.analysis).map(([key, value]) => (
+                    <li key={key}>
+                      <span className="font-semibold">{key}: </span>
+                      {String(value)}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* Cast */}
+          {movie.cast?.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold text-gray-200">Cast</h3>
+              <ul className="list-disc list-inside text-gray-300 grid grid-cols-2 md:grid-cols-3 gap-1 mt-2">
+                {movie.cast.map((actor, i) => (
+                  <li key={i}>{actor}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Genres */}
+          {movie.genres?.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold text-gray-200">Genres</h3>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {movie.genres.map((g, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1 bg-gray-700 rounded-full text-sm text-gray-300"
+                  >
+                    {g}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Watch Providers */}
+          {movie.watchProviders && (
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold text-gray-200">
+                Where to Watch
+              </h3>
+              <div className="text-gray-300 mt-2">
+                {movie.watchProviders.buy?.length > 0 && (
+                  <p>Buy: {movie.watchProviders.buy.join(", ")}</p>
+                )}
+                {movie.watchProviders.rent?.length > 0 && (
+                  <p>Rent: {movie.watchProviders.rent.join(", ")}</p>
+                )}
+                {movie.watchProviders.flatrate?.length > 0 && (
+                  <p>
+                    Streaming: {movie.watchProviders.flatrate.join(", ")}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* External Links */}
+          <div className="mt-4 flex gap-4">
+            {movie.imdb && (
+              <a
+                href={movie.imdb}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:underline"
+              >
+                IMDb
+              </a>
+            )}
+            {movie.letterboxd && (
+              <a
+                href={movie.letterboxd}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green-400 hover:underline"
+              >
+                Letterboxd
+              </a>
+            )}
+          </div>
+
+          {/* Flags */}
+          <div className="mt-3 text-sm text-gray-400">
+            {movie.sarcasm && <span>😏 Sarcasm Included </span>}
+            {movie.spoilerFree && <span>🚫 Spoiler Free </span>}
+          </div>
+
+          {/* Reviews Section */}
+          <div className="mt-6">
+            <Reviews
+              id={movie.id}
+              prevRating={movie.rating || 0}
+              totalusers={movie.user || 0}
+            />
+          </div>
+        </div>
+      </div>
     </div>
-    </>}
-    </div>
-    
-  )
+  );
 }
 
-export default Details
+export default Details;

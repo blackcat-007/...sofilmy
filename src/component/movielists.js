@@ -34,8 +34,13 @@ function MovieLists() {
       <h1><span className='text-red-400 mr-1'>Name:</span>{e.name}</h1>
       <h2 className="flex items-center"><span className='text-red-400 mr-2'>Rating:</span><ReactStars size={20} half={true} value={e.rating/e.user} edit={false}/></h2>
       <h3><span className='text-red-400 mr-2'>Year:</span>{e.year}</h3>
+      <div className="mt-3 text-sm text-gray-400">
+            {e.sarcasm && <span>😏 Sarcasm Included </span>}
+            {e.spoilerFree && <span>🚫 Spoiler Free </span>}
+          </div>
       </div></Link>
             )})}
+
         
     </div>
     )}

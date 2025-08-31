@@ -69,6 +69,10 @@ function Analysis() {
     <span className="text-red-400 mr-2">Year:</span>
     {e.year}
   </h3>
+  <div className="mt-3 text-sm text-gray-400">
+            {e.sarcasm && <span>😏 Sarcasm Included </span>}
+            {e.spoilerFree && <span>🚫 Spoiler Free </span>}
+          </div>
 </div>
 
       </Link>
