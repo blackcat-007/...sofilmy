@@ -89,23 +89,31 @@ function Details() {
           </p>
 
           {/* Analysis */}
-          {movie.analysis && (
-            <div className="mt-4 bg-gray-800 p-3 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-200">Analysis</h3>
-              {typeof movie.analysis === "string" ? (
-                <p className="text-gray-300 text-sm">{movie.analysis}</p>
-              ) : (
-                <ul className="list-disc list-inside text-gray-300 text-sm space-y-1">
-                  {Object.entries(movie.analysis).map(([key, value]) => (
-                    <li key={key}>
-                      <span className="font-semibold">{key}: </span>
-                      {String(value)}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
+{movie.analysis && (
+  <div className="mt-6 bg-gray-800 p-6 rounded-lg">
+    <h2 className="text-2xl font-bold text-gray-200 mb-4">Analysis</h2>
+
+    {typeof movie.analysis === "string" ? (
+      <p className="text-gray-300 text-base leading-relaxed">{movie.analysis}</p>
+    ) : (
+      <div className="space-y-6">
+        {Object.entries(movie.analysis).map(([key, value]) => (
+          <div key={key}>
+            {/* Sub-heading */}
+            <h3 className="text-xl font-semibold text-gray-100 mb-2">
+              {key}
+            </h3>
+            {/* Paragraph */}
+            <p className="text-gray-300 text-base leading-relaxed">
+              {String(value)}
+            </p>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
+
 
           {/* Cast */}
           {movie.cast?.length > 0 && (
