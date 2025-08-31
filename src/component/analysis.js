@@ -1,44 +1,52 @@
-import React,{useState,useEffect,useRef} from 'react';
-import ReactStars from 'react-stars';
-import { CircleArrowOutDownRight } from 'lucide-react';
-import { BallTriangle } from 'react-loader-spinner';
-import {getDocs} from 'firebase/firestore';
-import { moviesRef } from '../firebase/firebase';
-import {Link} from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import ReactStars from "react-stars";
+import { CircleArrowOutDownRight } from "lucide-react";
+import { BallTriangle } from "react-loader-spinner";
+import { getDocs } from "firebase/firestore";
+import { moviesRef } from "../firebase/firebase";
+import { Link } from "react-router-dom";
 
 function Analysis() {
-  const [datas,setData]=useState([]);
-  const[loading , setloader]=useState(false);
-  
+  const [datas, setData] = useState([]);
+  const [loading, setLoader] = useState(false);
   const [bgImage, setBgImage] = useState(null);
 
-  // reference to the scroll container
   const scrollRef = useRef(null);
+  const cardRefs = useRef([]); 
+  const [isMobile, setIsMobile] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(null); // 👈 track visible card for mobile
 
-  useEffect(()=>{
-    async function getData(){
-      setloader(true);
-      const movieData= await getDocs(moviesRef);
-      movieData.forEach((docs)=>
-        setData((prv)=>[...prv,{...(docs.data()),id:docs.id}])
-      )
-      setloader(false);
+  // ✅ Detect device size (mobile vs desktop)
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    setIsMobile(mq.matches);
+
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    async function getData() {
+      setLoader(true);
+      const movieData = await getDocs(moviesRef);
+      movieData.forEach((docs) =>
+        setData((prv) => [...prv, { ...(docs.data()), id: docs.id }])
+      );
+      setLoader(false);
     }
     getData();
-  },[]);
+  }, []);
 
-  // ✅ Handle vertical mouse wheel → horizontal scroll
+  // ✅ Horizontal scroll with mouse wheel
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
     const onWheel = (e) => {
       if (e.deltaY !== 0) {
-        e.preventDefault(); // stop page scroll
-        el.scrollBy({
-          left: e.deltaY,
-          behavior: "smooth",
-        });
+        e.preventDefault();
+        el.scrollBy({ left: e.deltaY, behavior: "smooth" });
       }
     };
 
@@ -46,22 +54,47 @@ function Analysis() {
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  return (
-    <div
-      className="relative px-3 py-8 sm:mt-4 mt-24 sm:mx-8 rounded-xl overflow-hidden"
-    >
-      <div className="absolute inset-0 overflow-hidden">
-  {/* Dark overlay for readability */}
-  <div className="absolute inset-0 bg-black/30 z-[1]"></div>
+  // ✅ For mobile → detect which card is in view
+  useEffect(() => {
+    if (!isMobile || !cardRefs.current.length) return;
 
-  {bgImage && (
-    <div
-      key={bgImage} // triggers transition when image changes
-      className="absolute inset-0 bg-cover bg-center blur-xl scale-110 opacity-0 animate-fadeIn"
-      style={{ backgroundImage: `url(${bgImage})` }}
-    ></div>
-  )}
-</div>
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const idx = Number(entry.target.getAttribute("data-index"));
+          if (entry.isIntersecting) {
+            const img = entry.target.getAttribute("data-image");
+            if (img) setBgImage(img);
+            setActiveIndex(idx); // 👈 apply hover-like effect
+          }
+        });
+      },
+      {
+        root: scrollRef.current,
+        threshold: 0.6, // at least 60% visible to count
+      }
+    );
+
+    cardRefs.current.forEach((card) => {
+      if (card) observer.observe(card);
+    });
+
+    return () => observer.disconnect();
+  }, [isMobile, datas]);
+
+  return (
+    <div className="relative px-3 py-8 sm:mt-4 mt-24 sm:mx-8 rounded-xl overflow-hidden">
+      {/* ✅ Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-black/30 z-[1]"></div>
+        {bgImage && (
+          <div
+            key={bgImage}
+            className="absolute inset-0 bg-cover bg-center blur-xl scale-110 opacity-0 animate-fadeIn"
+            style={{ backgroundImage: `url(${bgImage})` }}
+          ></div>
+        )}
+      </div>
 
       {/* ✅ Content */}
       <div className="relative z-10">
@@ -89,15 +122,21 @@ function Analysis() {
             className="flex gap-6 overflow-x-auto overflow-y-hidden whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pb-4 snap-x snap-mandatory"
           >
             {datas.map((e, i) => (
-              <Link
-                to={`/details/${e.id}`}
-                key={i}
-                className="shrink-0 snap-start"
-              >
+              <Link to={`/details/${e.id}`} key={i} className="shrink-0 snap-start">
                 <div
-                  className="w-64 sm:w-72 md:w-80 card p-4 bg-white rounded shadow-lg  transition-transform duration-300 transform hover:translate-y-2 hover:scale-95 hover:shadow-red-500  h-full"
-                  onMouseEnter={() => setBgImage(e.image)}
-                  onMouseLeave={() => setBgImage(null)} // ❌ remove if you want it to stay
+                  ref={(el) => (cardRefs.current[i] = el)} 
+                  data-image={e.image}
+                  data-index={i}
+                  className={`w-64 sm:w-72 md:w-80 card p-4 bg-white rounded shadow-lg transition-transform duration-300 transform h-full
+                    ${
+                      isMobile
+                        ? activeIndex === i
+                          ? "translate-y-2 scale-95 shadow-red-500"
+                          : ""
+                        : "hover:translate-y-2 hover:scale-95 hover:shadow-red-500"
+                    }`}
+                  onMouseEnter={() => !isMobile && setBgImage(e.image)}
+                  onMouseLeave={() => !isMobile && setBgImage(null)}
                 >
                   <div className="flex justify-center">
                     <img
@@ -157,7 +196,7 @@ function Analysis() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export default Analysis;
