@@ -439,15 +439,15 @@ const detailsCache = new Map();  // id/imdbId -> details
           {/* ======= Poster + Details ======= */}
           <div className="lg:w-3/4 mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Poster */}
-            <div className="col-span-1">
+            <div className="col-span-1 flex items-center justify-center">
               {form.image ? (
                 <img
                   src={form.image}
                   alt={form.name}
-                  className="w-full rounded-2xl shadow-md object-cover"
+                  className="sm:w-full w-60 aspect-[2/3] rounded-2xl shadow-md object-cover"
                 />
               ) : (
-                <div className="w-full aspect-[2/3] rounded-2xl bg-gray-800/40 border border-gray-700" />
+                <div className="sm:w-full w-60 aspect-[2/3]  rounded-2xl bg-gray-800/40 border border-gray-700" />
               )}
             </div>
 
@@ -649,6 +649,7 @@ const detailsCache = new Map();  // id/imdbId -> details
 
           {/* ======= Analysis Buttons ======= */}
           <div className="lg:w-3/4 mx-auto mt-8">
+          <p className="text-sm text-gray-400 mb-5"><h2 className="text-red-500">Add your thoughts on the movie:</h2>(just by clicking the buttons the text fields will be opened on which specific point you want to analyze)</p>
             <div className="flex flex-wrap gap-2">
               {ANALYSIS_SECTIONS.map((sec) => {
                 const active = isOpen(sec);
