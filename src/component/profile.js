@@ -58,7 +58,7 @@ const Profile = () => {
 
   return (
     <>
-      <div className="max-w-md w-96  sm:w-auto  sm:mx-auto mt-14 p-6 bg-gradient-to-br from-[#1a1a1a] to-[#141414] border border-gray-800 rounded-xl shadow-lg text-center">
+      <div className="max-w-sm   w-auto mx-5 sm:mx-auto mt-14 p-6 bg-gradient-to-br from-[#1a1a1a] to-[#141414] border border-gray-800 rounded-xl shadow-lg text-center">
         <img 
           src={userData.photoURL} 
           alt="Profile" 
