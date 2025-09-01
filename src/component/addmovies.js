@@ -15,7 +15,7 @@ const TMDB_ACCESS_TOKEN = process.env.REACT_APP_TMDB_ACCESS_TOKEN;
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 const TMDB_API_URL = process.env.REACT_APP_TMDB_API_URL || "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
-
+const OMDB_API="http://www.omdbapi.com/?i=tt3896198&apikey=ebeb521b"
 
 /** Country preference for watch providers (India first, then fallback) */
 const PROVIDER_REGIONS = ["IN", "US", "GB"];
@@ -49,6 +49,9 @@ const ANALYSIS_SECTIONS = [
 const cls = (...arr) => arr.filter(Boolean).join(" ");
 
 function Addmovies() {
+  // ===== Cache (in-memory; can replace with localStorage if you want persistence) =====
+const searchCache = new Map();   // query -> results
+const detailsCache = new Map();  // id/imdbId -> details
   const app = useContext(Appstate);
   const username=localStorage.getItem("username");
   const isLoggedIn = app?.login || localStorage.getItem("login") === "true";
@@ -108,6 +111,11 @@ function Addmovies() {
       setResults([]);
       return;
     }
+     // Check cache first
+  if (searchCache.has(q)) {
+    setResults(searchCache.get(q));
+    return;
+  }
     setSearchLoading(true);
     try {
       const data = await tmdbFetch("/search/movie", {
@@ -117,9 +125,11 @@ function Addmovies() {
         page: "1",
       });
       setResults(data.results || []);
+      searchCache.set(q, data.results || []);
     } catch (e) {
       console.error(e);
       setResults([]);
+      
     } finally {
       setSearchLoading(false);
     }
@@ -154,6 +164,13 @@ function Addmovies() {
   const selectMovie = async (movie) => {
     setShowDropdown(false);
     setQuery(movie.title || movie.name || "");
+     // Check details cache
+  if (detailsCache.has(movie.id || movie.imdbID)) {
+    const cached = detailsCache.get(movie.id || movie.imdbID);
+    setSelected(cached.details);
+    setForm(cached.form);
+    return;
+  }
     try {
       // Fetch full detail with extras
       const details = await tmdbFetch(`/movie/${movie.id}`, {
@@ -190,24 +207,24 @@ function Addmovies() {
         ? `${slugify(details.title)}-${year}`
         : null;
 
-      setSelected(details);
+      const formObj = {
+      name: details.title || movie.title || "",
+      year,
+      description: details.overview || "",
+      image: details.poster_path ? `${TMDB_IMG}${details.poster_path}` : "",
+      cast,
+      genres,
+      tmdbRating: typeof details.vote_average === "number"
+        ? Number(details.vote_average.toFixed(1))
+        : null,
+      imdbId,
+      letterboxdSlug,
+      watchProviders,
+    };
 
-      setForm((prev) => ({
-        ...prev,
-        name: details.title || movie.title || "",
-        year,
-        description: details.overview || "",
-        image: details.poster_path ? `${TMDB_IMG}${details.poster_path}` : "",
-        cast,
-        genres,
-        tmdbRating:
-          typeof details.vote_average === "number"
-            ? Number(details.vote_average.toFixed(1))
-            : null,
-        imdbId,
-        letterboxdSlug,
-        watchProviders,
-      }));
+    setSelected(details);
+    setForm(formObj);
+    detailsCache.set(movie.id, { details, form: formObj });
     } catch (e) {
       console.error("Error loading movie details:", e);
       swal({
