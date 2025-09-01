@@ -444,10 +444,10 @@ const detailsCache = new Map();  // id/imdbId -> details
                 <img
                   src={form.image}
                   alt={form.name}
-                  className="sm:w-full w-60 aspect-[2/3] rounded-2xl shadow-md object-cover"
+                  className="w-52 sm:w-72 md:w-full aspect-[2/3] rounded-2xl shadow-md object-cover"
                 />
               ) : (
-                <div className="sm:w-full w-60 aspect-[2/3]  rounded-2xl bg-gray-800/40 border border-gray-700" />
+                <div className="w-52 sm:w-72 md:w-full aspect-[2/3] rounded-2xl bg-gray-800/40 border border-gray-700" />
               )}
             </div>
 
@@ -649,7 +649,8 @@ const detailsCache = new Map();  // id/imdbId -> details
 
           {/* ======= Analysis Buttons ======= */}
           <div className="lg:w-3/4 mx-auto mt-8">
-          <p className="text-sm text-gray-400 mb-5"><h2 className="text-red-500">Add your thoughts on the movie:</h2>(just by clicking the buttons the text fields will be opened on which specific point you want to analyze)</p>
+          <p className="text-sm text-gray-400 mb-5"><h2 className="text-red-500">Add your thoughts on the movie:</h2>Click on a point (e.g., Story, Direction, Acting) to open its text field, then write your thoughts there.
+Repeat for any other points you want to analyze to build a structured review.</p>
             <div className="flex flex-wrap gap-2">
               {ANALYSIS_SECTIONS.map((sec) => {
                 const active = isOpen(sec);

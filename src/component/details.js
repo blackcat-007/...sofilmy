@@ -70,7 +70,7 @@ function Details() {
   <div className="absolute inset-0 bg-black/60"></div>
 
   {/* ✅ Foreground content */}
-  <div className="bg-black relative z-10 rounded-xl p-6 shadow-lg flex flex-col md:flex-row gap-6 w-full md:w-5/6">
+  <div className="bg-black relative z-10 rounded-xl p-6 shadow-lg flex flex-col md:flex-row gap-6 w-full md:w-5/6 items-center md:items-start">
     {/* Movie Poster */}
     <img
       className="h-96 w-72 object-cover rounded-lg"
