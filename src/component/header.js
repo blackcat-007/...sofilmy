@@ -17,14 +17,14 @@ function Header() {
       {/* Logo */}
      < div className="flex flex-col">
       <Link to={'/'} className="flex-shrink-0">
-        <span className="block bg-gradient-to-b from-red-400 to-red-600 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
-                ...So<span className=" bg-gradient-to-b from-gray-400 to-white bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">Filmy</span><AnimatedSubtitle />
+        <span className="block bg-gradient-to-b from-red-400 to-red-600 bg-clip-text sm:text-3xl text-2xl  font-extrabold tracking-tight text-transparent">
+                ...So<span className=" bg-gradient-to-b from-gray-400 to-white bg-clip-text sm:text-3xl text-2xl font-extrabold tracking-tight text-transparent">Filmy</span><AnimatedSubtitle />
 
               </span>
               
       </Link>
-      
-{login ? (<span className=" md:ml-2 text-xs bg-gradient-to-b from-red-400 to-red-600 bg-clip-text">Welcome, {username} 👋</span>) : null}
+
+{login ? (<span className=" md:ml-2 sm:text-xs text-[10px] bg-gradient-to-b from-red-400 to-red-600 bg-clip-text">Welcome, {username} 👋</span>) : null}
 </div>
       {/* Buttons */}
       <div className="flex flex-row items-center gap-2 sm:gap-4 ml-auto flex-wrap">

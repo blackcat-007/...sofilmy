@@ -83,7 +83,7 @@ function Analysis() {
   }, [isMobile, datas]);
 
   return (
-    <div className="relative px-3 py-8 sm:mt-4 mt-24 ml-7 sm:mx-8 rounded-xl overflow-hidden">
+    <div className="relative px-3 py-8 sm:mt-4 mt-24 -ml-2 sm:mx-8 rounded-xl overflow-hidden">
       {/* ✅ Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-black/30 z-[1]"></div>

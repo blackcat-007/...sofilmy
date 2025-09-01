@@ -19,7 +19,7 @@ export default function AnimatedSubtitle() {
   }, []);
 
   return (
-    <div className="relative h-6">
+    <div className="relative h-6 sm:mt-0 -mt-2">
       <AnimatePresence mode="wait">
         <motion.span
           key={phrases[index]}
@@ -27,7 +27,7 @@ export default function AnimatedSubtitle() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.6 }}
-          className="absolute text-xs text-zinc-400"
+          className="absolute sm:text-xs text-[10px]  text-zinc-400"
         >
           {phrases[index]}
         </motion.span>

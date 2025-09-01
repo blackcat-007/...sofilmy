@@ -48,9 +48,9 @@ function FindPeople() {
 
   return (
     <>
-    <div className="min-h-screen  bg-[#121212] text-gray-200 p-6">
+    <div className="min-h-screen bg-[#121212] text-gray-200 p-6">
       {/* Search Bar */}
-      <div className="max-w-3xl w-72 sm:w-auto sm:mx-auto flex items-center mb-8 ml-14">
+      <div className="max-w-3xl  mt-16 sm:w-auto sm:mx-auto flex items-center mb-8 ">
         <input
           type="text"
           placeholder="Search people..."
@@ -63,10 +63,7 @@ function FindPeople() {
         />
       </div>
 
-      {/* Title */}
-      <h2 className="sm:text-3xl text-2xl font-bold text-center text-[#ff4d4d] mb-8 ml-12 sm:ml-0">
-        Find People
-      </h2>
+      
 
       {/* Loading State */}
       {loading && <p className="text-center text-[#00ff99]">Loading...</p>}
@@ -77,7 +74,7 @@ function FindPeople() {
           <Link to={`/profile/${user.uid}`}>
           <li
             key={user.id}
-            className="flex items-center p-4 w-72 ml-14 sm:w-auto sm:mx-auto rounded-xl bg-gradient-to-br from-[#1a1a1a] to-[#141414] border border-gray-800 hover:border-[#ff4d4d] hover:scale-105 transition-all duration-300 shadow-lg"
+            className="flex items-center p-4  sm:w-auto sm:mx-auto rounded-xl bg-gradient-to-br from-[#1a1a1a] to-[#141414] border border-gray-800 hover:border-[#ff4d4d] hover:scale-105 transition-all duration-300 shadow-lg"
           >
              
             <img
