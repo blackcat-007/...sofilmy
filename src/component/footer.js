@@ -5,7 +5,7 @@ const Footer = () => (
         
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 md:flex-row">
                   <div className="flex items-center gap-2 text-zinc-400">
-                    <PopcornIcon className="h-4 w-4" />
+                    <PopcornIcon className="sm:h-4 sm:w-4 h-12 w-12" />
                     <span className="text-sm">© {new Date().getFullYear()} Shubho. All rights reserved under the Apache License 2.0.</span>
                     <span className="text-sm">SoFilmy. Built by cinephiles, for cinephiles.</span>
                   </div>
