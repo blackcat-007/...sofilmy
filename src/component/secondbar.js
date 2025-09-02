@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Analysis from "./analysis";
 import MovieLists from "./movielists";
-import NewReleases from "./newreleases";
+import Explore from "./newreleases";
 import { ToastContainer, toast } from 'react-toastify';
 const options = [
     { label: "Analysis", value: "analysis" },
@@ -19,7 +19,7 @@ export default function SecondBar() {
             case "lists":
                 return <MovieLists />;
             case "explore":
-                return <NewReleases />;
+                return <Explore />;
             default:
                 return null;
         }
@@ -37,7 +37,7 @@ export default function SecondBar() {
             key={option.value}
             onClick={() => {
               // Notify for new releases and movie lists
-              if (option.value === "explore" || option.value === "lists") notify();
+              if ( option.value === "lists") notify();
               else setSelected(option.value);
             }}
             className={`text-white font-semibold text-lg transition-colors ${
