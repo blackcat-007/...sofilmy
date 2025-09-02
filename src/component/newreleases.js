@@ -263,7 +263,7 @@ function Explore() {
   };
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen px-4 py-6">
+    <div className="bg-black text-white min-h-screen px-4 py-6 mx-auto max-w-7xl">
       {/* Search Bar with Dropdown */}
       <div className="relative flex justify-center mb-6" ref={searchRef}>
         <input
