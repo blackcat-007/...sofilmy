@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import Analysis from "./analysis";
 import MovieLists from "./movielists";
 import Explore from "./newreleases";
+import AISuggestion from "./aisuggestion";
 import { ToastContainer, toast } from 'react-toastify';
 const options = [
     { label: "Analysis", value: "analysis" },
     { label: "Lists", value: "lists" },
     { label: "Explore", value: "explore" },
+    { label: "AI Suggestion", value: "ai-suggestion" }
 ];
 
 export default function SecondBar() {
@@ -20,6 +22,8 @@ export default function SecondBar() {
                 return <MovieLists />;
             case "explore":
                 return <Explore />;
+            case "ai-suggestion":
+                return <AISuggestion />;
             default:
                 return null;
         }
