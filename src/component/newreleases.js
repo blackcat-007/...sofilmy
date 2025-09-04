@@ -80,7 +80,7 @@ function Explore() {
     if (!guardKey()) return;
     try {
       const data = await fetchJson(
-        `${TMDB_API_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
+        `${TMDB_API_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
       );
       setSearchResults(data.results || []);
     } catch (e) {
@@ -119,10 +119,18 @@ function Explore() {
     (async () => {
       if (!guardKey()) return;
       try {
-        const data = await fetchJson(
+        const movieData = await fetchJson(
           `${TMDB_API_URL}/trending/movie/${trendingFilter}?api_key=${TMDB_API_KEY}`
         );
-        setTrending(data.results || []);
+        const tvData = await fetchJson(
+          `${TMDB_API_URL}/trending/tv/${trendingFilter}?api_key=${TMDB_API_KEY}`
+        );
+        setTrending([
+  ...(movieData.results || []).map(item => ({ ...item, title: item.title })),
+  ...(tvData.results || []).map(item => ({ ...item, title: item.name })),
+]);
+
+        
       } catch (e) {
         setError(e.message);
       }
@@ -280,7 +288,7 @@ function Explore() {
     {searchResults.map((m) => (
       <div
         key={m.id}
-        onClick={() => openDetailsModal({ ...m, media_type: "movie" })}
+        onClick={() => openDetailsModal(m)}
         className="flex items-center p-2 hover:bg-gray-700 transition cursor-pointer"
       >
         <img
@@ -289,7 +297,7 @@ function Explore() {
           className="w-12 h-16 rounded-md object-cover mr-3"
           loading="lazy"
         />
-        <span>{m.title}</span>
+        <span>{m.title || m.name}</span>
       </div>
     ))}
   </div>
@@ -329,7 +337,7 @@ function Explore() {
         </div>
         <div className="flex overflow-x-auto scroll-x space-x-4 pb-3">
           {trending.map((m) => (
-            <Card key={m.id} item={{ ...m, media_type: "movie" }} onClick={() => openDetailsModal({ ...m, media_type: "movie" })} />
+            <Card key={m.id} item={m} onClick={() => openDetailsModal(m)} />
           ))}
         </div>
       </div>
