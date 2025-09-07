@@ -609,8 +609,8 @@ const [showPersonModal, setShowPersonModal] = useState(false);
       {/* Person Details Modal */}
     
 {showPersonModal && personDetails && (
-  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
-    <div className="bg-[#1c1c1c] rounded-2xl max-w-4xl w-full p-6 relative shadow-xl">
+  <div className="fixed inset-0 bg-black/80 flex items-center  justify-center z-50 p-4 overflow-y-auto">
+    <div className="bg-[#1c1c1c] rounded-2xl max-w-4xl w-full p-6 relative shadow-xl max-h-[90vh] overflow-y-auto">
       {/* Close button */}
       <button
         onClick={() => setShowPersonModal(false)}
