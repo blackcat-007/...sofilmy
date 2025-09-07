@@ -394,48 +394,51 @@ useEffect(() => {
   loadUser();
 }, [userId]);
 
-  // Default boot load: trending all + popular all-time movies
-  useEffect(() => {
-    const boot = async () => {
-      if (!TMDB_API) {
-        setBootLoading(false);
-        return;
-      }
-      try {
-        const [trendingRes, popularMoviesRes] = await Promise.all([
-          fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_API}&language=en-US`),
-          fetch(
-            `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API}&sort_by=popularity.desc&include_adult=false&language=en-US&page=1`
-          ),
-        ]);
+  // 👇 move boot function outside
+const boot = async () => {
+  if (!TMDB_API) {
+    setBootLoading(false);
+    return;
+  }
+  try {
+    const [trendingRes, popularMoviesRes] = await Promise.all([
+      fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_API}&language=en-US`),
+      fetch(
+        `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API}&sort_by=popularity.desc&include_adult=false&language=en-US&page=1`
+      ),
+    ]);
 
-        const trendingData = await trendingRes.json();
-        const popularMovies = await popularMoviesRes.json();
+    const trendingData = await trendingRes.json();
+    const popularMovies = await popularMoviesRes.json();
 
-        const trend = (trendingData.results || []).map((r) => ({
-          ...r,
-          media_type: r.media_type, // already contains movie/tv
-          title: r.title || r.name,
-          release_date: r.release_date || r.first_air_date,
-        }));
+    const trend = (trendingData.results || []).map((r) => ({
+      ...r,
+      media_type: r.media_type,
+      title: r.title || r.name,
+      release_date: r.release_date || r.first_air_date,
+    }));
 
-        const popular = normalizeResults(popularMovies.results, "movie");
+    const popular = normalizeResults(popularMovies.results, "movie");
 
-        // merge & de-dupe by id+media_type
-        const key = (x) => `${x.media_type}:${x.id}`;
-        const merged = [...trend, ...popular];
-        const uniqMap = new Map();
-        merged.forEach((x) => uniqMap.set(key(x), x));
+    // merge & de-dupe
+    const key = (x) => `${x.media_type}:${x.id}`;
+    const merged = [...trend, ...popular];
+    const uniqMap = new Map();
+    merged.forEach((x) => uniqMap.set(key(x), x));
 
-        setItems([...uniqMap.values()]);
-      } catch {
-        setItems([]);
-      } finally {
-        setBootLoading(false);
-      }
-    };
-    boot();
-  }, []);
+    setItems([...uniqMap.values()]);
+  } catch {
+    setItems([]);
+  } finally {
+    setBootLoading(false);
+  }
+};
+
+// run once on mount
+useEffect(() => {
+  boot();
+}, []);
+
 
   // Horizontal scroll helper
   useEffect(() => {
@@ -535,7 +538,13 @@ useEffect(() => {
   /** ------------------ Search (Natural Language) ------------------ */
   const handleSearch = async () => {
     if (!TMDB_API) return;
-    setLoading(true);
+    // ⛔ Stop if no filters
+  if (!text.trim() && selectedGenres.length === 0 && selectedMoods.length === 0) {
+    
+    return; // do nothing
+  }
+setLoading(true);
+    
 
     try {
       const raw = text.trim();
@@ -783,7 +792,7 @@ useEffect(() => {
               setText("");
               setSelectedGenres([]);
               setSelectedMoods([]);
-             
+            boot()
 
               // keep items; don’t blank the page — or re-run boot load:
                 // optional if you want to reset to default feed
