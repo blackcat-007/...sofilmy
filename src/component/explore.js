@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { BallTriangle } from "react-loader-spinner";
+import { X } from "lucide-react";
+
+const IMG_BASE = "https://image.tmdb.org/t/p/w500";
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 const TMDB_API_URL = "https://api.themoviedb.org/3";
@@ -38,6 +41,10 @@ function Explore() {
   const [crewCore, setCrewCore] = useState([]); // Director/Producer(s)
   const [similarItems, setSimilarItems] = useState([]);
   const [activeMediaType, setActiveMediaType] = useState("movie"); // "movie" | "tv"
+  const [personDetails, setPersonDetails] = useState(null);
+const [personPopular, setPersonPopular] = useState([]);
+const [showPersonModal, setShowPersonModal] = useState(false);
+  const [loadingPerson, setLoadingPerson] = useState(false);
 
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
@@ -208,12 +215,35 @@ function Explore() {
 
   // ---- Movie/TV Details Modal ----
   const openDetailsModal = async (item) => {
-    if (!guardKey()) return;
-    const type = inferType(item); // movie or tv (safe if user clicks TV in Popular->ontv)
-    setActiveMediaType(type);
-    setLoading(true);
-    try {
-      // append videos + credits in a single call
+  if (!guardKey()) return;
+
+  const type = inferType(item); // "movie" | "tv" | "person"
+  setActiveMediaType(type);
+  setLoading(true);
+
+  try {
+    if (type === "person") {
+      // ✅ Fetch person details
+      const personDetails = await fetchJson(
+        `${TMDB_API_URL}/person/${item.id}?api_key=${TMDB_API_KEY}&append_to_response=movie_credits,tv_credits,images`
+      );
+
+      setPersonDetails(personDetails);
+
+      // pick top movies (sorted by popularity)
+      const popularMovies = (personDetails.movie_credits?.cast || [])
+        .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+        .slice(0, 12);
+
+      const popularTv = (personDetails.tv_credits?.cast || [])
+        .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+        .slice(0, 12);
+
+      setPersonPopular([...popularMovies, ...popularTv]);
+
+      setShowPersonModal(true); // open a dedicated person modal
+    } else {
+      // ✅ Movie/TV branch (your original code)
       const details = await fetchJson(
         `${TMDB_API_URL}/${type}/${item.id}?api_key=${TMDB_API_KEY}&append_to_response=videos,credits`
       );
@@ -227,19 +257,21 @@ function Explore() {
       setCrewCore(crew);
       setMovieCast(cast);
 
-      // Similar (movie or tv)
+      // Similar
       const similar = await fetchJson(
         `${TMDB_API_URL}/${type}/${item.id}/similar?api_key=${TMDB_API_KEY}`
       );
       setSimilarItems(similar.results || []);
 
       setShowMovieModal(true);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (e) {
+    setError(e.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const Card = ({ item, onClick }) => (
     <div className="w-40 flex-shrink-0 cursor-pointer" onClick={onClick} title={item.title}>
@@ -292,7 +324,7 @@ function Explore() {
         className="flex items-center p-2 hover:bg-gray-700 transition cursor-pointer"
       >
         <img
-          src={m.poster_path ? `${TMDB_IMG}${m.poster_path}` : ""}
+          src={m.poster_path ? `${TMDB_IMG}${m.poster_path}` : `${TMDB_IMG}${m.profile_path}`}
           alt={m.title}
           className="w-12 h-16 rounded-md object-cover mr-3"
           loading="lazy"
@@ -488,46 +520,64 @@ function Explore() {
             </div>
 
             {/* Crew Spotlight */}
-            {!!crewCore.length && (
-              <>
-                <h3 className="text-xl font-semibold mt-6 mb-3">Director & Producers</h3>
-                <div className="flex overflow-x-auto scroll-x space-x-4 pb-3">
-                  {crewCore.map((c) => (
-                    <div key={`${c.credit_id}`} className="w-32 flex-shrink-0 text-center">
-                      <img
-                        src={c.profile_path ? `${TMDB_PROFILE}${c.profile_path}` : ""}
-                        alt={c.name}
-                        className="w-24 h-24 object-cover rounded-full mx-auto bg-gray-700"
-                        loading="lazy"
-                      />
-                      <p className="mt-2 text-sm font-medium">{c.name}</p>
-                      <p className="text-xs text-gray-400">{c.job}</p>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+           {/* Crew Spotlight */}
+{!!crewCore.length && (
+  <>
+    <h3 className="text-xl font-semibold mt-6 mb-3">Director & Producers</h3>
+    <div className="flex overflow-x-auto scroll-x space-x-4 pb-3">
+      {crewCore.map((c) => (
+        <div
+          key={c.credit_id}
+          className="w-32 flex-shrink-0 text-center cursor-pointer"
+          onClick={() => {
+            setShowMovieModal(false); // close movie modal
+            openDetailsModal({ id: c.id, media_type: "person" });
+          }}
+        >
+          <img
+            src={c.profile_path ? `${TMDB_PROFILE}${c.profile_path}` : ""}
+            alt={c.name}
+            className="w-24 h-24 object-cover rounded-full mx-auto bg-gray-700"
+            loading="lazy"
+          />
+          <p className="mt-2 text-sm font-medium">{c.name}</p>
+          <p className="text-xs text-gray-400">{c.job}</p>
+        </div>
+      ))}
+    </div>
+  </>
+)}
+
 
             {/* Cast */}
-            {!!movieCast.length && (
-              <>
-                <h3 className="text-xl font-semibold mt-6 mb-3">Cast</h3>
-                <div className="flex overflow-x-auto scroll-x space-x-4 pb-3">
-                  {movieCast.map((c) => (
-                    <div key={`${c.cast_id || c.credit_id || c.id}`} className="w-28 flex-shrink-0 text-center">
-                      <img
-                        src={c.profile_path ? `${TMDB_PROFILE}${c.profile_path}` : ""}
-                        alt={c.name}
-                        className="w-24 h-24 object-cover rounded-full mx-auto bg-gray-700"
-                        loading="lazy"
-                      />
-                      <p className="mt-2 text-sm font-medium">{c.name}</p>
-                      <p className="text-xs text-gray-400">{c.character}</p>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+           
+{!!movieCast.length && (
+  <>
+    <h3 className="text-xl font-semibold mt-6 mb-3">Cast</h3>
+    <div className="flex overflow-x-auto scroll-x space-x-4 pb-3">
+      {movieCast.map((c) => (
+        <div
+          key={c.cast_id || c.credit_id || c.id}
+          className="w-28 flex-shrink-0 text-center cursor-pointer"
+          onClick={() => {
+            setShowMovieModal(false); // close movie modal
+            openDetailsModal({ id: c.id, media_type: "person" });
+          }}
+        >
+          <img
+            src={c.profile_path ? `${TMDB_PROFILE}${c.profile_path}` : ""}
+            alt={c.name}
+            className="w-24 h-24 object-cover rounded-full mx-auto bg-gray-700"
+            loading="lazy"
+          />
+          <p className="mt-2 text-sm font-medium">{c.name}</p>
+          <p className="text-xs text-gray-400">{c.character}</p>
+        </div>
+      ))}
+    </div>
+  </>
+)}
+
 
             {/* Similar */}
             <h3 className="text-xl font-semibold mt-6 mb-3">
@@ -556,6 +606,92 @@ function Explore() {
           </div>
         </div>
       )}
+      {/* Person Details Modal */}
+    
+{showPersonModal && personDetails && (
+  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
+    <div className="bg-[#1c1c1c] rounded-2xl max-w-4xl w-full p-6 relative shadow-xl">
+      {/* Close button */}
+      <button
+        onClick={() => setShowPersonModal(false)}
+        className="absolute top-4 right-4 text-gray-400 hover:text-white"
+      >
+        <X size={24} />
+      </button>
+
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Profile image */}
+        {personDetails.profile_path ? (
+          <img
+            src={`${IMG_BASE}${personDetails.profile_path}`}
+            alt={personDetails.name}
+            className="w-48 h-64 object-cover rounded-2xl shadow-md"
+          />
+        ) : (
+          <div className="w-48 h-64 bg-gray-700 rounded-2xl flex items-center justify-center text-gray-400">
+            No Image
+          </div>
+        )}
+
+        {/* Bio + Info */}
+        <div className="flex-1">
+  <h2 className="text-2xl font-bold mb-2">{personDetails.name}</h2>
+
+  {personDetails.birthday && (
+    <p className="text-sm text-gray-400">
+      Born: {personDetails.birthday}{" "}
+      {personDetails.place_of_birth ? `• ${personDetails.place_of_birth}` : ""}
+    </p>
+  )}
+
+  {personDetails.deathday && (
+    <p className="text-sm text-gray-400">Died: {personDetails.deathday}</p>
+  )}
+
+  {/* Scrollable Biography */}
+  <div className="mt-4 max-h-48 overflow-y-auto pr-2 text-gray-300 text-sm whitespace-pre-line custom-scroll">
+    {personDetails.biography || "No biography available."}
+  </div>
+</div>
+      </div>
+
+      {/* Popular works */}
+      {personPopular?.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-4">Popular Works</h3>
+          <div className="flex overflow-x-auto space-x-4 pb-3">
+            {personPopular.map((work) => (
+              <div
+                key={`${work.media_type}:${work.id}`}
+                className="w-36 flex-shrink-0 cursor-pointer"
+                onClick={() => {
+                  setShowPersonModal(false); // close person modal
+                  openDetailsModal({ ...work });
+                }}
+              >
+                {work.poster_path ? (
+                  <img
+                    src={`${IMG_BASE}${work.poster_path}`}
+                    alt={work.title || work.name}
+                    className="w-full h-52 object-cover rounded-xl mb-2"
+                  />
+                ) : (
+                  <div className="w-full h-52 bg-gray-700 rounded-xl flex items-center justify-center text-gray-400 mb-2">
+                    No Poster
+                  </div>
+                )}
+                <p className="text-sm text-gray-300 truncate">
+                  {work.title || work.name}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

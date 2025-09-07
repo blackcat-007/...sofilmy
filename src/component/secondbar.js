@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Analysis from "./analysis";
 import MovieLists from "./movielists";
-import Explore from "./newreleases";
+import Explore from "./explore";
 import AISuggestion from "./aisuggestion";
 import { ToastContainer, toast } from 'react-toastify';
 const options = [
