@@ -821,7 +821,7 @@ useEffect(() => {
                     </div>
                     <button
                       onClick={() => toggleWatchlist(it.id, it.media_type)}
-                      className={`absolute bottom-2 left-2 px-2 py-1 text-sm rounded ${
+                      className={` absolute top-2 right-2 px-2 py-1 text-sm rounded ${
                         inWatchlist ? "bg-green-600" : "bg-red-600"
                       }`}
                     >
