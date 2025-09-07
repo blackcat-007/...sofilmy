@@ -898,7 +898,7 @@ useEffect(() => {
   </div>
 )}
 {/* Trailer button */}
-                {getFirstYoutubeKey(details.videos) && (
+              {/*  {getFirstYoutubeKey(details.videos) && (
                   <button
                     onClick={() => {
                       const key = getFirstYoutubeKey(details.videos);
@@ -911,7 +911,7 @@ useEffect(() => {
                   >
                     Watch Trailer
                   </button>
-                )}
+                )}*/}
               </div>
             </div>
 

@@ -470,7 +470,7 @@ function Explore() {
   </div>
 )}
 {/* Trailer button */}
-                {getFirstYoutubeKey(movieDetails.videos) && (
+             { /*  {getFirstYoutubeKey(movieDetails.videos) && (
                   <button
                     onClick={() => {
                       const key = getFirstYoutubeKey(movieDetails.videos);
@@ -483,7 +483,7 @@ function Explore() {
                   >
                     Watch Trailer
                   </button>
-                )}
+                )}*/}
               </div>
             </div>
 
