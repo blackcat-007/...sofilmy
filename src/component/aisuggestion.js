@@ -702,6 +702,9 @@ setLoading(true);
               sx={{
                 bgcolor: "red",
                 color: "white",
+                "&:hover": {
+      bgcolor: "red", // keep same color on hover
+    },
               }}
             />
           );
@@ -711,7 +714,16 @@ setLoading(true);
     MenuProps={MenuProps}
   >
     {Object.entries(GENRES_MOVIE).map(([label, id]) => (
-      <MenuItem key={id} value={id}>
+      <MenuItem key={id} value={id} sx={{
+    "&.Mui-selected": {
+      bgcolor: "red",
+      color: "white",
+    },
+    "&.Mui-selected:hover": {
+      bgcolor: "red", // keep it red on hover too
+      color: "white",
+    },
+  }}>
         {label}
       </MenuItem>
     ))}
@@ -765,6 +777,9 @@ setLoading(true);
                     sx={{
                       bgcolor: "red",
                       color: "white",
+                      "&:hover": {
+      bgcolor: "red", // keep same color on hover
+    },
                     }}
                   />
                 ))}
@@ -773,7 +788,16 @@ setLoading(true);
             MenuProps={MenuProps}
           >
             {Object.keys(moodToGenres).map((m) => (
-              <MenuItem key={m} value={m}>
+              <MenuItem key={m} value={m} sx={{
+    "&.Mui-selected": {
+      bgcolor: "red",
+      color: "white",
+    },
+    "&.Mui-selected:hover": {
+      bgcolor: "red", // keep it red on hover too
+      color: "white",
+    },
+  }}>
                 {m}
               </MenuItem>
             ))}
