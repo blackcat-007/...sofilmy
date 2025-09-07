@@ -2,14 +2,37 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   getFirestore,
+  collection,
+  query,
+  where,
+
   doc,
-  getDoc,
+  getDocs,
   updateDoc,
   arrayUnion,
   arrayRemove,
   setDoc,
 } from "firebase/firestore";
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  OutlinedInput,
+  Chip,
+  Box,
+} from "@mui/material";
 
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
 const TMDB_API = process.env.REACT_APP_TMDB_API_KEY; // TMDB API key
 const HG_TOKEN = process.env.REACT_APP_HG_TOKEN; // HuggingFace token
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
@@ -65,8 +88,7 @@ const GENRES_TV = {
 
 const KEYWORD_TO_GENRES = {
   // movies + tv mapping (we’ll add both sides where it makes sense)
-  "sci fi": { movie: ["878"], tv: ["10765"] },
-  "sci-fi": { movie: ["878"], tv: ["10765"] },
+
   scifi: { movie: ["878"], tv: ["10765"] },
   science: { movie: ["878"], tv: ["10765"] },
   fantasy: { movie: ["14"], tv: ["10765"] },
@@ -285,6 +307,23 @@ const normalizeResults = (arr, type) =>
     }));
 
 const AISuggestion = () => {
+    const MenuProps = {
+    PaperProps: {
+      sx: {
+        bgcolor: "#000", // dropdown bg black
+        color: "#fff",   // text white
+         mt: 1.5,         // ⬇️ margin-top = pushes dropdown lower
+      maxHeight: 200,  // ⬇️ limit height (smaller dropdown)
+        "& .MuiMenuItem-root.Mui-selected": {
+          bgcolor: "rgba(239, 68, 68, 0.4)", // red-500 blur effect
+          backdropFilter: "blur(4px)",
+        },
+        "& .MuiMenuItem-root:hover": {
+          bgcolor: "rgba(239, 68, 68, 0.6)",
+        },
+      },
+    },
+  };
   const [text, setText] = useState("");
   const [selectedGenres, setSelectedGenres] = useState([]); // movie-genre ids (we’ll map to tv too)
   const [selectedMoods, setSelectedMoods] = useState([]); // ['joy', 'thrilled', ...]
@@ -326,23 +365,34 @@ const AISuggestion = () => {
   }, []);
 
   // load user’s watchlist
-  useEffect(() => {
-    const loadUser = async () => {
-      if (!userId) return setWatchlist([]);
-      try {
-        const snap = await getDoc(doc(db, "users", userId));
-        if (snap.exists()) {
-          const data = snap.data();
-          setWatchlist(Array.isArray(data.watchlist) ? data.watchlist : []);
-        } else {
-          setWatchlist([]);
+useEffect(() => {
+  const loadUser = async () => {
+    if (!userId) return setWatchlist([]);
+
+    try {
+      const querySnapshot = await getDocs(collection(db, "users"));
+
+      let found = null;
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.uid === userId) {
+          found = data;
         }
-      } catch {
+      });
+
+      if (found) {
+        setWatchlist(Array.isArray(found.watchlist) ? found.watchlist : []);
+      } else {
         setWatchlist([]);
       }
-    };
-    loadUser();
-  }, [userId]);
+    } catch (err) {
+      console.error("Error fetching user:", err);
+      setWatchlist([]);
+    }
+  };
+
+  loadUser();
+}, [userId]);
 
   // Default boot load: trending all + popular all-time movies
   useEffect(() => {
@@ -404,35 +454,68 @@ const AISuggestion = () => {
 }, []);
 
 
-  const getCrewByJob = (credits = {}, job) => {
-    if (!credits || !credits.crew) return [];
-    return credits.crew.filter((c) => c.job && c.job.toLowerCase() === job.toLowerCase());
-  };
+  const getCrewByJobs = (credits = {}, jobs = []) => {
+  if (!credits || !credits.crew) return [];
+  return credits.crew.filter(
+    (c) => c.job && jobs.some((job) => c.job.toLowerCase() === job.toLowerCase())
+  );
+};
+
 
   const toggleWatchlist = async (id, mediaType) => {
-    if (!userId) return;
-    try {
-      const userRef = doc(db, "users", userId);
-      const snap = await getDoc(userRef);
-      const itemKey = `${mediaType}:${id}`;
-      if (snap.exists()) {
-        const curr = Array.isArray(snap.data().watchlist) ? snap.data().watchlist : [];
-        const isIn = curr.includes(itemKey);
-        await updateDoc(userRef, {
-          watchlist: isIn ? arrayRemove(itemKey) : arrayUnion(itemKey),
-        });
-        setWatchlist((prev) => (isIn ? prev.filter((x) => x !== itemKey) : [...prev, itemKey]));
-      } else {
-        await setDoc(userRef, { watchlist: [`${mediaType}:${id}`] });
-        setWatchlist([`${mediaType}:${id}`]);
-        alert("🎉 Added your first title to Watchlist!");
-      }
-    } catch {
-      // local optimistic
-      const itemKey = `${mediaType}:${id}`;
-      setWatchlist((prev) => (prev.includes(itemKey) ? prev.filter((x) => x !== itemKey) : [...prev, itemKey]));
+  if (!userId) return;
+
+  try {
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("uid", "==", userId));
+    const querySnapshot = await getDocs(q);
+
+    let userDocRef = null;
+    let userData = null;
+
+    querySnapshot.forEach((docSnap) => {
+      userDocRef = docSnap.ref; // actual Firestore document reference
+      userData = docSnap.data();
+    });
+
+    const itemKey = `${mediaType}:${id}`;
+
+    if (userDocRef && userData ) {
+
+      const curr = Array.isArray(userData.watchlist) ? userData.watchlist : [];
+      const isIn = curr.includes(itemKey);
+
+      await updateDoc(userDocRef, {
+        watchlist: isIn ? arrayRemove(itemKey) : arrayUnion(itemKey),
+      });
+
+      setWatchlist((prev) =>
+        isIn ? prev.filter((x) => x !== itemKey) : [...prev, itemKey]
+      );
+      alert("🎉 Added a new film to Watchlist!");
+    } else  {
+      // No document for this uid → create one
+      const newDocRef = doc(usersRef); // auto-ID doc
+      await setDoc(newDocRef, {
+        uid: userId,
+        watchlist: [itemKey],
+      });
+
+      setWatchlist([itemKey]);
+      alert("🎉 Added your first title to Watchlist!");
     }
-  };
+  } catch (err) {
+    console.error("toggleWatchlist error:", err);
+
+    // fallback optimistic update
+    const itemKey = `${mediaType}:${id}`;
+    setWatchlist((prev) =>
+      prev.includes(itemKey)
+        ? prev.filter((x) => x !== itemKey)
+        : [...prev, itemKey]
+    );
+  }
+};
 
   const openDetailsModal = async (id, mediaType) => {
     if (!TMDB_API) return;
@@ -539,6 +622,14 @@ const AISuggestion = () => {
       setLoading(false);
     }
   };
+  const getFirstYoutubeKey = (videos) => {
+    if (!videos) return null;
+    const arr = videos.results || [];
+    const t =
+      arr.find((v) => v.site === "YouTube" && v.type === "Trailer") ||
+      arr.find((v) => v.site === "YouTube");
+    return t?.key || null;
+  };
 
   return (
     <div className="p-4 bg-black text-white min-h-screen">
@@ -554,41 +645,132 @@ const AISuggestion = () => {
 
         <div className="flex gap-4 mb-3">
           {/* Genres multi-select (movie ids; TV is auto-mapped) */}
-          <div className="flex-1">
-            <label className="text-sm text-gray-400">Genres</label>
-            <select
-              multiple
-              value={selectedGenres}
-              onChange={(e) => setSelectedGenres([...e.target.selectedOptions].map((o) => o.value))}
-              className="w-full p-2 rounded bg-gray-800"
-            >
-              {Object.entries(GENRES_MOVIE).map(([label, id]) => (
-                <option key={id} value={id}>
-                  {label}
-                </option>
-              ))}
-            </select>
-            <p className="text-[11px] text-gray-500 mt-1">
-              TV equivalents are auto-applied (e.g., Action → Action &amp; Adventure).
-            </p>
-          </div>
+         {/* Genres Multi-Select */}
+      <div className="flex-1">
+      <FormControl
+  fullWidth
+  sx={{
+    "& .MuiOutlinedInput-root": {
+      bgcolor: "#111", // dark input background
+      color: "#fff",
+      "& fieldset": {
+        borderColor: selectedGenres.length ? "green" : "red",
+      },
+      "&:hover fieldset": {
+        borderColor: selectedGenres.length ? "green" : "red",
+      },
+      "&.Mui-focused fieldset": {
+        borderColor: selectedGenres.length ? "green" : "red",
+      },
+    },
+  }}
+>
+  <InputLabel
+    sx={{
+      color: selectedGenres.length ? "green" : "red",
+    }}
+  >
+    Genres
+  </InputLabel>
+  <Select
+    multiple
+    value={selectedGenres}
+    onChange={(e) => setSelectedGenres(e.target.value)}
+    input={<OutlinedInput label="Genres" />}
+    renderValue={(selected) => (
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+        {selected.map((id) => {
+          // find genre name by matching id
+          const genreName =
+            Object.keys(GENRES_MOVIE).find(
+              (key) => GENRES_MOVIE[key] === id
+            ) || id;
 
-          {/* Moods multi-select */}
-          <div className="flex-1">
-            <label className="text-sm text-gray-400">Moods</label>
-            <select
-              multiple
-              value={selectedMoods}
-              onChange={(e) => setSelectedMoods([...e.target.selectedOptions].map((o) => o.value))}
-              className="w-full p-2 rounded bg-gray-800"
-            >
-              {Object.keys(moodToGenres).map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </div>
+          return (
+            <Chip
+              key={id}
+              label={genreName}
+              sx={{
+                bgcolor: "red",
+                color: "white",
+              }}
+            />
+          );
+        })}
+      </Box>
+    )}
+    MenuProps={MenuProps}
+  >
+    {Object.entries(GENRES_MOVIE).map(([label, id]) => (
+      <MenuItem key={id} value={id}>
+        {label}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+
+        <p className="text-[11px] text-gray-500 mt-1">
+          TV equivalents are auto-applied (e.g., Action → Action &amp;
+          Adventure).
+        </p>
+      </div>
+
+      {/* Moods Multi-Select */}
+      <div className="flex-1">
+        <FormControl
+          fullWidth
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              bgcolor: "#111",
+              color: "#fff",
+              "& fieldset": {
+                borderColor: selectedMoods.length ? "green" : "red",
+              },
+              "&:hover fieldset": {
+                borderColor: selectedMoods.length ? "green" : "red",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: selectedMoods.length ? "green" : "red",
+              },
+            },
+          }}
+        >
+          <InputLabel
+            sx={{
+              color: selectedMoods.length ? "green" : "red",
+            }}
+          >
+            Moods
+          </InputLabel>
+          <Select
+            multiple
+            value={selectedMoods}
+            onChange={(e) => setSelectedMoods(e.target.value)}
+            input={<OutlinedInput label="Moods" />}
+            renderValue={(selected) => (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                {selected.map((value) => (
+                  <Chip
+                    key={value}
+                    label={value}
+                    sx={{
+                      bgcolor: "red",
+                      color: "white",
+                    }}
+                  />
+                ))}
+              </Box>
+            )}
+            MenuProps={MenuProps}
+          >
+            {Object.keys(moodToGenres).map((m) => (
+              <MenuItem key={m} value={m}>
+                {m}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </div>
         </div>
 
         <div className="flex gap-3">
@@ -601,8 +783,10 @@ const AISuggestion = () => {
               setText("");
               setSelectedGenres([]);
               setSelectedMoods([]);
+             
+
               // keep items; don’t blank the page — or re-run boot load:
-              // window.location.reload(); // optional if you want to reset to default feed
+                // optional if you want to reset to default feed
             }}
             className="px-4 py-2 rounded bg-gray-700 text-gray-200"
           >
@@ -655,18 +839,23 @@ const AISuggestion = () => {
 
         {/* Details Modal */}
         {showModal && details && (
+          <div>
           <div className="fixed inset-0 z-30 flex items-center justify-center overflow-y-auto">
-            <div className="absolute inset-0 bg-black/80" onClick={() => setShowModal(false)} />
-            <div className="relative z-50 w-11/12 md:w-3/4 lg:w-2/3 bg-gray-900 rounded-2xl shadow-xl p-6 overflow-y-auto max-h-[90vh]">
-              <div className="flex flex-col md:flex-row gap-6">
-                <img
-                  src={details.poster_path ? `${TMDB_IMG}${details.poster_path}` : ""}
-                  alt={details.title || details.name}
-                  className="w-44 h-64 rounded-lg object-cover"
-                />
-                <div className="flex-1">
-                  <div className="flex items-start justify-between">
-                    <div>
+          <div
+            className="absolute inset-0 bg-black/70"
+            onClick={() => setShowModal(false)}
+          />
+          <div className="relative z-50 w-11/12 md:w-3/4 lg:w-2/3 bg-gray-900 rounded-2xl shadow-xl p-6 overflow-y-auto max-h-[90vh]">
+            {/* Header: Poster + Info */}
+            <div className="flex flex-col md:flex-row gap-6">
+              <img
+                src={details.poster_path ? `${TMDB_IMG}${details.poster_path}` : ""}
+                alt={details.title || details.name}
+                className="w-44 h-64 rounded-lg object-cover bg-gray-800"
+                loading="lazy"
+              />
+              <div className="flex-1">
+                 <div>
                       <h2 className="text-2xl font-bold mb-1">{details.title || details.name}</h2>
                       <p className="text-sm text-gray-400 mb-2">{details.tagline}</p>
                       <div className="text-sm text-gray-300 mb-3">
@@ -682,8 +871,7 @@ const AISuggestion = () => {
                           </>
                         )}
                       </div>
-                    </div>
-                    <div>
+                       <div>
                       <button
                         onClick={() => toggleWatchlist(details.id, details.media_type)}
                         className={`px-3 py-1 rounded ${
@@ -695,138 +883,122 @@ const AISuggestion = () => {
                         {watchlist.includes(`${details.media_type}:${details.id}`) ? "Added" : "+ Watchlist"}
                       </button>
                     </div>
-                  </div>
-
-                  <p className="text-sm text-gray-400 mb-4">{details.overview}</p>
-
-                  {/* Where to watch (US by default) */}
-                  <div className="mb-3">
-                    <h4 className="text-sm font-semibold mb-1">Where to watch</h4>
-                    <div className="text-sm text-gray-300">
-                      {details["watch/providers"]?.results?.US ? (
-                        <>
-                          {details["watch/providers"].results.US.flatrate ? (
-                            <div>On streaming (flatrate)</div>
-                          ) : details["watch/providers"].results.US.buy ? (
-                            <div>Available to buy</div>
-                          ) : (
-                            <div>No provider data for US (check other regions)</div>
-                          )}
-                        </>
-                      ) : (
-                        <div className="text-gray-500 text-sm">Provider data not available</div>
-                      )}
                     </div>
-                  </div>
 
-                  {/* Cast */}
-                  <div className="mb-3">
-                    <h4 className="text-sm font-semibold mb-2">Cast</h4>
-                    <div className="flex gap-3 overflow-x-auto py-2">
-                      {details.credits?.cast?.slice(0, 10).map((c) => (
-                        <div key={c.cast_id || c.credit_id || c.id} className="w-20 text-center">
+                {/* Trailer embed (if available) */}
+{getFirstYoutubeKey(details.videos) && (
+  <div className="mt-4">
+    <iframe
+      title="Trailer"
+      className="w-full aspect-video rounded-xl"
+      src={`https://www.youtube.com/embed/${getFirstYoutubeKey(details.videos)}?autoplay=0`}
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+    />
+  </div>
+)}
+{/* Trailer button */}
+                {getFirstYoutubeKey(details.videos) && (
+                  <button
+                    onClick={() => {
+                      const key = getFirstYoutubeKey(details.videos);
+                      if (key) {
+                        setTrailerKey(key);
+                        setShowTrailer(true);
+                      }
+                    }}
+                    className={`px-4 py-2 mt-2 rounded-lg bg-gradient-to-r from-red-600 to-red-800 text-white`}
+                  >
+                    Watch Trailer
+                  </button>
+                )}
+              </div>
+            </div>
+
+           
+              {/* Director / Producers */}
+                {!!details?.credits && (
+  <>
+    <h3 className="text-xl font-semibold mt-6 mb-3">Director & Producers</h3>
+    <div className="flex overflow-x-auto scroll-x space-x-4 pb-3">
+      {getCrewByJobs(details.credits, [
+        "Director",
+        "Producer",
+        "Executive Producer",
+      ]).map((c) => (
+        <div
+          key={c.credit_id || c.id}
+          className="w-32 flex-shrink-0 text-center"
+        >
+          <img
+            src={c.profile_path ? `${TMDB_PROFILE}${c.profile_path}` : ""}
+            alt={c.name}
+            className="w-24 h-24 object-cover rounded-full mx-auto bg-gray-700"
+            loading="lazy"
+          />
+          <p className="mt-2 text-sm font-medium">{c.name}</p>
+          <p className="text-xs text-gray-400">{c.job}</p>
+        </div>
+      ))}
+    </div>
+  </>
+)}
+
+
+            {/* Cast */}
+            {details.credits?.cast?.length && (
+              <>
+                <h3 className="text-xl font-semibold mt-6 mb-3">Cast</h3>
+                <div className="flex overflow-x-auto scroll-x space-x-4 pb-3">
+                  {details.credits?.cast?.slice(0, 10).map((c) => (
+                        <div key={c.cast_id || c.credit_id || c.id} className="w-28 flex-shrink-0 text-center">
                           <img
                             src={c.profile_path ? `${TMDB_PROFILE}${c.profile_path}` : ""}
                             alt={c.name}
-                            className="w-20 h-28 rounded object-cover mb-1"
+                           className="w-24 h-24 object-cover rounded-full mx-auto bg-gray-700"
+                        loading="lazy"
                           />
-                          <div className="text-xs">{c.name}</div>
+                          <div className="mt-2 text-sm font-medium">{c.name}</div>
                           <div className="text-xs text-gray-400">{c.character?.split("/")[0]}</div>
                         </div>
                       ))}
-                    </div>
-                  </div>
-
-                  {/* Director / Producers */}
-                  {details.media_type !== "tv" && (
-                    <div className="mb-3">
-                      <h4 className="text-sm font-semibold mb-2">Director & Producers</h4>
-                      <div className="flex gap-4">
-                        <div>
-                          <div className="text-xs text-gray-400">Director</div>
-                          {getCrewByJob(details.credits, "Director").map((d) => (
-                            <div key={d.id} className="flex items-center gap-2">
-                              <img
-                                src={d.profile_path ? `${TMDB_PROFILE}${d.profile_path}` : ""}
-                                alt={d.name}
-                                className="w-10 h-12 rounded object-cover"
-                              />
-                              <div className="text-sm">{d.name}</div>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div>
-                          <div className="text-xs text-gray-400">Producers</div>
-                          <div className="flex gap-2">
-                            {getCrewByJob(details.credits, "Producer")
-                              .slice(0, 3)
-                              .map((p) => (
-                                <div key={p.credit_id || p.id} className="flex items-center gap-2">
-                                  <img
-                                    src={p.profile_path ? `${TMDB_PROFILE}${p.profile_path}` : ""}
-                                    alt={p.name}
-                                    className="w-10 h-12 rounded object-cover"
-                                  />
-                                  <div className="text-sm">{p.name}</div>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Trailers */}
-                  <div className="mb-3">
-                    <h4 className="text-sm font-semibold mb-2">Trailers</h4>
-                    <div className="flex gap-3 overflow-x-auto py-2">
-                      {details.videos?.results
-                        ?.filter((v) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser"))
-                        .slice(0, 6)
-                        .map((v) => (
-                          <a
-                            key={v.id}
-                            href={`https://www.youtube.com/watch?v=${v.key}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="w-56 h-32 bg-gray-800 rounded-lg flex items-center justify-center"
-                          >
-                            <div className="text-sm">{v.name}</div>
-                          </a>
-                        ))}
-                    </div>
-                  </div>
-
-                  {/* Similar */}
-                  <div className="mb-3">
-                    <h4 className="text-sm font-semibold mb-2">Similar</h4>
-                    <div className="flex gap-3 overflow-x-auto py-2">
-                      {details.similar?.results?.slice(0, 10).map((m) => (
+                  
+                </div>
+              </>
+            )}
+            
+            {/* Similar */}
+            {details.similar?.results?.length > 0 && (
+              <div className="mb-3">
+                <h3 className="text-xl font-semibold mb-2 mt-2">Similar</h3>
+                <div className="flex gap-3 overflow-x-auto overflow-y-hidden py-2 max-w-6xl">
+                  {details.similar?.results?.slice(0, 100).map((m) => (
                         <div
                           key={m.id}
-                          className="w-28 flex-shrink-0"
+                          className="w-40 flex-shrink-0 cursor-pointer"
                           onClick={() => openDetailsModal(m.id, details.media_type)}
                         >
                           <img
                             src={m.poster_path ? `${TMDB_IMG}${m.poster_path}` : ""}
                             alt={m.title || m.name}
-                            className="w-28 h-36 rounded object-cover mb-1"
+                            className="rounded-xl h-60 w-40 object-cover bg-gray-800 *:first-letter:uppercase"
                           />
-                          <div className="text-xs">{m.title || m.name}</div>
+                          <div className="text-sm">{m.title || m.name}</div>
                         </div>
                       ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 text-right">
-                <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded bg-gradient-to-r from-red-600 to-red-800">
-                  Close
-                </button>
-              </div>
             </div>
+                  </div>
+                )}
+
+            <button
+              onClick={() => setShowModal(false)}
+              className={`mt-6 px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-red-800`}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+         
           </div>
         )}
       </div>
