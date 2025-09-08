@@ -231,8 +231,11 @@ Firebase wasn’t used because it's "easy" — it was chosen because it **aligns
 </p>
 
 <p align="center">
-  <strong>Dedicated Discussion Room for cinephiles all over the world</strong><br>
+  <strong>Dedicated Discussion Room for cinephiles all over the world with create private/public group feature</strong><br>
   <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1755360989/Screenshot_2025-08-16_213309_w4zrud.png" width="600" />
+   <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757353231/Screenshot_2025-09-08_230850_j8szt4.png" width="600" />
+    <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757353230/Screenshot_2025-09-08_230833_aigdjd.png" width="600" />
+  
 </p>
 <p align="center">
   <strong>Explore page to get updated with new trending/popular films& shows along with trailers</strong><br>
