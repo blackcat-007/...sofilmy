@@ -213,7 +213,7 @@ export default function Profile() {
 
       {/* Watchlist */}
       {isSelf && watchlistItems.length > 0 && (
-        <div className="mt-10 px-6 *:max-w-4xl sm:mx-60">
+        <div className="mt-10 px-6 *:max-w-full sm:mx-40">
           <h3 className="text-xl font-bold text-white mb-4">My Watchlist</h3>
           <div className="flex overflow-x-auto space-x-4 pb-4">
             {watchlistItems.map((it) => (
