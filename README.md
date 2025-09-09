@@ -215,7 +215,7 @@ Firebase wasn’t used because it's "easy" — it was chosen because it **aligns
 
 <p align="center">
   <strong>Home Page(if logged in)</strong><br>
-  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1755360969/Screenshot_2025-08-16_213252_n8u3tr.png" width="600" />
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757434143/Screenshot_2025-09-09_213752_y3nda4.png" width="600" />
 </p>
 
 <p align="center">
