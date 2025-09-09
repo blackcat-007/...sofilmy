@@ -215,7 +215,7 @@ Firebase wasn’t used because it's "easy" — it was chosen because it **aligns
 
 <p align="center">
   <strong>Home Page(if logged in)</strong><br>
-  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1755360969/Screenshot_2025-08-16_213252_n8u3tr.png" width="600" />
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757434143/Screenshot_2025-09-09_213752_y3nda4.png" width="600" />
 </p>
 
 <p align="center">
@@ -231,12 +231,31 @@ Firebase wasn’t used because it's "easy" — it was chosen because it **aligns
 </p>
 
 <p align="center">
-  <strong>Dedicated Discussion Room for cinephiles all over the world</strong><br>
+  <strong>Dedicated Discussion Room for cinephiles all over the world with create private/public group feature</strong><br>
   <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1755360989/Screenshot_2025-08-16_213309_w4zrud.png" width="600" />
+   <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757353231/Screenshot_2025-09-08_230850_j8szt4.png" width="600" />
+    <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757353230/Screenshot_2025-09-08_230833_aigdjd.png" width="600" />
+  
 </p>
-
-
-
+<p align="center">
+  <strong>Explore page to get updated with new trending/popular films& shows along with trailers</strong><br>
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757352290/Screenshot_2025-09-08_225209_gyutgy.png" width="600" />
+   <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757352291/Screenshot_2025-09-08_225231_qp4ptn.png" width="600" />
+   <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757352291/Screenshot_2025-09-08_225242_asiag3.png" width="600" />
+</p>
+<p align="center">
+  <strong>Get suggestion based on genre per mood mapping</strong><br>
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757352291/Screenshot_2025-09-08_225256_em9mt9.png" width="600" />
+   <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757352290/Screenshot_2025-09-08_225314_mxl0k5.png" width="600" />
+   <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757352293/Screenshot_2025-09-08_225326_xxhufa.png" width="600" />
+   <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757352292/Screenshot_2025-09-08_225338_to3rpc.png" width="600" />
+</p>
+<p align="center">
+  <strong>Dedicated personal profile & follow new profile</strong><br>
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757353047/Screenshot_2025-09-08_230528_hgxatw.png" width="600" />
+   <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1757353050/Screenshot_2025-09-08_230549_m6zgky.png" width="600" />
+  
+</p>
 ## 🚧 Planned & Future Features
 
 To continue evolving SoFilmy into a more powerful, community-driven cinephile network, several features are under consideration and/or in active planning:
