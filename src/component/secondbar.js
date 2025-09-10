@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useRef,useState} from "react";
 import Analysis from "./analysis";
 import MovieLists from "./movielists";
 import Explore from "./explore";
 import AISuggestion from "./aisuggestion";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+
 const options = [
     { label: "Analysis", value: "analysis" },
     { label: "Lists", value: "lists" },
@@ -12,83 +14,105 @@ const options = [
 ];
 
 export default function SecondBar() {
-    const [selected, setSelected] = useState("analysis");
+  const [selected, setSelected] = useState("analysis");
+    const analysisRef = useRef(null);
+    const listsRef = useRef(null);
+    const exploreRef = useRef(null);
+    const aiRef = useRef(null);
+
     const notify = () => toast("Feature coming soon!🍿🎞️ 🎥");
-    const renderComponent = () => {
-        switch (selected) {
+
+   const header = document.querySelector('.header');
+const headerHeight = header ? header.offsetHeight : 160;
+    const HEADER_HEIGHT = headerHeight; // Adjust this value based on your actual header height
+
+    const handleScroll = (value) => {
+        let sectionRef;
+        switch (value) {
             case "analysis":
-                return <Analysis />;
+                sectionRef = analysisRef;
+                break;
             case "lists":
-                return <MovieLists />;
+                sectionRef = listsRef;
+                break;
             case "explore":
-                return <Explore />;
+                sectionRef = exploreRef;
+                break;
             case "ai-suggestion":
-                return <AISuggestion />;
+                sectionRef = aiRef;
+                break;
             default:
-                return null;
+                return;
+        }
+
+        if (sectionRef && sectionRef.current) {
+            const elementTop = sectionRef.current.getBoundingClientRect().top;
+            const offsetPosition = window.pageYOffset + elementTop - HEADER_HEIGHT;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: "smooth"
+            });
         }
     };
 
     return (
-       <div>
-  <div className="fixed top-[4.5rem] left-0 w-full z-20 mt-2 sm:mt-7">
-    <div className="backdrop-blur  bg-black/70 flex items-center justify-between px-6 py-3">
-      
-      {/* 🔘 Option Buttons - Left Side */}
-      <div className="flex space-x-8 ml-10">
-        {options.map((option) => (
-          <button
-            key={option.value}
-            onClick={() => {
-              // Notify for new releases and movie lists
-              if ( option.value === "lists") notify();
-              else setSelected(option.value);
-            }}
-            className={`text-white font-semibold text-lg transition-colors ${
-              selected === option.value
-                ? "text-red-500 border-b-2 border-red-500"
-                : "hover:text-red-400"
-            } pb-1`}
-          >
-            {option.label}
-          </button>
-         
-        ))}
-       <ToastContainer position="top-right"  autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover toastStyle={{ backgroundColor: "black", color: "white",
-  }}
-  progressStyle={{
-    background: "linear-gradient(to right, red, green)",
-  }}
-/>
+        <div>
+            {/* Top Bar */}
+            <div className="fixed top-[4.5rem] left-0 w-full z-20 mt-2 sm:mt-7">
+                <div className="backdrop-blur bg-black/70 flex items-center justify-between px-6 py-3">
+                    <div className="flex space-x-8 ml-10">
+                        {options.map((option) => (
+                            <button
+                                key={option.value}
+                                onClick={() => {
+                                    setSelected(option.value);
+                                    if (option.value === "lists") {
+                                        notify();
+                                    } else {
+                                        handleScroll(option.value);
+                                    }
+                                }}
+                                className={`text-white font-semibold text-lg transition-colors ${ selected === option.value ? "text-red-500 border-b-2 border-red-500" : "hover:text-red-400" } pb-1`}
+                            >
+                                {option.label}
+                            </button>
+                        ))}
+                        <ToastContainer
+                            position="top-right"
+                            autoClose={3000}
+                            hideProgressBar={false}
+                            newestOnTop={false}
+                            closeOnClick
+                            rtl={false}
+                            pauseOnFocusLoss
+                            draggable
+                            pauseOnHover
+                            toastStyle={{ backgroundColor: "black", color: "white" }}
+                            progressStyle={{ background: "linear-gradient(to right, red, green)" }}
+                        />
+                    </div>
+                </div>
+            </div>
 
-      </div>
+            {/* Sections */}
+            <div className="mt-20 px-6 space-y-20">
+                <section ref={analysisRef} id="analysis">
+                    <Analysis />
+                </section>
 
-      {/* 🔍 Search Bar - Right Side */}
-     { /*<div className="relative w-full max-w-sm">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="w-full pl-10 pr-4 py-2 rounded-md bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
-        />
-        <svg
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5 pointer-events-none"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none" viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" />
-        </svg>
-      </div>*/}
-    </div>
-  </div>
+               {/* <section ref={listsRef} id="lists">
+                    <MovieLists />
+                </section>*/}
 
-  {/* Your main content */}
-  <div className="mt-16 px-6">
-     {renderComponent()}
-   
-  </div>
-</div>
+                <section ref={exploreRef} id="explore">
+                    <Explore />
+                </section>
 
+                <section ref={aiRef} id="ai-suggestion">
+                    <AISuggestion />
+                </section>
+            </div>
+        </div>
     );
 }

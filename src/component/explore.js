@@ -303,8 +303,9 @@ const [showPersonModal, setShowPersonModal] = useState(false);
   };
 
   return (
-    <div className="bg-black text-white min-h-screen px-4 py-6 mx-auto max-w-7xl">
+    <div className="bg-black text-white min-h-screen px-4 py-6 mx-auto max-w-7xl ">
       {/* Search Bar with Dropdown */}
+      <h2 className="text-2xl font-bold mb-4 text-center">Explore Movies,TV Shows & People</h2>
       <div className="relative flex justify-center mb-6" ref={searchRef}>
         <input
           type="text"

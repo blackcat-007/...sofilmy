@@ -641,7 +641,8 @@ setLoading(true);
   };
 
   return (
-    <div className="p-4 bg-black text-white min-h-screen">
+    <div className="p-4 bg-black text-white min-h-screen ">
+      <h2 className="text-2xl font-bold mb-4 text-center">Get movie suggestions with AI</h2>
       <div className="max-w-5xl mx-auto">
         {/* Text input */}
         {/*<input
