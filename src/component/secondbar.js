@@ -1,6 +1,5 @@
-import React, { useRef,useState} from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Analysis from "./analysis";
-import MovieLists from "./movielists";
 import Explore from "./explore";
 import AISuggestion from "./aisuggestion";
 import { ToastContainer, toast } from "react-toastify";
@@ -14,26 +13,22 @@ const options = [
 ];
 
 export default function SecondBar() {
-  const [selected, setSelected] = useState("analysis");
+    const [selected, setSelected] = useState("analysis");
     const analysisRef = useRef(null);
-    const listsRef = useRef(null);
     const exploreRef = useRef(null);
     const aiRef = useRef(null);
 
     const notify = () => toast("Feature coming soon!🍿🎞️ 🎥");
 
-   const header = document.querySelector('.header');
-const headerHeight = header ? header.offsetHeight : 160;
-    const HEADER_HEIGHT = headerHeight; // Adjust this value based on your actual header height
+    const header = document.querySelector('.header');
+    const headerHeight = header ? header.offsetHeight : 170;
+    const HEADER_HEIGHT = headerHeight;
 
     const handleScroll = (value) => {
         let sectionRef;
         switch (value) {
             case "analysis":
                 sectionRef = analysisRef;
-                break;
-            case "lists":
-                sectionRef = listsRef;
                 break;
             case "explore":
                 sectionRef = exploreRef;
@@ -44,7 +39,6 @@ const headerHeight = header ? header.offsetHeight : 160;
             default:
                 return;
         }
-
         if (sectionRef && sectionRef.current) {
             const elementTop = sectionRef.current.getBoundingClientRect().top;
             const offsetPosition = window.pageYOffset + elementTop - HEADER_HEIGHT;
@@ -55,6 +49,37 @@ const headerHeight = header ? header.offsetHeight : 160;
             });
         }
     };
+
+    // ✅ Scrollspy logic
+    useEffect(() => {
+        const handleScrollSpy = () => {
+            const sections = [
+                { id: "analysis", ref: analysisRef },
+                { id: "explore", ref: exploreRef },
+                { id: "ai-suggestion", ref: aiRef }
+            ];
+
+            const scrollPosition = window.pageYOffset + HEADER_HEIGHT + 1; // +1 to ensure inclusion
+
+            for (let i = sections.length - 1; i >= 0; i--) {
+                const section = sections[i];
+                if (section.ref.current) {
+                    const offsetTop = section.ref.current.offsetTop;
+                    if (scrollPosition >= offsetTop) {
+                        setSelected(section.id);
+                        break;
+                    }
+                }
+            }
+        };
+
+        window.addEventListener("scroll", handleScrollSpy);
+
+        // Clean up the event listener
+        return () => {
+            window.removeEventListener("scroll", handleScrollSpy);
+        };
+    }, [HEADER_HEIGHT]);
 
     return (
         <div>
@@ -73,7 +98,7 @@ const headerHeight = header ? header.offsetHeight : 160;
                                         handleScroll(option.value);
                                     }
                                 }}
-                                className={`text-white font-semibold text-lg transition-colors ${ selected === option.value ? "text-red-500 border-b-2 border-red-500" : "hover:text-red-400" } pb-1`}
+                                className={`text-white font-semibold text-lg transition-colors ${selected === option.value ? "text-red-500 border-b-2 border-red-500" : "hover:text-red-400"} pb-1`}
                             >
                                 {option.label}
                             </button>
@@ -101,9 +126,9 @@ const headerHeight = header ? header.offsetHeight : 160;
                     <Analysis />
                 </section>
 
-               {/* <section ref={listsRef} id="lists">
+                {/* <section ref={listsRef} id="lists">
                     <MovieLists />
-                </section>*/}
+                </section> */}
 
                 <section ref={exploreRef} id="explore">
                     <Explore />
