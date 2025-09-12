@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { BallTriangle } from "react-loader-spinner";
 import { X } from "lucide-react";
+import { getFirestore } from "firebase/firestore";
+import { arrayRemove, arrayUnion, doc, getDocs, query, setDoc, updateDoc, where, collection } from "firebase/firestore";
 
 const IMG_BASE = "https://image.tmdb.org/t/p/w500";
 
@@ -12,8 +14,10 @@ const TMDB_PROFILE = "https://image.tmdb.org/t/p/w200";
 
 const GRADIENT_ACTIVE = "bg-gradient-to-r from-red-500 to-red-700";
 const BTN_INACTIVE = "bg-gray-700 hover:bg-gray-600";
-
+const db = getFirestore();
 function Explore() {
+  const userId = localStorage.getItem("userId");
+  const [watchlist, setWatchlist] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -78,6 +82,7 @@ const [showPersonModal, setShowPersonModal] = useState(false);
       fetchSearch(value);
     }, 400);
   };
+
 
   const fetchSearch = async (query) => {
     if (!query?.trim()) {
@@ -272,18 +277,112 @@ const [showPersonModal, setShowPersonModal] = useState(false);
   }
 };
 
+   // load user’s watchlist
+  useEffect(() => {
+    const loadUser = async () => {
+      if (!userId) return setWatchlist([]);
+  
+      try {
+        const querySnapshot = await getDocs(collection(db, "users"));
+  
+        let found = null;
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data.uid === userId) {
+            found = data;
+          }
+        });
+  
+        if (found) {
+          setWatchlist(Array.isArray(found.watchlist) ? found.watchlist : []);
+        } else {
+          setWatchlist([]);
+        }
+      } catch (err) {
+        console.error("Error fetching user:", err);
+        setWatchlist([]);
+      }
+    };
+  
+    loadUser();
+  }, [userId]);
+   const toggleWatchlist = async (id, mediaType) => {
+  if (!userId) return;
 
-  const Card = ({ item, onClick }) => (
-    <div className="w-40 flex-shrink-0 cursor-pointer" onClick={onClick} title={item.title}>
+  try {
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("uid", "==", userId));
+    const querySnapshot = await getDocs(q);
+
+    let userDocRef = null;
+    let userData = null;
+
+    querySnapshot.forEach((docSnap) => {
+      userDocRef = docSnap.ref;
+      userData = docSnap.data();
+    });
+
+    const itemKey = `${mediaType}:${id}`;
+
+    if (userDocRef && userData) {
+      const curr = Array.isArray(userData.watchlist) ? userData.watchlist : [];
+      const isIn = curr.includes(itemKey);
+
+      await updateDoc(userDocRef, {
+        watchlist: isIn ? arrayRemove(itemKey) : arrayUnion(itemKey),
+      });
+
+      setWatchlist((prev) =>
+        isIn ? prev.filter((x) => x !== itemKey) : [...prev, itemKey]
+      );
+
+      alert(isIn ? "Removed from Watchlist!" : "Added to Watchlist!");
+    } else {
+      // If no document or no watchlist field exists, create new doc or initialize watchlist
+      const newDocRef = userDocRef || doc(usersRef); // if doc doesn't exist, create one
+      await setDoc(newDocRef, {
+        uid: userId,
+        watchlist: [itemKey],
+      });
+
+      setWatchlist((prev) => [...prev, itemKey]);
+      alert("🎉 Added your first title to Watchlist!");
+    }
+  } catch (err) {
+    console.error("toggleWatchlist error:", err);
+  }
+};
+
+  
+
+ const Card = ({ item, onClick }) => {
+  const itemKey = `${item.media_type}:${item.id}`;
+  const isInWatchlist = watchlist.includes(itemKey);
+
+  return (
+    <div className="relative w-40 flex-shrink-0 cursor-pointer" title={item.title}>
       <img
         src={item.poster_path ? `${TMDB_IMG}${item.poster_path}` : ""}
         alt={item.title}
         className="rounded-xl h-60 w-40 object-cover bg-gray-800"
         loading="lazy"
+        onClick={onClick}
       />
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleWatchlist(item.id, item.media_type);
+        }}
+        className={`absolute top-2 right-2 px-2 py-1 text-xs rounded ${
+          isInWatchlist ? "bg-green-600" : "bg-red-600"
+        }`}
+      >
+        {isInWatchlist ? "Added" : "+ Watchlist"}
+      </button>
       <p className="mt-2 text-sm line-clamp-2">{item.title}</p>
     </div>
   );
+};
 
   // Helpers for details
   const readableRuntime = (d) => {
@@ -312,9 +411,9 @@ const [showPersonModal, setShowPersonModal] = useState(false);
           placeholder="Search movies..."
           value={searchQuery}
           onChange={handleSearchChange}
-          className="w-full md:w-2/3 p-3 rounded-l-xl bg-gray-800 text-white outline-none"
+          className="w-full md:w-2/3 p-3 rounded-xl bg-gray-800 text-white outline-none"
         />
-        <button className={`px-6 rounded-r-xl ${GRADIENT_ACTIVE}`}>Search</button>
+        
 
        {showSearchDropdown && searchResults.length > 0 && (
   <div className="absolute top-full mt-2 w-full md:w-2/3 bg-gray-800 rounded-lg shadow-lg max-h-80 overflow-y-auto z-50">
@@ -474,6 +573,7 @@ const [showPersonModal, setShowPersonModal] = useState(false);
                 loading="lazy"
               />
               <div className="flex-1">
+                <div>
                 <h2 className="text-3xl font-bold mb-2">
                   {movieDetails.title || movieDetails.name}
                 </h2>
@@ -489,6 +589,19 @@ const [showPersonModal, setShowPersonModal] = useState(false);
                 <p className="mb-4 leading-relaxed">
                   {movieDetails.overview || "No description available."}
                 </p>
+                </div>
+                 <div>
+                      <button
+                        onClick={() => toggleWatchlist(movieDetails.id, activeMediaType)}
+                        className={`px-3 py-1 rounded ${
+                          watchlist.includes(`${activeMediaType}:${movieDetails.id}`)
+                            ? "bg-green-600"
+                            : "bg-gradient-to-r from-red-600 to-red-800"
+                        }`}
+                      >
+                        {watchlist.includes(`${activeMediaType}:${movieDetails.id}`) ? "Added" : "+ Watchlist"}
+                      </button>
+                    </div>
 
                 {/* Trailer embed (if available) */}
 {getFirstYoutubeKey(movieDetails.videos) && (

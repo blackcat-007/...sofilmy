@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { addDoc, collection, onSnapshot, query, orderBy, serverTimestamp, where, getDoc, doc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import GroupDetails from "./groupdetails";
+import EmojiButton from "../ui/emoji";
 
 const GroupChatSection = ({ selectedUser }) => {
   const [messages, setMessages] = useState([]);
@@ -11,8 +12,28 @@ const GroupChatSection = ({ selectedUser }) => {
   const [userImage, setUserImage] = useState("");
   const [selectedRecipient, setSelectedRecipient] = useState(null); // for reply/direct message
   const [groupDetailsOpen, setGroupDetailsOpen] = useState(false);
+  
 
   const bottomRef = useRef(null);
+  const [error, setError] = useState(null);
+        const [emojiHistory, setEmojiHistory] = useState([]);
+  useEffect(() => {
+        const history = JSON.parse(localStorage.getItem("emojiHistory")) || [];
+        setEmojiHistory(history);
+      }, []);
+      
+  const handleEmojiClick = (emoji) => {
+        setNewMessage((prev) => prev + emoji.character);
+      
+        setEmojiHistory((prevHistory) => {
+          const newHistory = [emoji, ...prevHistory.filter(e => e.slug !== emoji.slug)];
+          if (newHistory.length > 20) {
+            newHistory.pop();
+          }
+          localStorage.setItem("emojiHistory", JSON.stringify(newHistory));
+          return newHistory;
+        });
+      };
 
   // Load current user
   useEffect(() => {
@@ -197,6 +218,7 @@ const GroupChatSection = ({ selectedUser }) => {
 
         {/* Input Area */}
         <div className="w-full px-4 py-2 bg-red-700 bg-opacity-80 flex items-center justify-center sticky bottom-0 z-10">
+           <div className="mx-2"><EmojiButton onEmojiClick={handleEmojiClick} emojihistory={emojiHistory} /></div>
           <input
             className="bg-white text-black h-10 w-[60%] border rounded-2xl px-4"
             value={newMessage}
