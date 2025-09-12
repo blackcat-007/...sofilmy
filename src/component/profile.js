@@ -10,9 +10,11 @@ import {
   doc,
   arrayRemove,
   arrayUnion,
+  
 } from "firebase/firestore";
 import Logout1 from "./logout";
 import Sidebar from "./sidebar";
+import DoneOutlineTwoToneIcon from '@mui/icons-material/DoneOutlineTwoTone';
 
 const TMDB_API = process.env.REACT_APP_TMDB_API_KEY;
 const db = getFirestore();
@@ -41,6 +43,7 @@ export default function Profile() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedItemDetails, setSelectedItemDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [watchedItems, setWatchedItems] = useState([]);
 
   // 🔹 find user doc by UID
   const findUserDoc = async (uid) => {
@@ -98,22 +101,109 @@ export default function Profile() {
   }, [id, currentUserId]);
 
   // 🔹 remove from watchlist
-  const handleRemove = async (type, mediaId) => {
-    if (!window.confirm("Remove from watchlist?")) return;
-    try {
-      let { current } = docIds;
-      if (!current) {
-        const found = await findUserDoc(currentUserId);
-        current = found?.id || currentUserId;
-        if (!found) await setDoc(doc(db, "users", current), defaultUser(currentUserId));
-        setDocIds((d) => ({ ...d, current }));
+const handleRemove = async (type, mediaId) => {
+  if (!window.confirm("Remove from watchlist?")) return;
+
+  try {
+    let { current } = docIds;
+    if (!current) {
+      const found = await findUserDoc(currentUserId);
+      current = found?.id || currentUserId;
+      if (!found) await setDoc(doc(db, "users", current), defaultUser(currentUserId));
+      setDocIds((d) => ({ ...d, current }));
+    }
+
+    const userRef = doc(db, "users", current);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) throw new Error("User document not found");
+
+    const data = userSnap.data();
+    const watchlist = data.watchlist || [];
+    const watched = data.watched || [];
+
+    // ✅ Remove from watchlist
+    const watchlistKey = `${type}:${mediaId}`;
+    const newWatchlist = watchlist.filter((x) => x !== watchlistKey);
+
+    // ✅ Find or add to watched list
+    let found = false;
+    const newWatched = watched.map((entry) => {
+      if (entry.id === mediaId && entry.type === type) {
+        found = true;
+        return { ...entry, counter: entry.counter + 1 };
       }
-      await updateDoc(doc(db, "users", current), { watchlist: arrayRemove(`${type}:${mediaId}`) });
-      setWatchlistItems((prev) => prev.filter((x) => String(x.id) !== String(mediaId)));
+      return entry;
+    });
+
+    if (!found) {
+      newWatched.push({ id: mediaId, type, counter: 1 });
+    }
+
+    // ✅ Update the Firestore document
+    await updateDoc(userRef, {
+      watchlist: newWatchlist,
+      watched: newWatched
+    });
+
+    // ✅ Update watchlist locally
+    setWatchlistItems((prev) => prev.filter((x) => String(x.id) !== String(mediaId)));
+
+    // ✅ Fetch the updated watched list from Firestore
+    const updatedSnap = await getDoc(userRef);
+    if (updatedSnap.exists()) {
+      const updatedData = updatedSnap.data();
+      const updatedWatched = updatedData.watched || [];
+      const items = await Promise.all(
+        updatedWatched.map(async (entry) => {
+          const { id, type, counter } = entry;
+          const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${TMDB_API}`);
+          if (!res.ok) return null;
+          const details = await res.json();
+          return { ...details, counter };
+        })
+      );
+      setWatchedItems(items.filter(Boolean));
+    }
+
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+
+useEffect(() => {
+  if (!docIds.profile) return;
+  (async () => {
+    try {
+      const userRef = doc(db, "users", docIds.profile);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        if (data.watched?.length) {
+          const items = await Promise.all(
+            data.watched.map(async (entry) => {
+              const { id, type, counter } = entry;
+              const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${TMDB_API}`);
+              if (!res.ok) return null;
+              const details = await res.json();
+              return { ...details, counter };
+            })
+          );
+          setWatchedItems(items.filter(Boolean));
+        } else {
+          setWatchedItems([]);
+        }
+      }
     } catch (e) {
       console.error(e);
     }
-  };
+  })();
+}, [docIds.profile]);
+
+
+  
+
 
   // 🔹 follow/unfollow
   const handleFollowToggle = async () => {
@@ -225,11 +315,34 @@ export default function Profile() {
                   onClick={() => setSelectedItem(it)}
                 />
                 <button onClick={() => handleRemove(it.title ? "movie" : "tv", it.id)}
-                  className="absolute top-2 right-2 bg-black/60 p-1 rounded-full">✅</button>
+                  className="absolute top-2 right-2 bg-black/60 p-1 rounded-full"><DoneOutlineTwoToneIcon /></button>
               </div>
             ))}
           </div>
         </div>
+      )}
+      {/* Watched Items */}
+      { watchedItems.length > 0 && (
+        <div className="mt-10 px-6 sm:mx-40">
+          <h3 className="text-xl font-bold text-white mb-4">Watched Films</h3>
+          <div className="flex overflow-x-auto space-x-4 pb-4">
+            {watchedItems.map((it) => (
+              <div key={it.id} className="relative min-w-[150px] bg-gray-800 rounded-lg">
+                <img
+                  src={`https://image.tmdb.org/t/p/w200${it.poster_path}`}
+                  alt={it.title || it.name}
+                  className="w-full h-48 object-cover cursor-pointer"
+                  onClick={() => setSelectedItem(it)}
+                />
+               <button 
+                  className="absolute top-2 right-2 bg-black/60 p-1 rounded-full">Watched {it.counter} times</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      { watchedItems.length === 0 && (
+        <div className="mt-10 px-6 sm:mx-40 text-center text-gray-400">Your watched items list is empty.</div>
       )}
 
       {/* Modal */}
