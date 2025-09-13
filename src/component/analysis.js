@@ -5,6 +5,7 @@ import { BallTriangle } from "react-loader-spinner";
 import { getDocs } from "firebase/firestore";
 import { moviesRef } from "../firebase/firebase";
 import { Link } from "react-router-dom";
+import Loader from "../ui/loader";
 
 function Analysis() {
   const [datas, setData] = useState([]);
@@ -119,6 +120,7 @@ function Analysis() {
               color="#4fa94d"
               ariaLabel="ball-triangle-loading"
             />
+            <Loader />
           </div>
         ) : (
           <div

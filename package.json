@@ -5,6 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
+    "@fontsource/dancing-script": "^5.2.6",
     "@mui/icons-material": "^5.16.6",
     "@mui/material": "^5.16.6",
     "@react-three/drei": "^9.56.3",
@@ -17,6 +18,7 @@
     "dotenv": "^16.0.3",
     "firebase": "^10.12.5",
     "framer-motion": "^12.23.12",
+    "gsap": "^3.13.0",
     "hls.js": "^1.6.9",
     "lucide-react": "^0.539.0",
     "react": "18.2.0",

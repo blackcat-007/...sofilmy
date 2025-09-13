@@ -28,6 +28,7 @@ const categoryicons = {
 };
 const EmojiButton = ({onEmojiClick,emojihistory}) => {
     
+    
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [emojis, setEmojis] = useState([]);
     const [categories, setCategories] = useState([]);
