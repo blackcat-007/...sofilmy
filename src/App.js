@@ -14,7 +14,7 @@ import Profile from './component/profile';
 import Home from './component/home';
 import FindPeople from './component/findpeople';
 import Landing from './component/landing';
-
+import AddList from './component/addlist';
 const Appstate = createContext();
 
 function App() {
@@ -50,6 +50,8 @@ function App() {
           <Route path="/filmychat" element={<ChatUsers />} />
           <Route path="/profile/:id" element={<Profile />} />
           <Route path="/findpeople" element={<FindPeople />} />
+          
+          <Route path="/addlist" element={<AddList />} />
           
         </Routes>
       </div>

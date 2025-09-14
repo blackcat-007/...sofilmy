@@ -60,15 +60,15 @@ const GENRES_MOVIE = {
   Music: "10402",
   Mystery: "9648",
   Romance: "10749",
-  "Sci-Fi": "878",
-  "TV Movie": "10770",
+  SciFi: "878",
+  TVMovie: "10770",
   Thriller: "53",
   War: "10752",
   Western: "37",
 };
 
 const GENRES_TV = {
-  "Action & Adventure": "10759",
+  ActionAdventure: "10759",
   Animation: "16",
   Comedy: "35",
   Crime: "80",
@@ -79,10 +79,10 @@ const GENRES_TV = {
   Mystery: "9648",
   News: "10763",
   Reality: "10764",
-  "Sci-Fi & Fantasy": "10765",
+  SciFiFantasy: "10765",
   Soap: "10766",
-  "Talk": "10767",
-  "War & Politics": "10768",
+  Talk: "10767",
+  WarPolitics: "10768",
   Western: "37",
 };
 
@@ -90,7 +90,7 @@ const KEYWORD_TO_GENRES = {
   // movies + tv mapping (we’ll add both sides where it makes sense)
 
   scifi: { movie: ["878"], tv: ["10765"] },
-  science: { movie: ["878"], tv: ["10765"] },
+  //science: { movie: ["878"], tv: ["10765"] },
   fantasy: { movie: ["14"], tv: ["10765"] },
   thriller: { movie: ["53"], tv: [] },
   mystery: { movie: ["9648"], tv: ["9648"] },
@@ -222,7 +222,7 @@ const keywordGenresFromText = (text) => {
 };
 
 // Hugging Face mood analysis (best-effort)
-const analyzeMood = async (inputText) => {
+{/*const analyzeMood = async (inputText) => {
   if (!inputText || !HG_TOKEN) return "neutral";
   try {
     const res = await fetch(HF_EMOTION_MODEL, {
@@ -242,7 +242,7 @@ const analyzeMood = async (inputText) => {
   } catch {
     return "neutral";
   }
-};
+};*/}
 
 // Build TMDB discover params for movie/tv
 const buildDiscoverQuery = ({ movieGenreIds = [], tvGenreIds = [], yearFilters = {}, castPersonId = null }) => {
@@ -621,9 +621,14 @@ setLoading(true);
       const movies = normalizeResults(movieJson.results, "movie");
       const tvs = normalizeResults(tvJson.results, "tv");
 
-      // Merge & sort by popularity (desc). If a query like "Tom Cruise sci-fi 2024", both piles will apply.
-      const merged = [...movies, ...tvs].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-      setItems(merged);
+     // ← Insert the merging & sorting logic here
+const merged = [...movies, ...tvs].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+
+if (merged.length > 0) {
+  setItems(merged.slice(0, 20)); // limit to 20 results
+} else {
+  setItems([]); // no results
+}
     } catch (e) {
       console.error("Search error:", e);
       setItems([]);

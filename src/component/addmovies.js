@@ -5,7 +5,7 @@ import { moviesRef } from "../firebase/firebase";
 import swal from "sweetalert";
 import { Appstate } from "../App";
 import { useNavigate } from "react-router-dom";
-
+import { Link } from "react-router-dom";
 /**
  * ======= TMDB CONFIG =======
  * Uses your env values when available; falls back to the ones you shared.
@@ -364,6 +364,7 @@ const detailsCache = new Map();  // id/imdbId -> details
   return (
     <div className="min-h-screen">
       <section className="text-gray-100 body-font relative">
+     <Link to={'/addlist'}><button className="rounded-lg  mt-5 ml-4 px-4 py-2 text-lg text-black font-bold bg-gradient-to-b from-green-900 to-green-500 hover:from-green-800 hover:to-green-400 transition">create list</button></Link>
         <div className="container px-5 py-8 mx-auto">
           {/* ======= Search / Dropdown ======= */}
           <div className="mx-auto lg:w-3/4">
