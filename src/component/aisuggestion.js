@@ -222,7 +222,7 @@ const keywordGenresFromText = (text) => {
 };
 
 // Hugging Face mood analysis (best-effort)
-{/*const analyzeMood = async (inputText) => {
+const analyzeMood = async (inputText) => {
   if (!inputText || !HG_TOKEN) return "neutral";
   try {
     const res = await fetch(HF_EMOTION_MODEL, {
@@ -242,7 +242,7 @@ const keywordGenresFromText = (text) => {
   } catch {
     return "neutral";
   }
-};*/}
+};
 
 // Build TMDB discover params for movie/tv
 const buildDiscoverQuery = ({ movieGenreIds = [], tvGenreIds = [], yearFilters = {}, castPersonId = null }) => {
