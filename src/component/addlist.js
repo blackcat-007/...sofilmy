@@ -3,6 +3,7 @@ import { addDoc, Timestamp } from "firebase/firestore";
 import { movielistRef } from "../firebase/firebase";
 import { getAuth } from "firebase/auth";
 import { Link } from "react-router-dom";
+import PostAddTwoToneIcon from '@mui/icons-material/PostAddTwoTone';
 
 const MovieListCreator = () => {
   const [listName, setListName] = useState("");
@@ -96,8 +97,8 @@ const MovieListCreator = () => {
       {/* Top-left button */}
       <div className="flex justify-start mb-8">
         <Link to={'/addmovies'}>
-          <button className="rounded-lg px-4 py-2 text-lg text-black font-bold bg-gradient-to-b from-green-900 to-green-500 hover:from-green-800 hover:to-green-400 transition">
-            Add New Analysis
+          <button className="rounded-lg px-4 py-2 text-lg flex items-center text-black font-bold bg-gradient-to-b from-green-900 to-green-500 hover:from-green-800 hover:to-green-400 transition">
+            <PostAddTwoToneIcon  /> Add New Analysis
           </button>
         </Link>
       </div>
@@ -114,44 +115,7 @@ const MovieListCreator = () => {
             onChange={(e) => setListName(e.target.value)}
             className="w-full p-3 mb-4 bg-gray-800 border border-gray-600 rounded text-white"
           />
-
-          <input
-            type="text"
-            placeholder="Search for movies or TV shows..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full p-3 mb-4 bg-gray-800 border border-gray-600 rounded text-white"
-          />
-
-          {searchResults.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-red-600 font-semibold mb-2">Search Results</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {searchResults.map((movie) => (
-                  <div key={movie.id} className="bg-gray-800 p-2 rounded text-center hover:scale-105 transition">
-                    <img
-                      src={
-                        movie.poster_path
-                          ? `https://image.tmdb.org/t/p/w200${movie.poster_path}`
-                          : "https://via.placeholder.com/150x225?text=No+Image"
-                      }
-                      alt={movie.title || movie.name}
-                      className="mx-auto rounded mb-2"
-                    />
-                    <div className="text-sm mb-1">{movie.title || movie.name}</div>
-                    <button
-                      onClick={() => addMovie(movie)}
-                      className="text-red-600 hover:text-red-800 text-sm"
-                    >
-                      Add
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {selectedMovies.length > 0 && (
+           {selectedMovies.length > 0 && (
             <div className="mb-6">
               <h2 className="text-red-600 font-semibold mb-2">Selected Movies</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -178,10 +142,47 @@ const MovieListCreator = () => {
               </div>
             </div>
           )}
+          {/* Search Input with Dropdown */}
+<div className="relative mb-6">
+  <input
+    type="text"
+    placeholder="Search for movies or TV shows..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    className="w-full p-3 bg-gray-800 border border-gray-600 rounded text-white"
+  />
+
+  {searchResults.length > 0 && (
+    <div className="absolute z-10 w-full bg-gray-900 border border-gray-700 rounded mt-1 max-h-64 overflow-y-auto shadow-lg">
+      {searchResults.map((movie) => (
+        <div
+          key={movie.id}
+          onClick={() => addMovie(movie)}
+          className="flex items-center gap-3 p-2 hover:bg-gray-700 cursor-pointer transition"
+        >
+          <img
+            src={
+              movie.poster_path
+                ? `https://image.tmdb.org/t/p/w92${movie.poster_path}`
+                : "https://via.placeholder.com/50x75?text=No+Image"
+            }
+            alt={movie.title || movie.name}
+            className="w-12 h-18 rounded"
+          />
+          <div className="text-sm text-white">
+            {movie.title || movie.name}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
+         
 
           <button
             onClick={handleSubmit}
-            className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded w-full"
+            className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded w-full"
           >
             Create List
           </button>
