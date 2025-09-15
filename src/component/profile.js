@@ -15,6 +15,7 @@ import {
 import Logout1 from "./logout";
 import Sidebar from "./sidebar";
 import DoneOutlineTwoToneIcon from '@mui/icons-material/DoneOutlineTwoTone';
+import Loader from "../ui/loader";
 
 const TMDB_API = process.env.REACT_APP_TMDB_API_KEY;
 const db = getFirestore();
@@ -267,7 +268,7 @@ useEffect(() => {
     return () => (cancel = true);
   }, [selectedItem]);
 
-  if (loading) return <div className="text-center py-8 text-gray-500">Loading...</div>;
+  if (loading) return <div className="flex items-center justify-center mt-80"><Loader /></div>;
   if (!userData) return <div className="text-center py-8 text-red-500">User not found.</div>;
 
   const isSelf = currentUserId === id;

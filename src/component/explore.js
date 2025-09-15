@@ -1,9 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { BallTriangle } from "react-loader-spinner";
-import { X } from "lucide-react";
+import { Loader, X } from "lucide-react";
 import { getFirestore } from "firebase/firestore";
 import { arrayRemove, arrayUnion, doc, getDocs, query, setDoc, updateDoc, where, collection } from "firebase/firestore";
+import CubeLoader from "../ui/loader";
+import SpinLoader from "../ui/loader2";
+import GlowLoader from "../ui/loader3";
 
 const IMG_BASE = "https://image.tmdb.org/t/p/w500";
 
@@ -439,9 +442,7 @@ const [showPersonModal, setShowPersonModal] = useState(false);
 
       {error && <div className="text-red-400 mb-4">{error}</div>}
       {loading && (
-        <div className="flex justify-center items-center py-10">
-          <BallTriangle height={70} width={70} color="#ef4444" />
-        </div>
+        <GlowLoader />
       )}
 
       {/* Trending */}

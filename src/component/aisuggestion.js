@@ -22,6 +22,9 @@ import {
   Chip,
   Box,
 } from "@mui/material";
+import GlowLoader from "../ui/loader3";
+import SuggestionLoader from "../ui/loader4";
+import CubeLoader from "../ui/loader";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -332,6 +335,7 @@ const AISuggestion = () => {
   const [details, setDetails] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [opendetailsLoading, setOpenDetailsLoading] = useState(false);
   const [bootLoading, setBootLoading] = useState(true);
 
   const userId = localStorage.getItem("userId");
@@ -524,12 +528,14 @@ useEffect(() => {
     if (!TMDB_API) return;
     setShowModal(true);
     setDetails(null);
+    setOpenDetailsLoading(true);
     try {
       const path = mediaType === "tv" ? "tv" : "movie";
       const url = `https://api.themoviedb.org/3/${path}/${id}?api_key=${TMDB_API}&append_to_response=videos,credits,images,similar,watch/providers&language=en-US`;
       const res = await fetch(url);
       const data = await res.json();
       setDetails({ ...data, media_type: mediaType });
+      setOpenDetailsLoading(false);
     } catch {
       setDetails(null);
     }
@@ -836,7 +842,7 @@ if (merged.length > 0) {
         {/* Results */}
         <div className="mt-6 overflow-x-auto overflow-y-hidden py-4 scrollbar-hide" ref={scrollRef} >
           <div className="flex space-x-4">
-            {(loading || bootLoading) && <div className="text-gray-400">Loading...</div>}
+            {(loading || bootLoading) && <div className="justify-center items-center flex h-full w-full mt-24 "><SuggestionLoader /></div>}
             {!loading && !bootLoading && items.length === 0 && (
               <div className="text-gray-500">No results. Try a broader description.</div>
             )}
@@ -875,7 +881,11 @@ if (merged.length > 0) {
               })}
           </div>
         </div>
-
+        {opendetailsLoading && (
+         
+            <GlowLoader />
+          
+        )}
         {/* Details Modal */}
         {showModal && details && (
           <div>

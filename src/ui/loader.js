@@ -1,79 +1,184 @@
 import React from "react";
-import { motion } from "framer-motion";
-import "@fontsource/dancing-script"; // cursive font
 
-const Loader = () => {
+const CubeLoader = () => {
+  // Example letters to show inside each cube
+  const letters = ["L", "O", "A", "D", "I", "N", "G"];
+
   return (
-    <div className="flex items-center justify-center h-screen bg-black">
-      <motion.div
-        className="relative flex items-center gap-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-      >
-        {/* soFilmy text */}
-        <h1
-          className="text-6xl font-bold"
-          style={{ fontFamily: "Dancing Script, cursive" }}
-        >
-          s
-        </h1>
+    <div className="flex items-center justify-center ">
+      <div className="wrapper-grid">
+        {letters.map((letter, index) => (
+          <div key={index} className="cube">
+            <div className="face face-front">{letter}</div>
+            <div className="face face-back"></div>
+            <div className="face face-left"></div>
+            <div className="face face-right"></div>
+            <div className="face face-top"></div>
+            <div className="face face-bottom"></div>
+          </div>
+        ))}
+      </div>
 
-        {/* Rotating film reel as "o" */}
-        <motion.div
-          className="w-14 h-14 rounded-full border-4 border-red-600 border-dashed flex items-center justify-center"
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-        >
-          <div className="w-3 h-3 bg-red-600 rounded-full"></div>
-        </motion.div>
-
-        <h1
-          className="text-6xl font-bold"
-          style={{ fontFamily: "Dancing Script, cursive" }}
-        >
-          Filmy
-        </h1>
-
-        {/* Filmstrip underline animation */}
-        <div
-        className="loader"
-        style={{
-          '--s': '40px'
-        }}
-      ></div>
-
-      {/* Custom styles */}
       <style jsx>{`
-        .loader {
-          height: calc(var(--s) * 0.9);
-          width: calc(var(--s) * 5);
-          --v1: transparent, #000 0.5deg 108deg, #0000 109deg;
-          --v2: transparent, #000 0.5deg 36deg, #0000 37deg;
-          -webkit-mask: 
-            conic-gradient(from 54deg at calc(var(--s) * 0.68) calc(var(--s) * 0.57), var(--v1)),
-            conic-gradient(from 90deg at calc(var(--s) * 0.02) calc(var(--s) * 0.35), var(--v2)),
-            conic-gradient(from 126deg at calc(var(--s) * 0.5)  calc(var(--s) * 0.7), var(--v1)),
-            conic-gradient(from 162deg at calc(var(--s) * 0.5) 0, var(--v2));
-          -webkit-mask-size: var(--s) var(--s);
-          -webkit-mask-composite: xor, destination-over;
-                  mask-composite: exclude, add;
-          -webkit-mask-repeat: repeat-x;
-          background: linear-gradient(#ffb940 0 0) left / 0% 100% #ddd no-repeat;
-          animation: l20 2s infinite linear;
+        .wrapper-grid {
+          --animation-duration: 2.1s;
+          --cube-color: #0000;
+          --highlight-color: #00cc44;
+          --cube-width: 48px;
+          --cube-height: 48px;
+          --font-size: 1.8em;
+          position: relative;
+          inset: 0;
+          display: grid;
+          grid-template-columns: repeat(7, var(--cube-width));
+          grid-template-rows: auto;
+          grid-gap: 0;
+          width: calc(7 * var(--cube-width));
+          height: var(--cube-height);
+          perspective: 350px;
+          font-family: "Poppins", sans-serif;
+          font-size: var(--font-size);
+          font-weight: 800;
+          color: transparent;
         }
 
-        @keyframes l20 {
-          90%, 100% {
-            background-size: 100% 100%;
+        .cube {
+          position: relative;
+          transform-style: preserve-3d;
+          animation: translate-z var(--animation-duration) ease-in-out infinite;
+        }
+
+        .cube:nth-child(1) {
+          z-index: 0;
+          animation-delay: 0s;
+        }
+        .cube:nth-child(2) {
+          z-index: 1;
+          animation-delay: 0.2s;
+        }
+        .cube:nth-child(3) {
+          z-index: 2;
+          animation-delay: 0.4s;
+        }
+        .cube:nth-child(4) {
+          z-index: 3;
+          animation-delay: 0.6s;
+        }
+        .cube:nth-child(5) {
+          z-index: 2;
+          animation-delay: 0.8s;
+        }
+        .cube:nth-child(6) {
+          z-index: 1;
+          animation-delay: 1s;
+        }
+        .cube:nth-child(7) {
+          z-index: 0;
+          animation-delay: 1.2s;
+        }
+
+        .face {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: var(--cube-width);
+          height: var(--cube-height);
+          background-color: var(--cube-color);
+          animation: face-color var(--animation-duration) ease-in-out infinite,
+            edge-glow var(--animation-duration) ease-in-out infinite;
+          animation-delay: inherit;
+          font-size: calc(var(--cube-width) * 0.5);
+        }
+
+        .face-left,
+        .face-right,
+        .face-back,
+        .face-front {
+          box-shadow: inset 0 0 2px 1px #0001, inset 0 0 12px 1px #fff1;
+        }
+
+        .face-front {
+          transform: rotateY(0deg) translateZ(calc(var(--cube-width) / 2));
+          animation: face-color var(--animation-duration) ease-in-out infinite,
+            face-glow var(--animation-duration) ease-in-out infinite,
+            edge-glow var(--animation-duration) ease-in-out infinite;
+          animation-delay: inherit;
+          color: var(--highlight-color);
+        }
+
+        .face-back {
+          transform: rotateY(180deg) translateZ(calc(var(--cube-width) / 2));
+          opacity: 0.6;
+        }
+        .face-left {
+          transform: rotateY(-90deg) translateZ(calc(var(--cube-width) / 2));
+          opacity: 0.6;
+        }
+        .face-right {
+          transform: rotateY(90deg) translateZ(calc(var(--cube-width) / 2));
+          opacity: 0.6;
+        }
+        .face-top {
+          height: var(--cube-width);
+          transform: rotateX(90deg) translateZ(calc(var(--cube-width) / 2));
+          opacity: 0.8;
+        }
+        .face-bottom {
+          height: var(--cube-width);
+          transform: rotateX(-90deg)
+            translateZ(calc(var(--cube-height) - var(--cube-width) * 0.5));
+          opacity: 0.8;
+        }
+
+        @keyframes translate-z {
+          0%,
+          40%,
+          100% {
+            transform: translateZ(-2px);
+          }
+          30% {
+            transform: translateZ(16px) translateY(-1px);
+          }
+        }
+
+        @keyframes face-color {
+          0%,
+          50%,
+          100% {
+            background-color: var(--cube-color);
+          }
+          10% {
+            background-color: var(--highlight-color);
+          }
+        }
+
+        @keyframes face-glow {
+          0%,
+          50%,
+          100% {
+            color: #fff0;
+            filter: none;
+          }
+          30% {
+            color: #fff;
+            filter: drop-shadow(0 14px 10px var(--highlight-color));
+          }
+        }
+
+        @keyframes edge-glow {
+          0%,
+          40%,
+          100% {
+            box-shadow: inset 0 0 2px 1px #0001, inset 0 0 12px 1px #fff1;
+          }
+          30% {
+            box-shadow: 0 0 2px 0px var(--highlight-color);
           }
         }
       `}</style>
-      </motion.div>
-      
-
     </div>
   );
 };
 
-export default Loader;
+export default CubeLoader;

@@ -6,6 +6,7 @@ import { getDocs } from "firebase/firestore";
 import { moviesRef } from "../firebase/firebase";
 import { Link } from "react-router-dom";
 import Loader from "../ui/loader";
+import CardSkeleton from "../ui/cardskeleton";
 
 function Analysis() {
   const [datas, setData] = useState([]);
@@ -112,16 +113,17 @@ function Analysis() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center items-center min-h-screen">
-            <BallTriangle
-              height={70}
-              width={70}
-              radius={5}
-              color="#4fa94d"
-              ariaLabel="ball-triangle-loading"
-            />
-            <Loader />
-          </div>
+         <div
+    ref={scrollRef}
+    className="flex gap-6 overflow-x-auto overflow-y-hidden whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pb-4 snap-x snap-mandatory"
+  >
+    {/* Render 6 skeleton cards */}
+    {[...Array(6)].map((_, i) => (
+      <div key={i} className="shrink-0 snap-start">
+        <CardSkeleton className="w-64 sm:w-72 md:w-80 card h-full" />
+      </div>
+    ))}
+  </div>
         ) : (
           <div
             ref={scrollRef}

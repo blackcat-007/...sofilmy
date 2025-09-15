@@ -28,6 +28,7 @@
     "react-scripts": "^5.0.1",
     "react-stars": "^2.2.5",
     "react-toastify": "^11.0.5",
+    "styled-components": "^6.1.19",
     "sweet-alert": "^2.0.5",
     "sweetalert": "^2.1.2",
     "three": "^0.154.0",

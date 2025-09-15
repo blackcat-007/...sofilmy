@@ -10,7 +10,7 @@ import {
 } from "firebase/firestore";
 import { Link } from "react-router-dom";
 import Sidebar from "./sidebar";
-
+import Loader from "../ui/loader";
 const db = getFirestore();
 
 function FindPeople() {
@@ -100,7 +100,7 @@ function FindPeople() {
 
   return (
     <>
-     <div className="min-h-screen bg-[#121212] text-gray-200 p-6">
+     <div className="min-h-screen text-gray-200 p-6">
   {/* Search Bar */}
   <div className="max-w-3xl mt-16 sm:mx-auto flex items-center mb-10">
     <input
@@ -118,9 +118,7 @@ function FindPeople() {
   </div>
 
   {/* Loading State */}
-  {loading && (
-    <p className="text-center text-[#00ff99] animate-pulse">Loading...</p>
-  )}
+  {loading && <Loader />}
 
   {/* Users List */}
   <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">

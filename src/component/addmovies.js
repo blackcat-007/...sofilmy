@@ -7,6 +7,7 @@ import { Appstate } from "../App";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import PlaylistAddTwoToneIcon from '@mui/icons-material/PlaylistAddTwoTone';
+import styled from "styled-components";
 
 /**
  * ======= TMDB CONFIG =======
@@ -484,25 +485,41 @@ const detailsCache = new Map();  // id/imdbId -> details
                   />
                 </div>
 
-                {/* Spoiler & Sarcasm toggles */}
-                <div className="flex items-end gap-4">
-                  <label className="flex items-center gap-2 select-none">
-                    <input
-                      type="checkbox"
-                      checked={spoilerFree}
-                      onChange={(e) => setSpoilerFree(e.target.checked)}
-                    />
-                    <span className="text-sm">Spoiler-free</span>
-                  </label>
-                  <label className="flex items-center gap-2 select-none">
-                    <input
-                      type="checkbox"
-                      checked={sarcasm}
-                      onChange={(e) => setSarcasm(e.target.checked)}
-                    />
-                    <span className="text-sm">Sarcasm</span>
-                  </label>
-                </div>
+                <StyledWrapper>
+      <div className="checkbox-wrapper">
+        <input
+          id="spoiler"
+          type="checkbox"
+          checked={spoilerFree}
+          onChange={(e) => setSpoilerFree(e.target.checked)}
+        />
+        <label htmlFor="spoiler" className="checkmark-label">
+          <div className="checkmark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M20 6L9 17L4 12" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span className="label">Spoiler-free</span>
+        </label>
+      </div>
+
+      <div className="checkbox-wrapper">
+        <input
+          id="sarcasm"
+          type="checkbox"
+          checked={sarcasm}
+          onChange={(e) => setSarcasm(e.target.checked)}
+        />
+        <label htmlFor="sarcasm" className="checkmark-label">
+          <div className="checkmark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M20 6L9 17L4 12" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span className="label">Sarcasm</span>
+        </label>
+      </div>
+    </StyledWrapper>
               </div>
 
               {/* Description */}
@@ -723,3 +740,127 @@ Repeat for any other points you want to analyze to build a structured review.</p
 }
 
 export default Addmovies;
+const StyledWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+
+  .checkbox-wrapper {
+    --checkbox-size: 20px;
+    --checkbox-color: #00ff88;
+    --checkbox-shadow: rgba(0, 255, 136, 0.3);
+    --checkbox-border: rgba(0, 255, 136, 0.7);
+
+    display: flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    padding: 6px 8px;
+  }
+
+  .checkbox-wrapper input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+
+  .checkmark-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .checkmark-label .checkmark {
+    position: relative;
+    width: var(--checkbox-size);
+    height: var(--checkbox-size);
+    border: 2px solid var(--checkbox-border);
+    border-radius: 6px;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 10px var(--checkbox-shadow);
+    overflow: hidden;
+  }
+
+  .checkmark-label .checkmark::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, var(--checkbox-color), #00ffcc);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transform: scale(0) rotate(-45deg);
+  }
+
+  input:checked + .checkmark-label .checkmark::before {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+
+  .checkmark-label .checkmark svg {
+    width: 0;
+    height: 0;
+    color: #1a1a1a;
+    z-index: 1;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+  }
+
+  input:checked + .checkmark-label .checkmark svg {
+    width: 14px;
+    height: 14px;
+    transform: rotate(360deg);
+  }
+
+  .checkmark-label:hover .checkmark {
+    border-color: var(--checkbox-color);
+    transform: scale(1.1);
+    box-shadow:
+      0 0 10px var(--checkbox-shadow),
+      0 0 20px var(--checkbox-shadow),
+      inset 0 0 5px var(--checkbox-shadow);
+  }
+
+  input:checked + .checkmark-label .checkmark {
+    animation: pulse 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 10px var(--checkbox-shadow);
+    }
+    50% {
+      transform: scale(0.95);
+      box-shadow:
+        0 0 20px var(--checkbox-shadow),
+        0 0 40px var(--checkbox-shadow);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 10px var(--checkbox-shadow);
+    }
+  }
+
+  .checkmark-label .label {
+    margin-left: 10px;
+    font-family: "Segoe UI", sans-serif;
+    color: var(--checkbox-color);
+    font-size: 14px;
+    text-shadow: 0 0 5px var(--checkbox-shadow);
+    opacity: 0.9;
+    transition: all 0.3s;
+  }
+
+  .checkmark-label:hover .label {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+`;

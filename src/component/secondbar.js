@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import Analysis from "./analysis";
 import Explore from "./explore";
+import MovieLists from "./movielists";
 import AISuggestion from "./aisuggestion";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
@@ -15,10 +16,11 @@ const options = [
 export default function SecondBar() {
     const [selected, setSelected] = useState("analysis");
     const analysisRef = useRef(null);
+    const listsRef = useRef(null);
     const exploreRef = useRef(null);
     const aiRef = useRef(null);
 
-    const notify = () => toast("Feature coming soon!🍿🎞️ 🎥");
+    
 
     const header = document.querySelector('.header');
     const headerHeight = header ? header.offsetHeight : 170;
@@ -29,6 +31,9 @@ export default function SecondBar() {
         switch (value) {
             case "analysis":
                 sectionRef = analysisRef;
+                break;
+            case "lists":
+                sectionRef = listsRef;
                 break;
             case "explore":
                 sectionRef = exploreRef;
@@ -55,6 +60,7 @@ export default function SecondBar() {
         const handleScrollSpy = () => {
             const sections = [
                 { id: "analysis", ref: analysisRef },
+                { id: "lists", ref: listsRef },
                 { id: "explore", ref: exploreRef },
                 { id: "ai-suggestion", ref: aiRef }
             ];
@@ -92,30 +98,14 @@ export default function SecondBar() {
                                 key={option.value}
                                 onClick={() => {
                                     setSelected(option.value);
-                                    if (option.value === "lists") {
-                                        notify();
-                                    } else {
-                                        handleScroll(option.value);
-                                    }
+                                    handleScroll(option.value);
                                 }}
                                 className={`text-white font-semibold text-lg transition-colors ${selected === option.value ? "text-red-500 border-b-2 border-red-500" : "hover:text-red-400"} pb-1`}
                             >
                                 {option.label}
                             </button>
                         ))}
-                        <ToastContainer
-                            position="top-right"
-                            autoClose={3000}
-                            hideProgressBar={false}
-                            newestOnTop={false}
-                            closeOnClick
-                            rtl={false}
-                            pauseOnFocusLoss
-                            draggable
-                            pauseOnHover
-                            toastStyle={{ backgroundColor: "black", color: "white" }}
-                            progressStyle={{ background: "linear-gradient(to right, red, green)" }}
-                        />
+                        
                     </div>
                 </div>
             </div>
@@ -126,9 +116,9 @@ export default function SecondBar() {
                     <Analysis />
                 </section>
 
-                {/* <section ref={listsRef} id="lists">
+                 <section ref={listsRef} id="lists">
                     <MovieLists />
-                </section> */}
+                </section> 
 
                 <section ref={exploreRef} id="explore">
                     <Explore />

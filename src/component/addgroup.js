@@ -90,6 +90,9 @@ const AddGroup = ({ onClose, refreshGroups }) => {
       (u.name && u.name.toLowerCase().includes(search.toLowerCase())) ||
       (u.email && u.email.toLowerCase().includes(search.toLowerCase()))
   );
+  const handleToggle = () => {
+    setAccess((prev) => (prev === "public" ? "private" : "public"));
+  };
 
   return (
     <div className="fixed inset-0 z-20 top-24 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -176,32 +179,46 @@ const AddGroup = ({ onClose, refreshGroups }) => {
           </div>
         </div>
 
-        {/* Access Toggle */}
-        <div className="mb-4 flex items-center gap-4">
-          <span className="font-semibold text-red-400">Access:</span>
-          <button
-            type="button"
-            onClick={() => setAccess("public")}
-            className={`px-3 py-1 rounded-md ${
-              access === "public"
-                ? "bg-green-600 text-black font-bold"
-                : "bg-gray-700 text-white"
-            }`}
-          >
-            Public
-          </button>
-          <button
-            type="button"
-            onClick={() => setAccess("private")}
-            className={`px-3 py-1 rounded-md ${
-              access === "private"
-                ? "bg-red-600 text-black font-bold"
-                : "bg-gray-700 text-white"
-            }`}
-          >
-            Private
-          </button>
-        </div>
+         <div className="flex items-center gap-4">
+      <span className="font-semibold text-red-400">Access:</span>
+
+      <label className="relative inline-flex cursor-pointer items-center">
+        <input
+          type="checkbox"
+          checked={access === "private"}
+          onChange={handleToggle}
+          className="peer sr-only"
+        />
+        <div
+          className={`border-gray-500 shadow-lg peer-checked:shadow-green-600 shadow-red-600 border flex h-6 w-12 items-center outline-none rounded bg-red-600 pl-7 text-white transition-all duration-300 peer-checked:bg-green-600 peer-checked:pl-2 peer-focus:outline-none`}
+        ></div>
+        <svg
+          className="peer-checked:opacity-0 transition-all duration-500 opacity-100 absolute left-6 stroke-gray-900 w-5 h-5"
+          height="100"
+          viewBox="0 0 100 100"
+          width="100"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M50,18A19.9,19.9,0,0,0,30,38v8a8,8,0,0,0-8,8V74a8,8,0,0,0,8,8H70a8,8,0,0,0,8-8V54a8,8,0,0,0-8-8H38V38a12,12,0,0,1,23.6-3,4,4,0,1,0,7.8-2A20.1,20.1,0,0,0,50,18Z"
+            className="fill-current"
+          />
+        </svg>
+        <svg
+          className="absolute transition-all duration-500 peer-checked:opacity-100 opacity-0 left-1 stroke-gray-900 w-5 h-5"
+          height="100"
+          viewBox="0 0 100 100"
+          width="100"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M30,46V38a20,20,0,0,1,40,0v8a8,8,0,0,1,8,8V74a8,8,0,0,1-8,8H30a8,8,0,0,1-8-8V54A8,8,0,0,1,30,46Zm32-8v8H38V38a12,12,0,0,1,24,0Z"
+            fillRule="evenodd"
+          />
+        </svg>
+        <div className="absolute left-1 top-1 flex h-3.5 w-4 items-center justify-center rounded-sm bg-white shadow-lg transition-all duration-300 peer-checked:left-7"></div>
+      </label>
+    </div>
 
         {/* Actions */}
         <div className="flex justify-end gap-2">

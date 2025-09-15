@@ -4,6 +4,8 @@ import PersonalChatSection from './personalchatsection';
 import GroupChatSection from './groupchatsection';
 import AddGroup from './addgroup';
 import GroupDetails from './groupdetails';
+import ChatSkeleton from '../ui/chatskeleton';
+
 
 const db = getFirestore();
 
@@ -204,7 +206,18 @@ const ChatUsers = () => {
 
         {/* List */}
         {loading ? (
-          <div className="text-gray-400 text-center">Loading {mode}...</div>
+          <div className="space-y-2">
+    {/* You can render multiple skeletons to simulate a list */}
+    <ChatSkeleton />
+    <ChatSkeleton />
+    <ChatSkeleton />
+    <ChatSkeleton />
+    <ChatSkeleton />
+    <ChatSkeleton />
+    <ChatSkeleton />
+    <ChatSkeleton />
+    
+  </div>
         ) : (
           <ul className="divide-y divide-gray-700">
             {(mode === 'people' ? users : groups).length === 0 ? (
@@ -293,25 +306,41 @@ const ChatUsers = () => {
       </section>
 
       {/* Chat Section */}
-      <div
-        className={`flex-1 p-4 ${
-          showUserList && !window.matchMedia('(min-width: 768px)').matches ? 'hidden' : 'block'
-        }`}
-      >
-        {selectedUser ? (
-          mode === 'groups' ? (
-            selectedUser.members?.includes(localStorage.getItem("userId")) || joinedGroups.has(selectedUser.id) ? (
-              <GroupChatSection selectedUser={selectedUser} />
-            ) : null
-          ) : (
-            <PersonalChatSection selectedUser={selectedUser} />
-          )
-        ) : (
-          <div className="text-gray-400 mt-4">
-            Select a {mode === 'people' ? 'user' : 'group'} to start chatting
-          </div>
-        )}
+     <div
+  className={`flex-1 p-4 relative overflow-hidden rounded-xl transition-all duration-500
+    ${
+      showUserList && !window.matchMedia('(min-width: 768px)').matches
+        ? 'hidden'
+        : 'block'
+    }`}
+>
+  {/* Glowing background gradients */}
+  <div className="absolute inset-0 bg-black rounded-xl z-0 overflow-hidden">
+    {/* Animated gradient */}
+    <div className="absolute inset-0 bg-gradient-to-r from-red-600 via-red-400 to-red-800 opacity-40 animate-gradientX blur-3xl"></div>
+    {/* Glowing highlights */}
+    <div className="absolute top-10 left-[-50px] w-72 h-72 rounded-full bg-red-500 opacity-20 animate-pulseSlow"></div>
+    <div className="absolute bottom-10 right-[-40px] w-64 h-64 rounded-full bg-red-700 opacity-20 animate-pulseSlow"></div>
+  </div>
+
+  {/* Content */}
+  <div className="relative z-10 flex flex-col h-full">
+    {selectedUser ? (
+      mode === 'groups' ? (
+        selectedUser.members?.includes(localStorage.getItem("userId")) ||
+        joinedGroups.has(selectedUser.id) ? (
+          <GroupChatSection selectedUser={selectedUser} />
+        ) : null
+      ) : (
+        <PersonalChatSection selectedUser={selectedUser} />
+      )
+    ) : (
+      <div className="text-gray-300 text-center mt-16 text-lg font-semibold tracking-wider drop-shadow-lg">
+        Select a {mode === 'people' ? 'user' : 'group'} to start chatting
       </div>
+    )}
+  </div>
+</div>
     </div>
   );
 };

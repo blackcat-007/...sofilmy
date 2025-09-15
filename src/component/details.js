@@ -5,6 +5,7 @@ import { db } from "../firebase/firebase";
 import { MagnifyingGlass } from "react-loader-spinner";
 import Reviews from "./reviews";
 import { useParams } from "react-router-dom"; // ✅ make sure this is imported
+import SpinLoader from "../ui/loader2";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
 function Details() {
   const [loading, setLoader] = useState(false);
@@ -36,13 +37,7 @@ function Details() {
   if (loading) {
     return (
       <div className="h-96 w-full flex justify-center items-start">
-        <MagnifyingGlass
-          height={80}
-          width={80}
-          ariaLabel="magnifying-glass-loading"
-          glassColor={"pink"}
-          color={"green"}
-        />
+        <SpinLoader />
       </div>
     );
   }
