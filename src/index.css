@@ -7,7 +7,13 @@ body{
 }
 
 .card{
-  background-color: rgb(26, 26, 26);
+  background-color: rgba(14, 13, 13, 0.882);
+}
+.card:hover{
+  background-color: rgba(40, 40, 40, 0.682);
+}
+.active{
+ background-color: rgba(40, 40, 40, 0.682);
 }
 .header{
   background-color: #1d1f25;

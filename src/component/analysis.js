@@ -7,6 +7,7 @@ import { moviesRef } from "../firebase/firebase";
 import { Link } from "react-router-dom";
 import Loader from "../ui/loader";
 import CardSkeleton from "../ui/cardskeleton";
+import "../App.css"
 
 function Analysis() {
   const [datas, setData] = useState([]);
@@ -85,10 +86,13 @@ function Analysis() {
   }, [isMobile, datas]);
 
   return (
-    <div className="relative px-3 py-8 sm:mt-4 mt-24 -ml-2 sm:mx-8 rounded-xl overflow-hidden ">
+    <div className="relative px-3 py-8 sm:mt-4 mt-24 -ml-2 sm:mx-14 rounded-xl overflow-hidden ">
       {/* ✅ Background */}
       <div className="absolute inset-0 overflow-hidden">
+         {/* Vignette effect layer */}
+    <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-black/60 via-transparent to-black/60 rounded"></div>
         <div className="absolute inset-0 bg-black/30 z-[1]"></div>
+        
         {bgImage && (
   <div key={bgImage} className="absolute inset-0">
     {/* Background Image Layer */}
@@ -127,24 +131,24 @@ function Analysis() {
         ) : (
           <div
             ref={scrollRef}
-            className="flex gap-6 overflow-x-auto overflow-y-hidden whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pb-4 snap-x snap-mandatory"
+            className="flex gap-3 overflow-x-auto overflow-y-hidden whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pb-4 snap-x snap-mandatory"
           >
             {datas.map((e, i) => (
               <Link to={`/details/${e.id}`} key={i} className="shrink-0 snap-start">
                 <div
-                  ref={(el) => (cardRefs.current[i] = el)} 
-                  data-image={e.image}
-                  data-index={i}
-                  className={`w-64 sm:w-72 md:w-80 card p-4 bg-white rounded shadow-lg transition-transform duration-300 transform h-full
-                    ${
-                      isMobile
-                        ? activeIndex === i
-                          ? "translate-y-2 scale-95 shadow-red-500"
-                          : ""
-                        : "hover:translate-y-2 hover:scale-95 hover:shadow-red-500"
-                    }`}
-                  onMouseEnter={() => !isMobile && setBgImage(e.image)}
-                  onMouseLeave={() => !isMobile && setBgImage(null)}
+                  ref={(el) => (cardRefs.current[i] = el)}
+  data-image={e.image}
+  data-index={i}
+  className={`w-64 scale-90 sm:w-72 md:w-80 card hover p-4  rounded shadow-lg transition-transform duration-300 transform h-full
+    ${
+      isMobile
+        ? activeIndex === i
+          ? "translate-y-2 scale-95 glow active"
+          : ""
+        : "hover:translate-y-2 hover:scale-95 hover-glow"
+    }`}
+  onMouseEnter={() => !isMobile && setBgImage(e.image)}
+  onMouseLeave={() => !isMobile && setBgImage(null)}
                 >
                   <div className="flex justify-center">
                     <img
