@@ -176,19 +176,19 @@ function ListDetails() {
       <div className="flex gap-4 my-4">
         <button
           onClick={() => handleVote("up")}
-          className={`px-4 py-2 rounded ${
-            listData.upvotedBy?.includes(user) ? "bg-green-600" : "bg-gray-700"
+          className={`px-4 py-2 rounded hover:text-green-500/60 ${
+            listData.upvotedBy?.includes(user) ? "text-green-600" : "text-gray-700"
           }`}
         >
-          👍 {listData.upvoted || 0}
+         ▲ {listData.upvoted || 0}
         </button>
         <button
           onClick={() => handleVote("down")}
-          className={`px-4 py-2 rounded ${
-            listData.downvotedBy?.includes(user) ? "bg-red-600" : "bg-gray-700"
+          className={`px-4 py-2 rounded hover:text-red-500/60 ${
+            listData.downvotedBy?.includes(user) ? "text-red-600" : "text-gray-700"
           }`}
         >
-          👎 {listData.downvoted || 0}
+           ▼ {listData.downvoted || 0}
         </button>
       </div>
 

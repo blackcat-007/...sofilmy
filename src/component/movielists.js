@@ -168,7 +168,7 @@ function MovieLists() {
   };
 
   return (
-   <div className="p-2 min-h-screen min-w-screen md:mx-14 rounded-lg backdrop-blur-2xl relative overflow-hidden animated-bg">
+   <div className="p-2 h-auto min-w-screen md:mx-14 rounded-lg backdrop-blur-2xl relative overflow-hidden animated-bg">
    
 
     <h1 className="text-2xl font-bold mt-4 ml-3 text-white mb-4 text-left relative  z-10">Top Featured Lists</h1>
@@ -184,7 +184,7 @@ function MovieLists() {
             <Link
               to={`/listdetails/${list.id}`}
               key={list.id}
-              className=" rounded-lg overflow-hidden scale-90 hover:scale-100  md:w-96 transition-transform relative"
+              className=" rounded-lg overflow-hidden scale-95 hover:scale-100  md:w-96 transition-transform relative"
             >
               <div
   ref={el => containerRefs.current[list.id] = el}
@@ -198,7 +198,7 @@ function MovieLists() {
         key={index}
         src={url}
         alt={`Poster ${index + 1}`}
-        className="absolute w-20 h-32 object-cover rounded shadow-md transition-transform duration-300 hover:scale-110"
+        className="absolute w-24 h-36 object-cover rounded shadow-md transition-transform duration-300 hover:scale-110"
         style={{
           left: `${offset + index * overlap}px`,
           zIndex: posterUrls.length - index,
