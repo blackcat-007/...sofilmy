@@ -4,7 +4,7 @@ import { movielistRef, usersRef } from "../firebase/firebase";
 import { Link } from "react-router-dom";
 import { BallTriangle } from "react-loader-spinner";
 import ListSkeleton from "../ui/listskeleton";
-import ExpandCircleDownOneToneIcon from '@mui/icons-material/ExpandCircleDownTwoTone';
+import { CircleArrowDown } from "lucide-react";
 import "../App.css"
 
 function MovieLists() {
@@ -265,7 +265,7 @@ function MovieLists() {
     {!loading && hasMore && (
       <div className="flex justify-center mt-4 relative z-10">
         <button onClick={fetchMovieLists} className="bg-gradient-to-r from-red-500 to-red-900 hover:from-red-800 hover:to-red-950 text-white sm:px-4 px-2 sm:h-10 h-7 w-auto sm:text-base text-xs rounded">
-          Load More<ExpandCircleDownOneToneIcon className="ml-2" />
+          Load More<CircleArrowDown className="ml-2" />
         </button>
       </div>
     )}

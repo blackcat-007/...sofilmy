@@ -17,8 +17,8 @@ function Header() {
       {/* Logo */}
      < div className="flex flex-col">
       <Link to={'/'} className="flex-shrink-0">
-        <span className="block bg-gradient-to-b from-red-400 to-red-600 bg-clip-text sm:text-3xl text-2xl  font-extrabold tracking-tight text-transparent">
-                ...So<span className=" bg-gradient-to-b from-gray-400 to-white bg-clip-text sm:text-3xl text-2xl font-extrabold tracking-tight text-transparent">Filmy</span><AnimatedSubtitle />
+        <span className="block bg-gradient-to-b from-red-400 to-red-600 bg-clip-text  text-2xl  font-extrabold tracking-tight text-transparent">
+                ...So<span className=" bg-gradient-to-b from-gray-400 to-white bg-clip-text  text-2xl font-extrabold tracking-tight text-transparent">Filmy</span><AnimatedSubtitle />
 
               </span>
               
