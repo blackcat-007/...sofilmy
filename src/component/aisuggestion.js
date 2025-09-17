@@ -527,22 +527,28 @@ useEffect(() => {
 
     const itemKey = `${mediaType}:${id}`;
 
-    if (userDocRef && userData ) {
-
+    if (userDocRef && userData) {
       const curr = Array.isArray(userData.watchlist) ? userData.watchlist : [];
       const isIn = curr.includes(itemKey);
 
+      // ✅ Build the new list
+      const newList = isIn
+        ? curr.filter((x) => x !== itemKey)
+        : [...curr, itemKey];
+
       await updateDoc(userDocRef, {
-        watchlist: isIn ? arrayRemove(itemKey) : arrayUnion(itemKey),
+        watchlist: newList,
       });
 
-      setWatchlist((prev) =>
-        isIn ? prev.filter((x) => x !== itemKey) : [...prev, itemKey]
-      );
+      setWatchlist(newList);
       setCache(`watchlist-${userId}`, newList);
 
-      alert("🎉 Added a new film to Watchlist!");
-    } else  {
+      alert(
+        isIn
+          ? "❌ Removed from Watchlist!"
+          : "🎉 Added a new film to Watchlist!"
+      );
+    } else {
       // No document for this uid → create one
       const newDocRef = doc(usersRef); // auto-ID doc
       await setDoc(newDocRef, {
@@ -551,6 +557,8 @@ useEffect(() => {
       });
 
       setWatchlist([itemKey]);
+      setCache(`watchlist-${userId}`, [itemKey]);
+
       alert("🎉 Added your first title to Watchlist!");
     }
   } catch (err) {
@@ -565,6 +573,7 @@ useEffect(() => {
     );
   }
 };
+
 
   const openDetailsModal = async (id, mediaType) => {
   if (!TMDB_API) return;
