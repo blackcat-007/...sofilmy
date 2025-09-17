@@ -52,6 +52,30 @@ function Explore() {
 const [personPopular, setPersonPopular] = useState([]);
 const [showPersonModal, setShowPersonModal] = useState(false);
   const [loadingPerson, setLoadingPerson] = useState(false);
+  const setCache = (key, data) => {
+  const cacheEntry = {
+    data,
+    timestamp: Date.now()
+  };
+  localStorage.setItem(key, JSON.stringify(cacheEntry));
+};
+
+const getCache = (key, maxAgeMs) => {
+  const cached = localStorage.getItem(key);
+  if (!cached) return null;
+  try {
+    const { data, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp < maxAgeMs) {
+      return data;
+    } else {
+      localStorage.removeItem(key);
+      return null;
+    }
+  } catch {
+    return null;
+  }
+};
+
 
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
@@ -88,20 +112,32 @@ const [showPersonModal, setShowPersonModal] = useState(false);
 
 
   const fetchSearch = async (query) => {
-    if (!query?.trim()) {
-      setSearchResults([]);
-      return;
-    }
-    if (!guardKey()) return;
-    try {
-      const data = await fetchJson(
-        `${TMDB_API_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
-      );
-      setSearchResults(data.results || []);
-    } catch (e) {
-      setError(e.message);
-    }
-  };
+  if (!query?.trim()) {
+    setSearchResults([]);
+    return;
+  }
+  if (!guardKey()) return;
+
+  const cacheKey = `search-${query.trim().toLowerCase()}`;
+  const cached = getCache(cacheKey, 30 * 60 * 1000); // 30 min cache
+
+  if (cached) {
+    setSearchResults(cached);
+    return;
+  }
+
+  try {
+    const data = await fetchJson(
+      `${TMDB_API_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
+    );
+    const results = data.results || [];
+    setSearchResults(results);
+    setCache(cacheKey, results);
+  } catch (e) {
+    setError(e.message);
+  }
+};
+
 
   // ---- Close dropdown on outside click ----
   useEffect(() => {
@@ -131,74 +167,106 @@ const [showPersonModal, setShowPersonModal] = useState(false);
 
   // ---- Fetch sections ----
   useEffect(() => {
-    (async () => {
-      if (!guardKey()) return;
-      try {
-        const movieData = await fetchJson(
-          `${TMDB_API_URL}/trending/movie/${trendingFilter}?api_key=${TMDB_API_KEY}`
-        );
-        const tvData = await fetchJson(
-          `${TMDB_API_URL}/trending/tv/${trendingFilter}?api_key=${TMDB_API_KEY}`
-        );
-        setTrending([
-  ...(movieData.results || []).map(item => ({ ...item, title: item.title })),
-  ...(tvData.results || []).map(item => ({ ...item, title: item.name })),
-]);
+  (async () => {
+    if (!guardKey()) return;
 
-        
-      } catch (e) {
-        setError(e.message);
-      }
-    })();
-  }, [trendingFilter]);
+    const cacheKey = `trending-${trendingFilter}`;
+    const cached = getCache(cacheKey, 60 * 60 * 1000); // 1 hour cache
 
-  useEffect(() => {
-    (async () => {
-      if (!guardKey()) return;
-      try {
-        let url =
-          trailersScope === "popular"
-            ? `${TMDB_API_URL}/movie/popular?api_key=${TMDB_API_KEY}`
-            : trailersScope === "ontv"
-            ? `${TMDB_API_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}`
-            : `${TMDB_API_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`;
-        const data = await fetchJson(url);
-        setTrailers(
-          (data.results || []).map((r) => ({
-            ...r,
-            media_type: r.first_air_date ? "tv" : "movie",
-            title: r.title || r.name,
-          }))
-        );
-      } catch (e) {
-        setError(e.message);
-      }
-    })();
-  }, [trailersScope]);
+    if (cached) {
+      setTrending(cached);
+      return;
+    }
 
-  useEffect(() => {
-    (async () => {
-      if (!guardKey()) return;
-      try {
-        let url =
-          popularScope === "streaming"
-            ? `${TMDB_API_URL}/movie/popular?api_key=${TMDB_API_KEY}`
-            : popularScope === "ontv"
-            ? `${TMDB_API_URL}/tv/popular?api_key=${TMDB_API_KEY}`
-            : `${TMDB_API_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`;
-        const data = await fetchJson(url);
-        setPopular(
-          (data.results || []).map((r) => ({
-            ...r,
-            media_type: r.first_air_date ? "tv" : "movie",
-            title: r.title || r.name,
-          }))
-        );
-      } catch (e) {
-        setError(e.message);
-      }
-    })();
-  }, [popularScope]);
+    try {
+      const movieData = await fetchJson(
+        `${TMDB_API_URL}/trending/movie/${trendingFilter}?api_key=${TMDB_API_KEY}`
+      );
+      const tvData = await fetchJson(
+        `${TMDB_API_URL}/trending/tv/${trendingFilter}?api_key=${TMDB_API_KEY}`
+      );
+      const result = [
+        ...(movieData.results || []).map(item => ({ ...item, title: item.title })),
+        ...(tvData.results || []).map(item => ({ ...item, title: item.name }))
+      ];
+      setTrending(result);
+      setCache(cacheKey, result);
+    } catch (e) {
+      setError(e.message);
+    }
+  })();
+}, [trendingFilter]);
+
+
+ useEffect(() => {
+  (async () => {
+    if (!guardKey()) return;
+
+    const cacheKey = `trailers-${trailersScope}`;
+    const cached = getCache(cacheKey, 60 * 60 * 1000); // 1 hour cache
+
+    if (cached) {
+      setTrailers(cached);
+      return;
+    }
+
+    try {
+      let url =
+        trailersScope === "popular"
+          ? `${TMDB_API_URL}/movie/popular?api_key=${TMDB_API_KEY}`
+          : trailersScope === "ontv"
+          ? `${TMDB_API_URL}/tv/on_the_air?api_key=${TMDB_API_KEY}`
+          : `${TMDB_API_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`;
+
+      const data = await fetchJson(url);
+      const result = (data.results || []).map((r) => ({
+        ...r,
+        media_type: r.first_air_date ? "tv" : "movie",
+        title: r.title || r.name
+      }));
+      setTrailers(result);
+      setCache(cacheKey, result);
+    } catch (e) {
+      setError(e.message);
+    }
+  })();
+}, [trailersScope]);
+
+
+ useEffect(() => {
+  (async () => {
+    if (!guardKey()) return;
+
+    const cacheKey = `popular-${popularScope}`;
+    const cached = getCache(cacheKey, 60 * 60 * 1000); // 1 hour cache
+
+    if (cached) {
+      setPopular(cached);
+      return;
+    }
+
+    try {
+      let url =
+        popularScope === "streaming"
+          ? `${TMDB_API_URL}/movie/popular?api_key=${TMDB_API_KEY}`
+          : popularScope === "ontv"
+          ? `${TMDB_API_URL}/tv/popular?api_key=${TMDB_API_KEY}`
+          : `${TMDB_API_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`;
+
+      const data = await fetchJson(url);
+      const result = (data.results || []).map((r) => ({
+        ...r,
+        media_type: r.first_air_date ? "tv" : "movie",
+        title: r.title || r.name
+      }));
+      setPopular(result);
+      setCache(cacheKey, result);
+    } catch (e) {
+      setError(e.message);
+    }
+  })();
+}, [popularScope]);
+
 
   // ---- Trailer Modal ----
   const openTrailer = async (item) => {
@@ -226,12 +294,24 @@ const [showPersonModal, setShowPersonModal] = useState(false);
   if (!guardKey()) return;
 
   const type = inferType(item); // "movie" | "tv" | "person"
+  const id = item.id;
+  const cacheKey = `${type}-details-${id}`;
+  const cached = getCache(cacheKey, 24 * 60 * 60 * 1000); // 1 day cache
   setActiveMediaType(type);
   setLoading(true);
 
   try {
     if (type === "person") {
       // ✅ Fetch person details
+     
+   
+    if (cached) {
+      setPersonDetails(cached.personDetails);
+      setPersonPopular(cached.personPopular);
+      setShowPersonModal(true);
+      setLoading(false);
+      return;
+    }
       const personDetails = await fetchJson(
         `${TMDB_API_URL}/person/${item.id}?api_key=${TMDB_API_KEY}&append_to_response=movie_credits,tv_credits,images`
       );
@@ -250,7 +330,20 @@ const [showPersonModal, setShowPersonModal] = useState(false);
       setPersonPopular([...popularMovies, ...popularTv]);
 
       setShowPersonModal(true); // open a dedicated person modal
+      setCache(cacheKey, {
+        personDetails,
+        personPopular: [...popularMovies, ...popularTv]
+      });
     } else {
+       if (cached) {
+    setMovieDetails(cached.details);
+    setCrewCore(cached.crewCore);
+    setMovieCast(cached.cast);
+    setSimilarItems(cached.similarItems);
+    setShowMovieModal(true);
+    setLoading(false);
+    return;
+  }
       // ✅ Movie/TV branch (your original code)
       const details = await fetchJson(
         `${TMDB_API_URL}/${type}/${item.id}?api_key=${TMDB_API_KEY}&append_to_response=videos,credits`
@@ -272,6 +365,12 @@ const [showPersonModal, setShowPersonModal] = useState(false);
       setSimilarItems(similar.results || []);
 
       setShowMovieModal(true);
+      setCache(cacheKey, {
+      details,
+      crewCore: crew,
+      cast,
+      similarItems: similar.results || []
+    });
     }
   } catch (e) {
     setError(e.message);
@@ -281,35 +380,41 @@ const [showPersonModal, setShowPersonModal] = useState(false);
 };
 
    // load user’s watchlist
-  useEffect(() => {
-    const loadUser = async () => {
-      if (!userId) return setWatchlist([]);
-  
-      try {
-        const querySnapshot = await getDocs(collection(db, "users"));
-  
-        let found = null;
-        querySnapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          if (data.uid === userId) {
-            found = data;
-          }
-        });
-  
-        if (found) {
-          setWatchlist(Array.isArray(found.watchlist) ? found.watchlist : []);
-        } else {
-          setWatchlist([]);
+ useEffect(() => {
+  const loadUser = async () => {
+    if (!userId) return setWatchlist([]);
+
+    const cacheKey = `watchlist-${userId}`;
+    const cached = getCache(cacheKey, 5 * 60 * 1000); // 5 min cache
+
+    if (cached) {
+      setWatchlist(cached);
+      return;
+    }
+
+    try {
+      const querySnapshot = await getDocs(collection(db, "users"));
+      let found = null;
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.uid === userId) {
+          found = data;
         }
-      } catch (err) {
-        console.error("Error fetching user:", err);
-        setWatchlist([]);
-      }
-    };
-  
-    loadUser();
-  }, [userId]);
-   const toggleWatchlist = async (id, mediaType) => {
+      });
+
+      const list = found && Array.isArray(found.watchlist) ? found.watchlist : [];
+      setWatchlist(list);
+      setCache(cacheKey, list);
+    } catch (err) {
+      console.error("Error fetching user:", err);
+      setWatchlist([]);
+    }
+  };
+
+  loadUser();
+}, [userId]);
+
+ const toggleWatchlist = async (id, mediaType) => {
   if (!userId) return;
 
   try {
@@ -335,20 +440,22 @@ const [showPersonModal, setShowPersonModal] = useState(false);
         watchlist: isIn ? arrayRemove(itemKey) : arrayUnion(itemKey),
       });
 
-      setWatchlist((prev) =>
-        isIn ? prev.filter((x) => x !== itemKey) : [...prev, itemKey]
-      );
+      const newList = isIn ? curr.filter((x) => x !== itemKey) : [...curr, itemKey];
+      setWatchlist(newList);
+      setCache(`watchlist-${userId}`, newList);
 
       alert(isIn ? "Removed from Watchlist!" : "Added to Watchlist!");
     } else {
-      // If no document or no watchlist field exists, create new doc or initialize watchlist
-      const newDocRef = userDocRef || doc(usersRef); // if doc doesn't exist, create one
+      const newDocRef = userDocRef || doc(usersRef);
       await setDoc(newDocRef, {
         uid: userId,
         watchlist: [itemKey],
       });
 
-      setWatchlist((prev) => [...prev, itemKey]);
+      const newList = [itemKey];
+      setWatchlist(newList);
+      setCache(`watchlist-${userId}`, newList);
+
       alert("🎉 Added your first title to Watchlist!");
     }
   } catch (err) {

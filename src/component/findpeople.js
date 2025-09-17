@@ -18,85 +18,119 @@ function FindPeople() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
+  const setCache = (key, data) => {
+  const cacheEntry = {
+    data,
+    timestamp: Date.now()
+  };
+  localStorage.setItem(key, JSON.stringify(cacheEntry));
+};
 
-  const fetchPeople = async (term = "") => {
-    setLoading(true);
-    try {
-      const currentUserId = localStorage.getItem("userId");
+const getCache = (key, maxAgeMs) => {
+  const cached = localStorage.getItem(key);
+  if (!cached) return null;
+  try {
+    const { data, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp < maxAgeMs) {
+      return data;
+    } else {
+      localStorage.removeItem(key);
+      return null;
+    }
+  } catch {
+    return null;
+  }
+};
+
+
+ const fetchPeople = async (term = "") => {
+  setLoading(true);
+  try {
+    const currentUserId = localStorage.getItem("userId");
+    const cacheKey = "usersCache";
+    const cachedData = getCache(cacheKey, 10 * 60 * 1000); // 10 min cache
+
+    let userList = cachedData;
+    if (!userList) {
       const usersRef = collection(db, "users");
       const snapshot = await getDocs(usersRef);
-      let userList = snapshot.docs.map((docSnap) => ({
+      userList = snapshot.docs.map((docSnap) => ({
         id: docSnap.id,
         ...docSnap.data(),
       }));
-
-      const loggedInUser = userList.find((u) => u.uid === currentUserId);
-      setCurrentUser(loggedInUser);
-
-      // filter out current user from list
-      userList = userList.filter((user) => user.uid !== currentUserId);
-
-      // apply search
-      if (term.trim()) {
-        const lowerTerm = term.toLowerCase();
-        userList = userList.filter(
-          (user) =>
-            (user.name && user.name.toLowerCase().includes(lowerTerm)) ||
-            (user.email && user.email.toLowerCase().includes(lowerTerm))
-        );
-      }
-
-      setUsers(userList);
-    } catch (error) {
-      console.error("Error fetching users:", error);
+      setCache(cacheKey, userList);
     }
-    setLoading(false);
-  };
+
+    const loggedInUser = userList.find((u) => u.uid === currentUserId);
+    setCurrentUser(loggedInUser);
+
+    // filter out current user from list
+    userList = userList.filter((user) => user.uid !== currentUserId);
+
+    // apply search
+    if (term.trim()) {
+      const lowerTerm = term.toLowerCase();
+      userList = userList.filter(
+        (user) =>
+          (user.name && user.name.toLowerCase().includes(lowerTerm)) ||
+          (user.email && user.email.toLowerCase().includes(lowerTerm))
+      );
+    }
+
+    setUsers(userList);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+  }
+  setLoading(false);
+};
 
   useEffect(() => {
     fetchPeople();
   }, []);
 
   const handleFollowToggle = async (targetUser) => {
-    if (!currentUser) return;
+  if (!currentUser) return;
 
-    const currentUserRef = doc(db, "users", currentUser.id);
-    const targetUserRef = doc(db, "users", targetUser.id);
+  const currentUserRef = doc(db, "users", currentUser.id);
+  const targetUserRef = doc(db, "users", targetUser.id);
 
-    const isFollowing = currentUser.following?.includes(targetUser.uid);
+  const isFollowing = currentUser.following?.includes(targetUser.uid);
 
-    try {
-      if (isFollowing) {
-        // Unfollow: remove ids
-        await updateDoc(currentUserRef, {
-          following: arrayRemove(targetUser.uid),
-        });
-        await updateDoc(targetUserRef, {
-          followers: arrayRemove(currentUser.uid),
-        });
+  try {
+    if (isFollowing) {
+      await updateDoc(currentUserRef, {
+        following: arrayRemove(targetUser.uid),
+      });
+      await updateDoc(targetUserRef, {
+        followers: arrayRemove(currentUser.uid),
+      });
 
-        setCurrentUser((prev) => ({
-          ...prev,
-          following: prev.following.filter((id) => id !== targetUser.uid),
-        }));
-      } else {
-        // Follow: add ids
-        await updateDoc(currentUserRef, {
-          following: arrayUnion(targetUser.uid),
-        });
-        await updateDoc(targetUserRef, {
-          followers: arrayUnion(currentUser.uid),
-        });
+      setCurrentUser((prev) => ({
+        ...prev,
+        following: prev.following.filter((id) => id !== targetUser.uid),
+      }));
+    } else {
+      await updateDoc(currentUserRef, {
+        following: arrayUnion(targetUser.uid),
+      });
+      await updateDoc(targetUserRef, {
+        followers: arrayUnion(currentUser.uid),
+      });
 
-        setCurrentUser((prev) => ({
-          ...prev,
-          following: [...(prev.following || []), targetUser.uid],
-        }));
-      }
-    } catch (error) {
-      console.error("Error updating follow status:", error);
+      setCurrentUser((prev) => ({
+        ...prev,
+        following: [...(prev.following || []), targetUser.uid],
+      }));
     }
-  };
+
+    // ✅ Invalidate the cache after updating follow/unfollow
+    localStorage.removeItem("usersCache");
+
+  } catch (error) {
+    console.error("Error updating follow status:", error);
+  }
+};
+
 
   return (
     <>

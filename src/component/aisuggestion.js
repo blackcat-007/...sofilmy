@@ -340,6 +340,30 @@ const AISuggestion = () => {
 
   const userId = localStorage.getItem("userId");
   const scrollRef = useRef(null);
+  const setCache = (key, data) => {
+  const cacheEntry = {
+    data,
+    timestamp: Date.now()
+  };
+  localStorage.setItem(key, JSON.stringify(cacheEntry));
+};
+
+const getCache = (key, maxAgeMs) => {
+  const cached = localStorage.getItem(key);
+  if (!cached) return null;
+  try {
+    const { data, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp < maxAgeMs) {
+      return data;
+    } else {
+      localStorage.removeItem(key);
+      return null;
+    }
+  } catch {
+    return null;
+  }
+};
+
 
   // Build reverse map: movie id -> tv ids (approx)
   const movieToTvGenre = useMemo(() => {
@@ -373,9 +397,16 @@ useEffect(() => {
   const loadUser = async () => {
     if (!userId) return setWatchlist([]);
 
+    const cacheKey = `watchlist-${userId}`;
+    const cached = getCache(cacheKey, 5 * 60 * 1000); // cache for 5 minutes
+
+    if (cached) {
+      setWatchlist(cached);
+      return;
+    }
+
     try {
       const querySnapshot = await getDocs(collection(db, "users"));
-
       let found = null;
       querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();
@@ -384,11 +415,9 @@ useEffect(() => {
         }
       });
 
-      if (found) {
-        setWatchlist(Array.isArray(found.watchlist) ? found.watchlist : []);
-      } else {
-        setWatchlist([]);
-      }
+      const list = found && Array.isArray(found.watchlist) ? found.watchlist : [];
+      setWatchlist(list);
+      setCache(cacheKey, list); // save to cache
     } catch (err) {
       console.error("Error fetching user:", err);
       setWatchlist([]);
@@ -398,18 +427,27 @@ useEffect(() => {
   loadUser();
 }, [userId]);
 
+
   // 👇 move boot function outside
 const boot = async () => {
   if (!TMDB_API) {
     setBootLoading(false);
     return;
   }
+
+  const cacheKey = "boot-data";
+  const cached = getCache(cacheKey, 30 * 60 * 1000); // 30 minutes cache
+
+  if (cached) {
+    setItems(cached);
+    setBootLoading(false);
+    return;
+  }
+
   try {
     const [trendingRes, popularMoviesRes] = await Promise.all([
       fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_API}&language=en-US`),
-      fetch(
-        `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API}&sort_by=popularity.desc&include_adult=false&language=en-US&page=1`
-      ),
+      fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API}&sort_by=popularity.desc&include_adult=false&language=en-US&page=1`)
     ]);
 
     const trendingData = await trendingRes.json();
@@ -424,19 +462,21 @@ const boot = async () => {
 
     const popular = normalizeResults(popularMovies.results, "movie");
 
-    // merge & de-dupe
     const key = (x) => `${x.media_type}:${x.id}`;
     const merged = [...trend, ...popular];
     const uniqMap = new Map();
     merged.forEach((x) => uniqMap.set(key(x), x));
 
-    setItems([...uniqMap.values()]);
+    const result = [...uniqMap.values()];
+    setItems(result);
+    setCache(cacheKey, result);
   } catch {
     setItems([]);
   } finally {
     setBootLoading(false);
   }
 };
+
 
 // run once on mount
 useEffect(() => {
@@ -499,6 +539,8 @@ useEffect(() => {
       setWatchlist((prev) =>
         isIn ? prev.filter((x) => x !== itemKey) : [...prev, itemKey]
       );
+      setCache(`watchlist-${userId}`, newList);
+
       alert("🎉 Added a new film to Watchlist!");
     } else  {
       // No document for this uid → create one
@@ -525,123 +567,130 @@ useEffect(() => {
 };
 
   const openDetailsModal = async (id, mediaType) => {
-    if (!TMDB_API) return;
-    setShowModal(true);
+  if (!TMDB_API) return;
+  setShowModal(true);
+  setDetails(null);
+  setOpenDetailsLoading(true);
+
+  const cacheKey = `${mediaType}-details-${id}`;
+  const cached = getCache(cacheKey, 24 * 60 * 60 * 1000); // cache for 1 day
+
+  if (cached) {
+    setDetails(cached);
+    setOpenDetailsLoading(false);
+    return;
+  }
+
+  try {
+    const path = mediaType === "tv" ? "tv" : "movie";
+    const url = `https://api.themoviedb.org/3/${path}/${id}?api_key=${TMDB_API}&append_to_response=videos,credits,images,similar,watch/providers&language=en-US`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    setDetails({ ...data, media_type: mediaType });
+    setCache(cacheKey, { ...data, media_type: mediaType }); // save to cache
+    setOpenDetailsLoading(false);
+  } catch {
     setDetails(null);
-    setOpenDetailsLoading(true);
-    try {
-      const path = mediaType === "tv" ? "tv" : "movie";
-      const url = `https://api.themoviedb.org/3/${path}/${id}?api_key=${TMDB_API}&append_to_response=videos,credits,images,similar,watch/providers&language=en-US`;
-      const res = await fetch(url);
-      const data = await res.json();
-      setDetails({ ...data, media_type: mediaType });
-      setOpenDetailsLoading(false);
-    } catch {
-      setDetails(null);
-    }
-  };
+    setOpenDetailsLoading(false);
+  }
+};
 
   /** ------------------ Search (Natural Language) ------------------ */
   const handleSearch = async () => {
-    if (!TMDB_API) return;
-    // ⛔ Stop if no filters
+  if (!TMDB_API) return;
+
   if (!text.trim() && selectedGenres.length === 0 && selectedMoods.length === 0) {
-    
     return; // do nothing
   }
-setLoading(true);
-    
 
-    try {
-      const raw = text.trim();
-      const lower = raw.toLowerCase();
+  setLoading(true);
 
-      // 1) Genres from keywords (movie + tv)
-      const { movieGenreIds: kwMovieGenres, tvGenreIds: kwTvGenres } = keywordGenresFromText(raw);
+  const cacheKey = `search-${text.trim().toLowerCase()}-${selectedGenres.join(",")}-${selectedMoods.join(",")}`;
+  const cached = getCache(cacheKey, 10 * 60 * 1000); // cache for 10 minutes
 
-      // 2) Actor / person
-      //    - Look for explicitly extracted names; if none, try to guess by passing whole query
-      let probableNames = extractProbableNames(raw);
-      // Also check phrases like "starring <name>", "with <name>"
-      const starringMatch = raw.match(/(?:starring|with|featuring)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)+)/i);
-      if (starringMatch) probableNames = [starringMatch[1], ...probableNames];
+  if (cached) {
+    setItems(cached);
+    setLoading(false);
+    return;
+  }
 
-      // If query contains a clear name like "Tom Cruise", it will be picked. If not, we still try the whole string last.
-      const tryNames = probableNames.length ? probableNames : [];
-      if (!tryNames.length && raw.length > 0) tryNames.push(raw); // last-ditch
+  try {
+    const raw = text.trim();
+    const lower = raw.toLowerCase();
 
-      const castPersonId = await findPersonId(tryNames);
+    const { movieGenreIds: kwMovieGenres, tvGenreIds: kwTvGenres } = keywordGenresFromText(raw);
+    let probableNames = extractProbableNames(raw);
+    const starringMatch = raw.match(/(?:starring|with|featuring)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)+)/i);
+    if (starringMatch) probableNames = [starringMatch[1], ...probableNames];
+    const tryNames = probableNames.length ? probableNames : [];
+    if (!tryNames.length && raw.length > 0) tryNames.push(raw);
+    const castPersonId = await findPersonId(tryNames);
+    const yearFilters = extractYearFilters(raw);
 
-      // 3) Year / range
-      const yearFilters = extractYearFilters(raw);
+    let movieGenresCombined = new Set(kwMovieGenres);
+    let tvGenresCombined = new Set(kwTvGenres);
 
-      // 4) User dropdown selection (movie-genre ids) → map to tv equivalents too
-      let movieGenresCombined = new Set(kwMovieGenres);
-      let tvGenresCombined = new Set(kwTvGenres);
+    selectedGenres.forEach((mg) => {
+      movieGenresCombined.add(mg);
+      const tvs = movieToTvGenre[mg] || [];
+      tvs.forEach((tid) => tvGenresCombined.add(tid));
+    });
 
-      selectedGenres.forEach((mg) => {
-        movieGenresCombined.add(mg);
-        const tvs = movieToTvGenre[mg] || [];
-        tvs.forEach((tid) => tvGenresCombined.add(tid));
-      });
-
-      // 5) Mood → if text is vague or user picked moods, bias genres
-      let selectedMood = null;
-      if (raw) {
-        selectedMood = await analyzeMood(raw);
-      }
-      const moodSetMovie = new Set();
-      const moodSetTv = new Set();
-
-      if (selectedMood && selectedMood in moodToGenres) {
-        moodToGenres[selectedMood].forEach((g) => moodSetMovie.add(g));
-      }
-      if (selectedMood && selectedMood in moodToTvGenres) {
-        moodToTvGenres[selectedMood].forEach((g) => moodSetTv.add(g));
-      }
-      selectedMoods.forEach((m) => {
-        (moodToGenres[m] || []).forEach((g) => moodSetMovie.add(g));
-        (moodToTvGenres[m] || []).forEach((g) => moodSetTv.add(g));
-      });
-
-      // merge mood genres with keyword + user selections
-      moodSetMovie.forEach((g) => movieGenresCombined.add(g));
-      moodSetTv.forEach((g) => tvGenresCombined.add(g));
-
-      // If the query explicitly says “film” or “movie” or “series”, we still search both types,
-      // but we keep their filters unified. (We *always* combine movies+TV as requested.)
-      const { movieQS, tvQS } = buildDiscoverQuery({
-        movieGenreIds: [...movieGenresCombined],
-        tvGenreIds: [...tvGenresCombined],
-        yearFilters,
-        castPersonId,
-      });
-
-      const [movieRes, tvRes] = await Promise.all([
-        fetch(`https://api.themoviedb.org/3/discover/movie?${movieQS}`),
-        fetch(`https://api.themoviedb.org/3/discover/tv?${tvQS}`),
-      ]);
-
-      const [movieJson, tvJson] = await Promise.all([movieRes.json(), tvRes.json()]);
-
-      const movies = normalizeResults(movieJson.results, "movie");
-      const tvs = normalizeResults(tvJson.results, "tv");
-
-     // ← Insert the merging & sorting logic here
-const merged = [...movies, ...tvs].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-
-if (merged.length > 0) {
-  setItems(merged.slice(0, 20)); // limit to 20 results
-} else {
-  setItems([]); // no results
-}
-    } catch (e) {
-      console.error("Search error:", e);
-      setItems([]);
-    } finally {
-      setLoading(false);
+    let selectedMood = null;
+    if (raw) {
+      selectedMood = await analyzeMood(raw);
     }
-  };
+
+    const moodSetMovie = new Set();
+    const moodSetTv = new Set();
+    if (selectedMood && selectedMood in moodToGenres) {
+      moodToGenres[selectedMood].forEach((g) => moodSetMovie.add(g));
+    }
+    if (selectedMood && selectedMood in moodToTvGenres) {
+      moodToTvGenres[selectedMood].forEach((g) => moodSetTv.add(g));
+    }
+    selectedMoods.forEach((m) => {
+      (moodToGenres[m] || []).forEach((g) => moodSetMovie.add(g));
+      (moodToTvGenres[m] || []).forEach((g) => moodSetTv.add(g));
+    });
+
+    moodSetMovie.forEach((g) => movieGenresCombined.add(g));
+    moodSetTv.forEach((g) => tvGenresCombined.add(g));
+
+    const { movieQS, tvQS } = buildDiscoverQuery({
+      movieGenreIds: [...movieGenresCombined],
+      tvGenreIds: [...tvGenresCombined],
+      yearFilters,
+      castPersonId,
+    });
+
+    const [movieRes, tvRes] = await Promise.all([
+      fetch(`https://api.themoviedb.org/3/discover/movie?${movieQS}`),
+      fetch(`https://api.themoviedb.org/3/discover/tv?${tvQS}`)
+    ]);
+
+    const [movieJson, tvJson] = await Promise.all([movieRes.json(), tvRes.json()]);
+    const movies = normalizeResults(movieJson.results, "movie");
+    const tvs = normalizeResults(tvJson.results, "tv");
+
+    const merged = [...movies, ...tvs].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+
+    if (merged.length > 0) {
+      const sliced = merged.slice(0, 20);
+      setItems(sliced);
+      setCache(cacheKey, sliced); // save to cache
+    } else {
+      setItems([]);
+    }
+  } catch (e) {
+    console.error("Search error:", e);
+    setItems([]);
+  } finally {
+    setLoading(false);
+  }
+};
+  // get first YouTube trailer key from videos object
   const getFirstYoutubeKey = (videos) => {
     if (!videos) return null;
     const arr = videos.results || [];

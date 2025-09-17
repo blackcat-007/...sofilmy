@@ -18,6 +18,30 @@ function Analysis() {
   const cardRefs = useRef([]); 
   const [isMobile, setIsMobile] = useState(false);
   const [activeIndex, setActiveIndex] = useState(null); // 👈 track visible card for mobile
+  const setCache = (key, data) => {
+  const cacheEntry = {
+    data,
+    timestamp: Date.now()
+  };
+  localStorage.setItem(key, JSON.stringify(cacheEntry));
+};
+
+const getCache = (key, maxAgeMs) => {
+  const cached = localStorage.getItem(key);
+  if (!cached) return null;
+  try {
+    const { data, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp < maxAgeMs) {
+      return data;
+    } else {
+      localStorage.removeItem(key);
+      return null;
+    }
+  } catch {
+    return null;
+  }
+};
+
 
   // ✅ Detect device size (mobile vs desktop)
   useEffect(() => {
@@ -30,16 +54,34 @@ function Analysis() {
   }, []);
 
   useEffect(() => {
-    async function getData() {
-      setLoader(true);
+  async function getData() {
+    const cacheKey = "movies-data";
+    const cached = getCache(cacheKey, 10 * 60 * 1000); // cache for 10 minutes
+
+    if (cached) {
+      setData(cached);
+      setLoader(false);
+      return;
+    }
+
+    setLoader(true);
+    try {
       const movieData = await getDocs(moviesRef);
+      const results = [];
       movieData.forEach((docs) =>
-        setData((prv) => [...prv, { ...(docs.data()), id: docs.id }])
+        results.push({ ...(docs.data()), id: docs.id })
       );
+      setData(results);
+      setCache(cacheKey, results); // save to cache
+    } catch (error) {
+      console.error("Error fetching movies:", error);
+    } finally {
       setLoader(false);
     }
-    getData();
-  }, []);
+  }
+  getData();
+}, []);
+
 
   // ✅ Horizontal scroll with mouse wheel
   useEffect(() => {

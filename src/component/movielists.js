@@ -18,6 +18,30 @@ function MovieLists() {
   const containerRefs = useRef({}); // To hold refs for each list's container
 
   const tmdbApiKey = process.env.REACT_APP_TMDB_API_KEY;
+  const setCache = (key, data) => {
+  const cacheEntry = {
+    data,
+    timestamp: Date.now()
+  };
+  localStorage.setItem(key, JSON.stringify(cacheEntry));
+};
+
+const getCache = (key, maxAgeMs) => {
+  const cached = localStorage.getItem(key);
+  if (!cached) return null;
+  try {
+    const { data, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp < maxAgeMs) {
+      return data;
+    } else {
+      localStorage.removeItem(key);
+      return null;
+    }
+  } catch {
+    return null;
+  }
+};
+
 
   useEffect(() => {
     fetchUsers();
@@ -77,60 +101,95 @@ function MovieLists() {
 
 
   const fetchUsers = async () => {
-    const allUsers = [];
-    const querySnapshot = await getDocs(usersRef);
-    querySnapshot.forEach((doc) => {
-      allUsers.push({ id: doc.id, ...doc.data() });
-    });
-    setUsers(allUsers);
-  };
+  const cacheKey = "usersData";
+  const cachedUsers = getCache(cacheKey, 60 * 60 * 1000); // 1 hour cache
 
-  const fetchMovieLists = async () => {
-    if (!hasMore) return;
-    setLoading(true);
-    const q = query(
-      movielistRef,
-      orderBy("upvoted", "desc"),
-      orderBy("createdAt", "asc"),
-      limit(6),
-      ...(lastDoc ? [startAfter(lastDoc)] : [])
-    );
-    const querySnapshot = await getDocs(q);
-    const newLists = [];
-    querySnapshot.forEach((doc) => {
-      newLists.push({ id: doc.id, ...doc.data() });
-    });
-    setDatas((prev) => [...prev, ...newLists]);
-    if (querySnapshot.docs.length > 0) {
-      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
-    }
-    if (querySnapshot.docs.length < 6) {
-      setHasMore(false);
-    }
+  if (cachedUsers) {
+    setUsers(cachedUsers);
+    return;
+  }
+
+  const allUsers = [];
+  const querySnapshot = await getDocs(usersRef);
+  querySnapshot.forEach((doc) => {
+    allUsers.push({ id: doc.id, ...doc.data() });
+  });
+  setUsers(allUsers);
+  setCache(cacheKey, allUsers);
+};
+
+
+ const fetchMovieLists = async () => {
+  if (!hasMore) return;
+  setLoading(true);
+
+  const pageKey = lastDoc ? lastDoc.id : "firstPage";
+  const cacheKey = `movieLists-${pageKey}`;
+  const cachedLists = getCache(cacheKey, 30 * 60 * 1000); // 30 min cache
+
+  if (cachedLists) {
+    setDatas((prev) => [...prev, ...cachedLists]);
     setLoading(false);
-  };
+    if (cachedLists.length < 6) setHasMore(false);
+    return;
+  }
+
+  const q = query(
+    movielistRef,
+    orderBy("upvoted", "desc"),
+    orderBy("createdAt", "asc"),
+    limit(6),
+    ...(lastDoc ? [startAfter(lastDoc)] : [])
+  );
+  const querySnapshot = await getDocs(q);
+  const newLists = [];
+  querySnapshot.forEach((doc) => {
+    newLists.push({ id: doc.id, ...doc.data() });
+  });
+
+  setDatas((prev) => [...prev, ...newLists]);
+  setCache(cacheKey, newLists);
+
+  if (querySnapshot.docs.length > 0) {
+    setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
+  }
+  if (querySnapshot.docs.length < 6) {
+    setHasMore(false);
+  }
+  setLoading(false);
+};
 
   const fetchPostersForList = async (list) => {
-    const listId = list.id;
-    const moviePromises = list.movies.map(async (movieStr) => {
-      const [type, id] = movieStr.split(":");
-      try {
-        const response = await fetch(
-          `https://api.themoviedb.org/3/${type}/${id}?api_key=${tmdbApiKey}&language=en-US`
-        );
-        const data = await response.json();
-        return data.poster_path 
-          ? `https://image.tmdb.org/t/p/w200${data.poster_path}` 
-          : "https://via.placeholder.com/200x300?text=No+Image";
-      } catch (err) {
-        console.error("Failed to fetch poster", err);
-        return "https://via.placeholder.com/200x300?text=No+Image";
-      }
-    });
+  const listId = list.id;
+  const cacheKey = `posters-${listId}`;
+  const cachedPosters = getCache(cacheKey, 24 * 60 * 60 * 1000); // 1 day cache
 
-    const posterUrls = await Promise.all(moviePromises);
-    setPosters(prev => ({ ...prev, [listId]: posterUrls }));
-  };
+  if (cachedPosters) {
+    setPosters(prev => ({ ...prev, [listId]: cachedPosters }));
+    return;
+  }
+
+  const moviePromises = list.movies.map(async (movieStr) => {
+    const [type, id] = movieStr.split(":");
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/${type}/${id}?api_key=${tmdbApiKey}&language=en-US`
+      );
+      const data = await response.json();
+      return data.poster_path 
+        ? `https://image.tmdb.org/t/p/w200${data.poster_path}` 
+        : "https://via.placeholder.com/200x300?text=No+Image";
+    } catch (err) {
+      console.error("Failed to fetch poster", err);
+      return "https://via.placeholder.com/200x300?text=No+Image";
+    }
+  });
+
+  const posterUrls = await Promise.all(moviePromises);
+  setPosters(prev => ({ ...prev, [listId]: posterUrls }));
+  setCache(cacheKey, posterUrls);
+};
+
 
   const getUserDetails = (uid) => {
     const user = users.find((u) => u.uid === uid);
@@ -162,10 +221,23 @@ function MovieLists() {
   };
 
   const formatDate = (timestamp) => {
-    if (!timestamp) return "Unknown date";
-    const date = timestamp.toDate();
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString();
-  };
+  if (!timestamp) return "Unknown date";
+
+  let date;
+
+  // If it's a Firestore Timestamp
+  if (timestamp.toDate) {
+    date = timestamp.toDate();
+  } 
+  // If it's a string (from cache)
+  else {
+    date = new Date(timestamp);
+  }
+
+  return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+};
+
+
 
   return (
    <div className="p-2 h-auto min-w-screen md:mx-14 rounded-lg backdrop-blur-2xl relative overflow-hidden animated-bg">

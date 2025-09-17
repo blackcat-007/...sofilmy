@@ -10,7 +10,6 @@ import {
   doc,
   arrayRemove,
   arrayUnion,
-  
 } from "firebase/firestore";
 import Logout1 from "./logout";
 import Sidebar from "./sidebar";
@@ -31,7 +30,33 @@ const defaultUser = (uid, data = {}) => ({
   followers: data.followers || [],
   following: data.following || [],
   watchlist: data.watchlist || [],
+  watched: data.watched || [],
 });
+
+// ✅ Cache helpers
+const setCache = (key, data) => {
+  const cacheEntry = {
+    data,
+    timestamp: Date.now()
+  };
+  localStorage.setItem(key, JSON.stringify(cacheEntry));
+};
+
+const getCache = (key, maxAgeMs) => {
+  const cached = localStorage.getItem(key);
+  if (!cached) return null;
+  try {
+    const { data, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp < maxAgeMs) {
+      return data;
+    } else {
+      localStorage.removeItem(key);
+      return null;
+    }
+  } catch {
+    return null;
+  }
+};
 
 export default function Profile() {
   const { id } = useParams();
@@ -46,7 +71,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [watchedItems, setWatchedItems] = useState([]);
 
-  // 🔹 find user doc by UID
+  // ✅ Find user document by UID
   const findUserDoc = async (uid) => {
     const qs = await getDocs(collection(db, "users"));
     for (const s of qs.docs) {
@@ -55,37 +80,72 @@ export default function Profile() {
     return null;
   };
 
-  // 🔹 fetch both profile + current user
+  // ✅ Fetch both profile and current user
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
       try {
-        const qs = await getDocs(collection(db, "users"));
-        let profile, current;
-        qs.forEach((s) => {
-          const d = s.data();
-          if (d.uid === id) profile = { id: s.id, data: d };
-          if (d.uid === currentUserId) current = { id: s.id, data: d };
-        });
+        const profileCacheKey = `profile-${id}`;
+        const currentCacheKey = `current-${currentUserId}`;
 
-        if (!cancelled) {
-          setUserData(profile ? defaultUser(id, profile.data) : null);
-          setCurrentUserData(current ? defaultUser(currentUserId, current.data) : null);
-          setDocIds({ profile: profile?.id || null, current: current?.id || null });
+        const cachedProfile = getCache(profileCacheKey, 2 * 60 * 1000);
+        const cachedCurrent = getCache(currentCacheKey, 2 * 60 * 1000);
+
+        let profile = cachedProfile;
+        let current = cachedCurrent;
+
+        if (!profile || !current) {
+          const qs = await getDocs(collection(db, "users"));
+          qs.forEach((s) => {
+            const d = s.data();
+            if (!profile && d.uid === id) profile = { id: s.id, data: d };
+            if (!current && d.uid === currentUserId) current = { id: s.id, data: d };
+          });
+
+          if (!profile) profile = { id: null, data: { uid: id, name: "Unknown", followers: [], watched: [], watchlist: [] } };
+          if (!current) current = { id: null, data: { uid: currentUserId, name: "You", following: [], watched: [], watchlist: [] } };
+
+          if (profile.id) setCache(profileCacheKey, profile);
+          if (current.id) setCache(currentCacheKey, current);
         }
 
-        // fetch watchlist only for self
-        if (!cancelled && currentUserId === id && current?.data?.watchlist?.length) {
-          const items = await Promise.all(
-            current.data.watchlist.map(async (entry) => {
-              const [type, mediaId] = entry.split(":");
-              const res = await fetch(`https://api.themoviedb.org/3/${type}/${mediaId}?api_key=${TMDB_API}`);
-              return res.ok ? res.json() : null;
-            })
-          );
-          setWatchlistItems(items.filter(Boolean));
-        } else if (!cancelled) setWatchlistItems([]);
+        if (!cancelled) {
+          setUserData(defaultUser(id, profile.data));
+          setCurrentUserData(defaultUser(currentUserId, current.data));
+          setDocIds({ profile: profile.id, current: current.id });
+        }
+
+        if (!cancelled && currentUserId === id && current.data.watchlist?.length) {
+          const watchlistCacheKey = `watchlist-${currentUserId}`;
+          const cachedWatchlist = getCache(watchlistCacheKey, 2 * 60 * 1000);
+
+          if (cachedWatchlist) {
+            setWatchlistItems(cachedWatchlist);
+          } else {
+            const items = await Promise.all(
+              current.data.watchlist.map(async (entry) => {
+                const [type, mediaId] = entry.split(":");
+                const res = await fetch(`https://api.themoviedb.org/3/${type}/${mediaId}?api_key=${TMDB_API}`);
+                if (!res.ok) return null;
+                const data = await res.json();
+                return {
+                  id: data.id,
+                  title: data.title || data.name,
+                  type,
+                  poster: data.poster_path ? `https://image.tmdb.org/t/p/w200${data.poster_path}` : "https://via.placeholder.com/200x300?text=No+Image",
+                  overview: data.overview,
+                  releaseDate: data.release_date || data.first_air_date || "Unknown"
+                };
+              })
+            );
+            const filtered = items.filter(Boolean);
+            setWatchlistItems(filtered);
+            setCache(watchlistCacheKey, filtered);
+          }
+        } else if (!cancelled) {
+          setWatchlistItems([]);
+        }
       } catch (err) {
         console.error(err);
         if (!cancelled) {
@@ -98,84 +158,69 @@ export default function Profile() {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => (cancelled = true);
+    return () => { cancelled = true };
   }, [id, currentUserId]);
 
-  // 🔹 remove from watchlist
-const handleRemove = async (type, mediaId) => {
-  if (!window.confirm("Remove from watchlist?")) return;
+  // ✅ Remove from watchlist
+  const handleRemove = async (type, mediaId) => {
+    if (!window.confirm("Remove from watchlist?")) return;
 
-  try {
-    let { current } = docIds;
-    if (!current) {
-      const found = await findUserDoc(currentUserId);
-      current = found?.id || currentUserId;
-      if (!found) await setDoc(doc(db, "users", current), defaultUser(currentUserId));
-      setDocIds((d) => ({ ...d, current }));
-    }
-
-    const userRef = doc(db, "users", current);
-    const userSnap = await getDoc(userRef);
-
-    if (!userSnap.exists()) throw new Error("User document not found");
-
-    const data = userSnap.data();
-    const watchlist = data.watchlist || [];
-    const watched = data.watched || [];
-
-    // ✅ Remove from watchlist
-    const watchlistKey = `${type}:${mediaId}`;
-    const newWatchlist = watchlist.filter((x) => x !== watchlistKey);
-
-    // ✅ Find or add to watched list
-    let found = false;
-    const newWatched = watched.map((entry) => {
-      if (entry.id === mediaId && entry.type === type) {
-        found = true;
-        return { ...entry, counter: entry.counter + 1 };
+    try {
+      let { current } = docIds;
+      if (!current) {
+        const found = await findUserDoc(currentUserId);
+        current = found?.id || currentUserId;
+        if (!found) await setDoc(doc(db, "users", current), defaultUser(currentUserId));
+        setDocIds((d) => ({ ...d, current }));
       }
-      return entry;
-    });
 
-    if (!found) {
-      newWatched.push({ id: mediaId, type, counter: 1 });
+      const userRef = doc(db, "users", current);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) throw new Error("User not found");
+
+      const data = userSnap.data();
+      const watchlist = data.watchlist || [];
+      const watched = data.watched || [];
+
+      const watchlistKey = `${type}:${mediaId}`;
+      const newWatchlist = watchlist.filter((x) => x !== watchlistKey);
+
+      let found = false;
+      const newWatched = watched.map((entry) => {
+        if (entry.id === mediaId && entry.type === type) {
+          found = true;
+          return { ...entry, counter: entry.counter + 1 };
+        }
+        return entry;
+      });
+
+      if (!found) {
+        newWatched.push({ id: mediaId, type, counter: 1 });
+      }
+
+      await updateDoc(userRef, {
+        watchlist: newWatchlist,
+        watched: newWatched
+      });
+
+      // ✅ Clear related caches
+      localStorage.removeItem(`watchlist-${currentUserId}`);
+      localStorage.removeItem(`watched-${docIds.profile}`);
+
+      setWatchlistItems((prev) => prev.filter((x) => String(x.id) !== String(mediaId)));
+      fetchWatchedItems();
+
+    } catch (e) {
+      console.error(e);
     }
+  };
 
-    // ✅ Update the Firestore document
-    await updateDoc(userRef, {
-      watchlist: newWatchlist,
-      watched: newWatched
-    });
-
-    // ✅ Update watchlist locally
-    setWatchlistItems((prev) => prev.filter((x) => String(x.id) !== String(mediaId)));
-
-    // ✅ Fetch the updated watched list from Firestore
-    const updatedSnap = await getDoc(userRef);
-    if (updatedSnap.exists()) {
-      const updatedData = updatedSnap.data();
-      const updatedWatched = updatedData.watched || [];
-      const items = await Promise.all(
-        updatedWatched.map(async (entry) => {
-          const { id, type, counter } = entry;
-          const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${TMDB_API}`);
-          if (!res.ok) return null;
-          const details = await res.json();
-          return { ...details, counter };
-        })
-      );
-      setWatchedItems(items.filter(Boolean));
-    }
-
-  } catch (e) {
-    console.error(e);
-  }
-};
-
-
-useEffect(() => {
-  if (!docIds.profile) return;
-  (async () => {
+  // ✅ Fetch watched items
+  const fetchWatchedItems = async () => {
+    if (!docIds.profile) return;
+    const watchedCacheKey = `watched-${docIds.profile}`;
+    localStorage.removeItem(watchedCacheKey); // Clear cache to force fresh fetch
     try {
       const userRef = doc(db, "users", docIds.profile);
       const userSnap = await getDoc(userRef);
@@ -188,10 +233,16 @@ useEffect(() => {
               const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${TMDB_API}`);
               if (!res.ok) return null;
               const details = await res.json();
-              return { ...details, counter };
+              return {
+                ...details,
+                counter,
+                poster: details.poster_path ? `https://image.tmdb.org/t/p/w200${details.poster_path}` : "https://via.placeholder.com/200x300?text=No+Image"
+              };
             })
           );
-          setWatchedItems(items.filter(Boolean));
+          const filtered = items.filter(Boolean);
+          setWatchedItems(filtered);
+          setCache(watchedCacheKey, filtered);
         } else {
           setWatchedItems([]);
         }
@@ -199,14 +250,14 @@ useEffect(() => {
     } catch (e) {
       console.error(e);
     }
-  })();
-}, [docIds.profile]);
+  };
 
+  // ✅ Load watched items
+  useEffect(() => {
+    fetchWatchedItems();
+  }, [docIds.profile]);
 
-  
-
-
-  // 🔹 follow/unfollow
+  // ✅ Follow/unfollow handler
   const handleFollowToggle = async () => {
     try {
       let { current, profile } = docIds;
@@ -245,27 +296,44 @@ useEffect(() => {
       }
 
       setDocIds({ current, profile });
+
+      // ✅ Clear caches after follow/unfollow
+      localStorage.removeItem(`profile-${id}`);
+      localStorage.removeItem(`current-${currentUserId}`);
+
     } catch (e) {
       console.error(e);
     }
   };
 
-  // 🔹 fetch item details
+  // ✅ Fetch item details for modal
   useEffect(() => {
     if (!selectedItem) return;
     let cancel = false;
     (async () => {
+      const type = selectedItem.type || (selectedItem.title ? "movie" : "tv");
+      const detailsCacheKey = `details-${type}-${selectedItem.id}`;
+      const cachedDetails = getCache(detailsCacheKey, 2 * 60 * 1000);
+
+      if (cachedDetails) {
+        if (!cancel) setSelectedItemDetails(cachedDetails);
+        return;
+      }
+
       try {
-        const type = selectedItem.title ? "movie" : "tv";
         const res = await fetch(
           `https://api.themoviedb.org/3/${type}/${selectedItem.id}?api_key=${TMDB_API}&append_to_response=videos,credits`
         );
-        if (!cancel) setSelectedItemDetails(await res.json());
+        const data = await res.json();
+        if (!cancel) {
+          setSelectedItemDetails(data);
+          setCache(detailsCacheKey, data);
+        }
       } catch (e) {
         console.error(e);
       }
     })();
-    return () => (cancel = true);
+    return () => { cancel = true };
   }, [selectedItem]);
 
   if (loading) return <div className="flex items-center justify-center mt-80"><Loader /></div>;
@@ -310,39 +378,38 @@ useEffect(() => {
             {watchlistItems.map((it) => (
               <div key={it.id} className="relative min-w-[150px] bg-gray-800 rounded-lg">
                 <img
-                  src={`https://image.tmdb.org/t/p/w200${it.poster_path}`}
+                  src={it.poster}
                   alt={it.title || it.name}
                   className="w-full h-48 object-cover cursor-pointer"
                   onClick={() => setSelectedItem(it)}
                 />
-                <button onClick={() => handleRemove(it.title ? "movie" : "tv", it.id)}
+                <button onClick={() => handleRemove(it.type, it.id)}
                   className="absolute top-2 right-2 bg-black/60 p-1 rounded-full"><DoneOutlineTwoToneIcon /></button>
               </div>
             ))}
           </div>
         </div>
       )}
+
       {/* Watched Items */}
-      { watchedItems.length > 0 && (
+      {watchedItems.length > 0 ? (
         <div className="mt-10 px-6 sm:mx-40">
           <h3 className="text-xl font-bold text-white mb-4">Watched Films</h3>
           <div className="flex overflow-x-auto space-x-4 pb-4">
             {watchedItems.map((it) => (
               <div key={it.id} className="relative min-w-[150px] bg-gray-800 rounded-lg">
                 <img
-                  src={`https://image.tmdb.org/t/p/w200${it.poster_path}`}
+                  src={it.poster}
                   alt={it.title || it.name}
                   className="w-full h-48 object-cover cursor-pointer"
                   onClick={() => setSelectedItem(it)}
                 />
-               <button 
-                  className="absolute top-2 right-2 bg-black/60 p-1 rounded-full">Watched {it.counter} times</button>
+                <button className="absolute top-2 right-2 bg-black/60 p-1 rounded-full">Watched {it.counter} times</button>
               </div>
             ))}
           </div>
         </div>
-      )}
-      { watchedItems.length === 0 && (
+      ) : (
         <div className="mt-10 px-6 sm:mx-40 text-center text-gray-400">Your watched items list is empty.</div>
       )}
 
@@ -364,22 +431,14 @@ useEffect(() => {
               {selectedItemDetails.credits?.cast?.slice(0, 10).map((a) => (
                 <div key={a.id} className="w-24 text-center">
                   <img src={a.profile_path ? `https://image.tmdb.org/t/p/w200${a.profile_path}` : "https://via.placeholder.com/100"}
-                    alt={a.name} className="w-20 h-20 rounded-full mx-auto mb-1" />
-                  <p className="text-xs">{a.name}</p>
+                    alt={a.name} className="w-full h-24 object-cover rounded-lg" />
+                  <p className="text-xs mt-1">{a.name}</p>
                 </div>
-              ))}
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Crew</h3>
-            <div className="flex flex-wrap gap-2">
-              {selectedItemDetails.credits?.crew?.slice(0, 8).map((c) => (
-                <div key={c.credit_id} className="text-xs text-gray-300">{c.job}: <span className="text-white">{c.name}</span></div>
               ))}
             </div>
           </div>
         </div>
       )}
-
-      <Sidebar />
     </>
   );
 }
