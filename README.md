@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1752396989/Ping_Nest_3_icqpmk.png" alt="SoFilmy Logo" width="480" />
+  <a href="https://sofilmy.vercel.app/">
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1758299986/Ping_Nest_8_fd2n08.png" alt="SoFilmy Logo" width="480" />
+  </a>
 </p>
 
 <blockquote>
