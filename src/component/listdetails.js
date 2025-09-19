@@ -304,6 +304,7 @@ function ListDetails() {
                       src={sm.poster_path ? `${TMDB_IMG}${sm.poster_path}` : ""}
                       alt={sm.title || sm.name}
                       className="w-28 rounded"
+                      onClick={() => openMovieModal(sm.id, activeMediaType)} // ✅ pass current type
                     />
                   ))}
                 </div>
