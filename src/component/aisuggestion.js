@@ -336,7 +336,7 @@ const AISuggestion = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [opendetailsLoading, setOpenDetailsLoading] = useState(false);
-  const [bootLoading, setBootLoading] = useState(true);
+  const [bootLoading, setBootLoading] = useState(false);
 
   const userId = localStorage.getItem("userId");
   const scrollRef = useRef(null);
@@ -366,7 +366,7 @@ const getCache = (key, maxAgeMs) => {
 
 
   // Build reverse map: movie id -> tv ids (approx)
-  const movieToTvGenre = useMemo(() => {
+  const movieToTvGenre = useMemo(() => {     
     // simple heuristic: if a movie genre exists on TV, map it; otherwise leave out
     const reverse = {
       "28": ["10759"], // Action -> Action & Adventure
@@ -429,7 +429,7 @@ useEffect(() => {
 
 
   // 👇 move boot function outside
-const boot = async () => {
+{/*const boot = async () => {
   if (!TMDB_API) {
     setBootLoading(false);
     return;
@@ -479,9 +479,9 @@ const boot = async () => {
 
 
 // run once on mount
-useEffect(() => {
+{/*useEffect(() => {
   boot();
-}, []);
+}, []);*/}
 
 
   // Horizontal scroll helper
@@ -710,8 +710,8 @@ useEffect(() => {
   };
 
   return (
-    <div className="p-4 bg-black text-white min-h-screen ">
-      <h2 className="text-2xl font-bold mb-4 text-center">Get movie suggestions with AI</h2>
+    <div className="mb-5 bg-black text-white h-auto max-h-screen w-full ">
+      <h4 className="text-lg font-bold mb-4 text-center text-gray-500">Get more movie/tv suggestions</h4>
       <div className="max-w-5xl mx-auto">
         {/* Text input */}
         {/*<input
@@ -725,7 +725,7 @@ useEffect(() => {
         <div className="flex gap-4 mb-3">
           {/* Genres multi-select (movie ids; TV is auto-mapped) */}
          {/* Genres Multi-Select */}
-      <div className="flex-1">
+      <div className="flex-1 ">
       <FormControl
   fullWidth
   sx={{
@@ -876,7 +876,7 @@ useEffect(() => {
       </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 justify-center">
           <button onClick={handleSearch} className="px-4 py-2 rounded bg-gradient-to-r from-red-600 to-red-800">
             Search
           </button>
@@ -886,8 +886,7 @@ useEffect(() => {
               setText("");
               setSelectedGenres([]);
               setSelectedMoods([]);
-            boot()
-
+          
               // keep items; don’t blank the page — or re-run boot load:
                 // optional if you want to reset to default feed
             }}

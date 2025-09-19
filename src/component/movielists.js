@@ -256,7 +256,8 @@ const getCache = (key, maxAgeMs) => {
             <Link
               to={`/listdetails/${list.id}`}
               key={list.id}
-              className=" rounded-lg overflow-hidden scale-95 hover:scale-100  md:w-96 transition-transform relative"
+              className=" rounded-lg overflow-hidden scale-95 hover:scale-100   duration-200 ease-out 
+             hover:-rotate-6 hover:-skew-y-3 md:w-96 transition-transform relative hover:bg-black/30 "
             >
               <div
   ref={el => containerRefs.current[list.id] = el}

@@ -7,6 +7,7 @@ import { arrayRemove, arrayUnion, doc, getDocs, query, setDoc, updateDoc, where,
 import CubeLoader from "../ui/loader";
 import SpinLoader from "../ui/loader2";
 import GlowLoader from "../ui/loader3";
+import AISuggestion from "./aisuggestion";
 
 const IMG_BASE = "https://image.tmdb.org/t/p/w500";
 
@@ -521,12 +522,12 @@ const getCache = (key, maxAgeMs) => {
           placeholder="Search movies..."
           value={searchQuery}
           onChange={handleSearchChange}
-          className="w-full md:w-2/3 p-3 rounded-xl bg-gray-800 text-white outline-none"
+          className="w-full md:w-11/12 p-3 rounded-xl bg-gray-800 text-white outline-none"
         />
         
 
        {showSearchDropdown && searchResults.length > 0 && (
-  <div className="absolute top-full mt-2 w-full md:w-2/3 bg-gray-800 rounded-lg shadow-lg max-h-80 overflow-y-auto z-50">
+  <div className="absolute top-full mt-2 w-full md:w-4/6 bg-gray-800 rounded-lg shadow-lg max-h-80 overflow-y-auto z-10">
     {searchResults.map((m) => (
       <div
         key={m.id}
@@ -551,7 +552,8 @@ const getCache = (key, maxAgeMs) => {
       {loading && (
         <GlowLoader />
       )}
-
+      {/*suggestions*/}
+      <AISuggestion />
       {/* Trending */}
       <div className="mb-10">
         <div className="flex justify-between items-center mb-3">
