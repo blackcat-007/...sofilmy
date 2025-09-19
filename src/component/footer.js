@@ -10,8 +10,8 @@ const Footer = () => (
             <Film className="h-6 w-6 text-green-500 shrink-0" />
             <div className="flex flex-col">
               <span className="text-sm font-semibold">
-                <span className="text-red-500 font-extrabold">...SO</span><span className='font-cursive'>Filmy</span>
-              </span>
+                <span className="bg-gradient-to-b  from-red-500 to-red-900 bg-clip-text text-transparent font-extrabold">...SO<span className=' bg-gradient-to-bl text-transparent from-green-600 to-85% to-white bg-clip-text font-cursive'>Filmy</span>
+              </span></span>
               <span className="text-xs text-zinc-500">
                 Built by cinephiles, for cinephiles
               </span>

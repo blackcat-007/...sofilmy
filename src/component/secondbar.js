@@ -113,8 +113,8 @@ export default function SecondBar() {
   return (
     <div>
       {/* Top Bar */}
-      <div className="fixed top-[4.5rem] left-0 w-full z-20 mt-2 sm:mt-7">
-        <div className="backdrop-blur bg-black/70 flex items-center justify-between px-6 py-3">
+      <div className="fixed top-[4.5rem] left-0 w-full z-20 mt-2 sm:mt-2 bg-gradient-to-b from-black/80 to-gray-800/30 backdrop-blur">
+        <div className="backdrop-blur  flex items-center justify-between px-6 ">
           <div className="flex space-x-8 ml-10">
             {options.map((option) => (
               <button
@@ -123,11 +123,11 @@ export default function SecondBar() {
                   setSelected(option.value);
                   handleScroll(option.value);
                 }}
-                className={`text-white font-semibold text-lg transition-colors ${
+                className={`text-white font-semibold text-lg transition-colors p-3  ${
                   selected === option.value
                     ? "text-red-500 border-b-2 border-red-500"
                     : "hover:text-red-400"
-                } pb-1`}
+                } `}
               >
                 {option.label}
               </button>
@@ -138,7 +138,7 @@ export default function SecondBar() {
 
       {/* Sections */}
       <div className="mt-20 px-6 space-y-20">
-        <section ref={analysisRef} id="analysis" className="min-h-screen">
+        <section ref={analysisRef} id="analysis" >
           {loadedSections.analysis && (
             <Suspense fallback={<div>Loading Analysis...</div>}>
               <Analysis />
@@ -146,7 +146,7 @@ export default function SecondBar() {
           )}
         </section>
 
-        <section ref={listsRef} id="lists" className="min-h-screen">
+        <section ref={listsRef} id="lists"  >
           {loadedSections.lists && (
             <Suspense fallback={<div>Loading Lists...</div>}>
               <MovieLists />
@@ -154,7 +154,7 @@ export default function SecondBar() {
           )}
         </section>
 
-        <section ref={exploreRef} id="explore" className="min-h-screen">
+        <section ref={exploreRef} id="explore" >
           {loadedSections.explore && (
             <Suspense fallback={<div>Loading Explore...</div>}>
               <Explore />

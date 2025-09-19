@@ -12,18 +12,18 @@ function Header() {
    const { login, username } = useContext(Appstate);
 
   return (
-    <div className="sticky top-0 z-20 bg-black text-red-500 border-b-2 border-cyan-100 px-4 py-3 flex flex-row items-center justify-between gap-2 overflow-x-auto whitespace-nowrap">
+    <div className="sticky top-0 z-20 bg-gradient-to-br from-black from-50% to-gray-900 text-red-500   px-4 py-2 flex flex-row items-center justify-between gap-2 overflow-x-auto whitespace-nowrap">
 
       {/* Logo */}
      < div className="flex flex-col">
       <Link to={'/'} className="flex-shrink-0">
-        <span className="block bg-gradient-to-b from-red-500 to-red-700 bg-clip-text  text-2xl  font-extrabold tracking-tight text-transparent">
-                ...SO<span className="bg-gradient-to-b from-gray-400 to-white bg-clip-text text-2xl font-extrabold tracking-tight text-transparent font-cursive">
+      <span className="flex "> <span className="block bg-gradient-to-b py-2 from-red-500 to-red-900 bg-clip-text  text-2xl  font-extrabold tracking-tight text-transparent">
+                ...SO</span><span className="bg-gradient-to-bl from-green-600 to-85% to-white bg-clip-text text-2xl font-extrabold tracking-tight text-transparent font-cursive py-2">
   Filmy
 </span>
 <AnimatedSubtitle />
-
-              </span>
+</span>
+              
               
       </Link>
 

@@ -4,9 +4,16 @@ import { useEffect, useState } from "react";
 
 export default function AnimatedSubtitle() {
   const phrases = [
-    "Cinephile Club",
     "Discuss Movies",
     "Write Reviews with Ease",
+    "Discover Hidden Gems",
+    "Join Movie Buffs",
+    "Explore Film Genres",
+    "Share Movie Lists",
+    "Stay Updated",
+    "Track Watched Films",
+    "Connect with Cinephiles",
+    
   ];
 
   const [index, setIndex] = useState(0);
@@ -19,7 +26,7 @@ export default function AnimatedSubtitle() {
   }, []);
 
   return (
-    <div className="relative h-6 sm:mt-0 -mt-2">
+    <div className="relative h-6 mt-4 ml-1 ">
       <AnimatePresence mode="wait">
         <motion.span
           key={phrases[index]}

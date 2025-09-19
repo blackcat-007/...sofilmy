@@ -38,13 +38,13 @@ const Sidebar = () => {
     <div>
       {/* -------- Desktop Sidebar -------- */}
       <div
-        className={`hidden sm:flex fixed top-28 left-0 h-screen bg-black shadow-lg z-50 transition-all duration-300 
+        className={`hidden sm:flex fixed top-20 left-0 h-screen bg-black shadow-lg z-50 transition-all duration-300 
         flex-col items-center border-r-2 border-red-500
         ${isExpanded ? "w-40" : "w-12"}`}
       >
         {/* Toggle Button */}
         <button
-          className="absolute sm:top-4 top-4 sm:right-[-16px] right-[-35px] bg-red-500 text-white rounded-full p-1 shadow-md"
+          className="absolute sm:top-8  top-4 sm:right-[-16px] right-[-35px] bg-red-500 text-white rounded-full p-1 shadow-md"
           onClick={() => setIsExpanded(!isExpanded)}
         >
           {isExpanded ? <CloseIcon /> : <MenuIcon />}
@@ -58,15 +58,15 @@ const Sidebar = () => {
 
       {/* -------- Mobile Sidebar (Drawer style) -------- */}
       <div
-        className={`sm:hidden fixed top-28 left-0 h-full bg-black shadow-lg z-40 transition-transform duration-300 
+        className={`sm:hidden fixed top-28 mt-1 left-0 h-full bg-black shadow-lg z-40 transition-transform duration-300 
         ${isExpanded ? "translate-x-0 w-56" : "-translate-x-full w-56"}`}
       >
         {/* Close Button */}
         <button
-          className="absolute  right-4 bg-red-500 text-white rounded-full p-2 shadow-md"
+          className="absolute  right-4 bg-red-500 text-white rounded-full p-1 shadow-md "
           onClick={() => setIsExpanded(false)}
         >
-          <CloseIcon />
+          <CloseIcon className="h-3 w-3" />
         </button>
 
         {/* Icons */}
@@ -77,12 +77,12 @@ const Sidebar = () => {
 
       {/* Mobile-only toggle button (when sidebar is closed) */}
       {!isExpanded && (
-        <div className="sm:hidden fixed top-28 left-4 z-50">
+        <div className="sm:hidden fixed top-28 mt-1 left-4 z-50">
           <button
-            className="bg-red-500 text-white rounded-full p-2 shadow-md "
+            className="bg-red-500 text-white rounded-full p-1 shadow-md "
             onClick={() => setIsExpanded(true)}
           >
-            <MenuIcon />
+            <MenuIcon className="h-3 w-3" />
           </button>
         </div>
       )}

@@ -240,7 +240,7 @@ const getCache = (key, maxAgeMs) => {
 
 
   return (
-   <div className="p-2 h-auto min-w-screen md:mx-14 rounded-lg backdrop-blur-2xl relative overflow-hidden animated-bg">
+   <div className="p-2  h-auto min-w-screen md:mx-14 rounded-lg backdrop-blur-2xl relative overflow-hidden animated-bg">
    
 
     <h1 className="text-2xl font-bold mt-4 ml-3 text-white mb-4 text-left relative  z-10">Top Featured Lists</h1>
@@ -257,7 +257,7 @@ const getCache = (key, maxAgeMs) => {
               to={`/listdetails/${list.id}`}
               key={list.id}
               className=" rounded-lg overflow-hidden scale-95 hover:scale-100   duration-200 ease-out 
-             hover:-rotate-6 hover:-skew-y-3 md:w-96 transition-transform relative hover:bg-black/30 "
+             hover:-rotate-6 hover:-skew-y-3 md:w-96 transition-transform relative hover:bg-gradient-to-tr from-black/60 to-gray-200/60"
             >
               <div
   ref={el => containerRefs.current[list.id] = el}

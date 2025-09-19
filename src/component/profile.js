@@ -15,6 +15,7 @@ import Logout1 from "./logout";
 import Sidebar from "./sidebar";
 import DoneOutlineTwoToneIcon from '@mui/icons-material/DoneOutlineTwoTone';
 import Loader from "../ui/loader";
+import ModeEditTwoToneIcon from '@mui/icons-material/ModeEditTwoTone';
 
 const TMDB_API = process.env.REACT_APP_TMDB_API_KEY;
 const db = getFirestore();
@@ -345,8 +346,10 @@ export default function Profile() {
   return (
     <>
       {/* Profile Card */}
-      <div className="max-w-sm mx-auto mt-20 p-6 bg-gradient-to-br from-[#1a1a1a] to-[#141414] rounded-xl text-center">
+      <Sidebar />
+      <div className="max-w-sm mx-auto mt-20 p-6  rounded-xl text-center">
         <img src={userData.photoURL} alt="" className="w-24 h-24 mx-auto rounded-full mb-4 border-4 border-[#00ff99]" />
+        {isSelf && <button className="text-sm absolute top-44 bg-gradient-to-tr from-black to-gray-800 p-1 rounded-full mt-4 translate-x-6 text-gray-400"><ModeEditTwoToneIcon /></button>}
         <h2 className="text-2xl font-bold text-white">{userData.name}</h2>
         <p className="text-gray-400 text-sm">{userData.email}</p>
         <p className="text-sm text-[#00ff99] mt-2">Joined {userData.createdAt}</p>
