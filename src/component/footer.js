@@ -1,5 +1,5 @@
 import React from 'react';
-import { Popcorn, Mail, Scale } from "lucide-react"; // Scale for license, Mail for email
+import { Film, Mail, Scale } from "lucide-react"; // Scale for license, Mail for email
 const Footer = () => (
       <footer className="relative z-10 border-t border-white/10 bg-black/60 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 py-8">
@@ -7,10 +7,10 @@ const Footer = () => (
           
           {/* Left Section: Branding */}
           <div className="flex items-center justify-center md:justify-start gap-3 text-zinc-300">
-            <Popcorn className="h-6 w-6 text-green-500 shrink-0" />
+            <Film className="h-6 w-6 text-green-500 shrink-0" />
             <div className="flex flex-col">
               <span className="text-sm font-semibold">
-                <span className="text-red-500">...So</span>Filmy
+                <span className="text-red-500 font-extrabold">...SO</span><span className='font-cursive'>Filmy</span>
               </span>
               <span className="text-xs text-zinc-500">
                 Built by cinephiles, for cinephiles
