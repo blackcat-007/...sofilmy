@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://sofilmy.vercel.app/">
-  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1758299986/Ping_Nest_8_fd2n08.png" alt="SoFilmy Logo" width="480" />
+  <img src="https://res.cloudinary.com/ddcdrrav8/image/upload/v1758299986/Ping_Nest_8_fd2n08.png" alt="SoFilmy Logo" width="280" />
   </a>
 </p>
 
