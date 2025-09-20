@@ -20,6 +20,7 @@ module.exports = {
       },
       fontFamily: {
         cursive: ["Pacifico", "cursive"],
+        opensans: ['"Open Sans"', 'sans-serif'],
       },
     },
   },

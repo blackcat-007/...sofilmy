@@ -11,11 +11,26 @@ import {
   arrayRemove,
   arrayUnion,
 } from "firebase/firestore";
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  OutlinedInput,
+  Chip,
+  Box,
+  TextField,
+  Button,
+  Autocomplete,
+  Paper,
+  
+} from "@mui/material";
 import Logout1 from "./logout";
 import Sidebar from "./sidebar";
 import DoneOutlineTwoToneIcon from '@mui/icons-material/DoneOutlineTwoTone';
 import Loader from "../ui/loader";
 import ModeEditTwoToneIcon from '@mui/icons-material/ModeEditTwoTone';
+import { Edit } from "lucide-react";
 
 const TMDB_API = process.env.REACT_APP_TMDB_API_KEY;
 const db = getFirestore();
@@ -24,7 +39,10 @@ const defaultUser = (uid, data = {}) => ({
   uid,
   name: data.name || "Anonymous",
   email: data.email || "",
-  photoURL: data.photoURL || "https://via.placeholder.com/150",
+  image: data.image || "https://via.placeholder.com/150",
+  bio: data.bio || "",
+  tags: data.tags || [],
+
   createdAt: data.createdAt
     ? new Date(data.createdAt.seconds * 1000).toLocaleDateString()
     : "N/A",
@@ -90,8 +108,8 @@ export default function Profile() {
         const profileCacheKey = `profile-${id}`;
         const currentCacheKey = `current-${currentUserId}`;
 
-        const cachedProfile = getCache(profileCacheKey, 2 * 60 * 1000);
-        const cachedCurrent = getCache(currentCacheKey, 2 * 60 * 1000);
+        const cachedProfile = getCache(profileCacheKey, 0 * 60 * 1000);
+        const cachedCurrent = getCache(currentCacheKey, 0 * 60 * 1000);
 
         let profile = cachedProfile;
         let current = cachedCurrent;
@@ -119,7 +137,7 @@ export default function Profile() {
 
         if (!cancelled && currentUserId === id && current.data.watchlist?.length) {
           const watchlistCacheKey = `watchlist-${currentUserId}`;
-          const cachedWatchlist = getCache(watchlistCacheKey, 2 * 60 * 1000);
+          const cachedWatchlist = getCache(watchlistCacheKey, 0 * 60 * 1000);
 
           if (cachedWatchlist) {
             setWatchlistItems(cachedWatchlist);
@@ -252,10 +270,196 @@ export default function Profile() {
       console.error(e);
     }
   };
+  const tagsOptions = [
+  "Action", "Comedy", "Drama", "Horror", "Romance", "Sci-Fi", "Thriller", "Documentary", "Animation",
+  "Adventure", "Fantasy", "Mystery", "Crime", "Biography", "Family", "Musical", "War", "Western",
+  "History", "Sport", "Hollywood", "Bollywood", "Tollywood", "Kollywood", "Indie", "Classic", "Foreign",
+  "French", "German", "Spanish", "Italian", "Japanese", "Korean", "Chinese", "Russian", "Superhero",
+  "Anime", "Experimental", "Psychological", "Satire", "Parody", "Slasher", "Zombie", "Vampire", "Werewolf",
+  "Monster", "Disaster", "Heist", "Road Movie", "Coming-of-Age", "Mockumentary", "Bengali", "Punjabi",
+  "Gujarati", "Marathi", "Telugu", "Tamil", "Kannada", "Malayalam", "Hindi", "English"
+];
+const [editing, setEditing] = useState(false);
 
-  // ✅ Load watched items
-  useEffect(() => {
-    fetchWatchedItems();
+const EditProfile = ({ currentUserData,setUserData, docIds, setEditing, setCurrentUserData }) => {
+  const [name, setName] = useState(currentUserData?.name || "");
+  const [bio, setBio] = useState(currentUserData?.bio || "");
+  const [tags, setTags] = useState(currentUserData?.tags || []);
+
+  const closeEdit = () => setEditing(false);
+
+  const updateDetails = async (e) => {
+    e.preventDefault();
+    if (!docIds?.current) return;
+
+    try {
+      const docRef = doc(db, "users", docIds.current);
+      await updateDoc(docRef, { name, bio, tags });
+      // update current user state
+setCurrentUserData((prev) => ({ ...prev, name, bio, tags }));
+
+if (currentUserData.uid === id) {
+  setUserData((prev) => ({ ...prev, name, bio, tags }));
+}
+      closeEdit();
+    } catch (err) {
+      console.error("Error updating profile:", err);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center fixed inset-0 z-30 bg-black bg-opacity-80">
+  <form
+    onSubmit={updateDetails}
+    className="flex flex-col gap-6 p-8 rounded-2xl bg-neutral-900 w-[90%] md:w-[40%] shadow-2xl border border-gray-700"
+  >
+    <h2 className="text-2xl font-semibold text-center text-white">
+      Edit Profile
+    </h2>
+
+    {/* Name */}
+    <TextField
+      label="Name"
+      variant="outlined"
+      fullWidth
+      value={name}
+      onChange={(e) => setName(e.target.value)}
+      InputLabelProps={{ style: { color: "#9CA3AF" } }}
+      InputProps={{
+        style: { color: "white" },
+      }}
+      sx={{
+        "& .MuiOutlinedInput-root": {
+          "& fieldset": { borderColor: "red" }, // default border
+          "&:hover fieldset": { borderColor: "darkred" }, // hover
+          "&.Mui-focused fieldset": { borderColor: "red" }, // focus
+        },
+      }}
+    />
+
+    {/* Bio */}
+    <TextField
+      label="Bio"
+      variant="outlined"
+      fullWidth
+      multiline
+      rows={3}
+      value={bio}
+      onChange={(e) => setBio(e.target.value)}
+      InputLabelProps={{ style: { color: "#9CA3AF" } }}
+      InputProps={{
+        style: { color: "white" },
+      }}
+      sx={{
+        "& .MuiOutlinedInput-root": {
+          "& fieldset": { borderColor: "red" },
+          "&:hover fieldset": { borderColor: "darkred" },
+          "&.Mui-focused fieldset": { borderColor: "red" },
+        },
+      }}
+    />
+
+    {/* Tags Multi-Select */}
+    <Autocomplete
+  multiple
+  disableCloseOnSelect
+  options={tagsOptions}
+  value={tags}
+  onChange={(e, newValue) => setTags(newValue)}
+  renderTags={(value, getTagProps) =>
+    value.map((option, index) => (
+      <Chip
+        variant="outlined"
+        label={option}
+        {...getTagProps({ index })}
+        sx={{
+          color: "white",
+          borderColor: "red",
+          "& .MuiChip-deleteIcon": {
+            color: "red",
+            "&:hover": { color: "darkred" },
+          },
+        }}
+      />
+    ))
+  }
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      label="Tags"
+      placeholder="Search & select tags"
+      InputLabelProps={{ style: { color: "#9CA3AF" } }}
+      InputProps={{
+        ...params.InputProps,
+        style: { color: "white" },
+      }}
+      sx={{
+        "& .MuiOutlinedInput-root": {
+          "& fieldset": { borderColor: "red" },
+          "&:hover fieldset": { borderColor: "darkred" },
+          "&.Mui-focused fieldset": { borderColor: "red" },
+        },
+      }}
+    />
+  )}
+  PaperComponent={(props) => (
+    <Paper
+      {...props}
+      sx={{
+        bgcolor: "#111", // dropdown background
+        color: "white",
+        "& .MuiAutocomplete-option": {
+          "&[aria-selected='true']": {
+            backgroundColor: "#7f1d1d", // selected = dark red
+          },
+          "&:hover": {
+            backgroundColor: "#dc2626", // hover = light red
+          },
+        },
+      }}
+    />
+  )}
+/>
+
+
+    {/* Buttons */}
+    <div className="flex justify-between mt-4">
+      <Button
+        variant="contained"
+        type="submit"
+        sx={{
+          borderRadius: "20px",
+          px: 4,
+          bgcolor: "green",
+          "&:hover": { bgcolor: "darkgreen" },
+        }}
+      >
+        Save
+      </Button>
+      <Button
+        variant="outlined"
+        onClick={closeEdit}
+        sx={{
+          borderRadius: "20px",
+          px: 4,
+          borderColor: "red",
+          color: "red",
+          "&:hover": { borderColor: "darkred", color: "darkred" },
+        }}
+      >
+        Cancel
+      </Button>
+    </div>
+  </form>
+</div>
+
+
+  );
+}
+
+// ✅ Load watched items
+useEffect(() => {
+  fetchWatchedItems();
   }, [docIds.profile]);
 
   // ✅ Follow/unfollow handler
@@ -314,7 +518,7 @@ export default function Profile() {
     (async () => {
       const type = selectedItem.type || (selectedItem.title ? "movie" : "tv");
       const detailsCacheKey = `details-${type}-${selectedItem.id}`;
-      const cachedDetails = getCache(detailsCacheKey, 2 * 60 * 1000);
+      const cachedDetails = getCache(detailsCacheKey, 0 * 60 * 1000);
 
       if (cachedDetails) {
         if (!cancel) setSelectedItemDetails(cachedDetails);
@@ -348,9 +552,19 @@ export default function Profile() {
       {/* Profile Card */}
       <Sidebar />
       <div className="max-w-sm mx-auto mt-20 p-6  rounded-xl text-center">
-        <img src={userData.photoURL} alt="" className="w-24 h-24 mx-auto rounded-full mb-4 border-4 border-[#00ff99]" />
-        {isSelf && <button className="text-sm absolute top-44 bg-gradient-to-tr from-black to-gray-800 p-1 rounded-full mt-4 translate-x-6 text-gray-400"><ModeEditTwoToneIcon /></button>}
+        <img src={userData.image} alt={`Avatar of ${userData.name}`} className="w-24 h-24 mx-auto rounded-full mb-4 border-4 border-[#00ff99]" />
+       
+        {isSelf && <button className="text-sm absolute top-44 bg-gradient-to-tr from-black to-gray-800 p-1 rounded-full mt-4 translate-x-6 text-gray-400"><ModeEditTwoToneIcon onClick={() => setEditing(true)} /></button>}
+        {editing && <EditProfile currentUserData={currentUserData}  setUserData={setUserData} docIds={docIds} setEditing={setEditing} setCurrentUserData={setCurrentUserData} />}
         <h2 className="text-2xl font-bold text-white">{userData.name}</h2>
+         {userData.tags && userData.tags.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2 mb-4">
+            {userData.tags.map((tag) => ( 
+              <span key={tag} className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-xs">#{tag}</span>
+            ))}
+          </div>
+        )}
+          {userData.bio && <p className="text-gray-400 text-sm mb-2">{userData.bio}</p>}
         <p className="text-gray-400 text-sm">{userData.email}</p>
         <p className="text-sm text-[#00ff99] mt-2">Joined {userData.createdAt}</p>
 
