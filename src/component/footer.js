@@ -1,7 +1,7 @@
 import React from 'react';
 import { Film, Mail, Scale } from "lucide-react"; // Scale for license, Mail for email
 const Footer = () => (
-      <footer className="relative z-10 border-t border-white/10 bg-black/60 backdrop-blur-md">
+      <footer className="relative z-10 border-t bg-gradient-to-tr from-black from-50% to-green-900/20 border-white/10 bg-black/60 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 py-8">
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 text-center md:text-left">
           
