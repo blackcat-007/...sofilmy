@@ -31,6 +31,8 @@ import DoneOutlineTwoToneIcon from '@mui/icons-material/DoneOutlineTwoTone';
 import Loader from "../ui/loader";
 import ModeEditTwoToneIcon from '@mui/icons-material/ModeEditTwoTone';
 import { Edit } from "lucide-react";
+import ShareIcon from '@mui/icons-material/Share';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 const TMDB_API = process.env.REACT_APP_TMDB_API_KEY;
 const db = getFirestore();
@@ -89,6 +91,13 @@ export default function Profile() {
   const [selectedItemDetails, setSelectedItemDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [watchedItems, setWatchedItems] = useState([]);
+  const [shareModal, setShareModal] = useState(false);
+  const profileLink = `${window.location.origin}/profile/${id}`;
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(profileLink);
+    alert("Profile link copied!");
+  };
 
   // ✅ Find user document by UID
   const findUserDoc = async (uid) => {
@@ -308,10 +317,10 @@ if (currentUserData.uid === id) {
   };
 
   return (
-    <div className="flex items-center justify-center fixed inset-0 z-30 bg-black bg-opacity-80">
+    <div className="flex items-center justify-center fixed inset-0 z-30 bg-black bg-opacity-80 px-4">
   <form
     onSubmit={updateDetails}
-    className="flex flex-col gap-6 p-8 rounded-2xl bg-neutral-900 w-[90%] md:w-[40%] shadow-2xl border border-gray-700"
+    className="flex flex-col gap-6 p-6 md:p-8 rounded-2xl bg-neutral-900 w-full max-w-md shadow-2xl border border-gray-700 overflow-hidden"
   >
     <h2 className="text-2xl font-semibold text-center text-white">
       Edit Profile
@@ -325,14 +334,12 @@ if (currentUserData.uid === id) {
       value={name}
       onChange={(e) => setName(e.target.value)}
       InputLabelProps={{ style: { color: "#9CA3AF" } }}
-      InputProps={{
-        style: { color: "white" },
-      }}
+      InputProps={{ style: { color: "white" } }}
       sx={{
         "& .MuiOutlinedInput-root": {
-          "& fieldset": { borderColor: "red" }, // default border
-          "&:hover fieldset": { borderColor: "darkred" }, // hover
-          "&.Mui-focused fieldset": { borderColor: "red" }, // focus
+          "& fieldset": { borderColor: "red" },
+          "&:hover fieldset": { borderColor: "darkred" },
+          "&.Mui-focused fieldset": { borderColor: "red" },
         },
       }}
     />
@@ -347,9 +354,7 @@ if (currentUserData.uid === id) {
       value={bio}
       onChange={(e) => setBio(e.target.value)}
       InputLabelProps={{ style: { color: "#9CA3AF" } }}
-      InputProps={{
-        style: { color: "white" },
-      }}
+      InputProps={{ style: { color: "white" } }}
       sx={{
         "& .MuiOutlinedInput-root": {
           "& fieldset": { borderColor: "red" },
@@ -361,69 +366,76 @@ if (currentUserData.uid === id) {
 
     {/* Tags Multi-Select */}
     <Autocomplete
-  multiple
-  disableCloseOnSelect
-  options={tagsOptions}
-  value={tags}
-  onChange={(e, newValue) => setTags(newValue)}
-  renderTags={(value, getTagProps) =>
-    value.map((option, index) => (
-      <Chip
-        variant="outlined"
-        label={option}
-        {...getTagProps({ index })}
-        sx={{
-          color: "white",
-          borderColor: "red",
-          "& .MuiChip-deleteIcon": {
-            color: "red",
-            "&:hover": { color: "darkred" },
-          },
-        }}
-      />
-    ))
-  }
-  renderInput={(params) => (
-    <TextField
-      {...params}
-      label="Tags"
-      placeholder="Search & select tags"
-      InputLabelProps={{ style: { color: "#9CA3AF" } }}
-      InputProps={{
-        ...params.InputProps,
-        style: { color: "white" },
-      }}
-      sx={{
-        "& .MuiOutlinedInput-root": {
-          "& fieldset": { borderColor: "red" },
-          "&:hover fieldset": { borderColor: "darkred" },
-          "&.Mui-focused fieldset": { borderColor: "red" },
-        },
-      }}
+      multiple
+      disableCloseOnSelect
+      options={tagsOptions}
+      value={tags}
+      onChange={(e, newValue) => setTags(newValue)}
+      renderTags={(value, getTagProps) => (
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 0.5,
+            maxHeight: 100, // max height of tags section
+            overflowY: "auto", // scroll if overflow
+            pr: 0.5,
+          }}
+        >
+          {value.map((option, index) => (
+            <Chip
+              key={option}
+              variant="outlined"
+              label={option}
+              {...getTagProps({ index })}
+              sx={{
+                color: "white",
+                borderColor: "red",
+                "& .MuiChip-deleteIcon": {
+                  color: "red",
+                  "&:hover": { color: "darkred" },
+                },
+              }}
+            />
+          ))}
+        </Box>
+      )}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label="Tags"
+          placeholder="Search & select tags"
+          InputLabelProps={{ style: { color: "#9CA3AF" } }}
+          InputProps={{
+            ...params.InputProps,
+            style: { color: "white" },
+          }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": { borderColor: "red" },
+              "&:hover fieldset": { borderColor: "darkred" },
+              "&.Mui-focused fieldset": { borderColor: "red" },
+            },
+          }}
+        />
+      )}
+      PaperComponent={(props) => (
+        <Paper
+          {...props}
+          sx={{
+            bgcolor: "#111",
+            color: "white",
+            "& .MuiAutocomplete-option": {
+              "&[aria-selected='true']": { backgroundColor: "#7f1d1d" },
+              "&:hover": { backgroundColor: "#dc2626" },
+            },
+          }}
+        />
+      )}
     />
-  )}
-  PaperComponent={(props) => (
-    <Paper
-      {...props}
-      sx={{
-        bgcolor: "#111", // dropdown background
-        color: "white",
-        "& .MuiAutocomplete-option": {
-          "&[aria-selected='true']": {
-            backgroundColor: "#7f1d1d", // selected = dark red
-          },
-          "&:hover": {
-            backgroundColor: "#dc2626", // hover = light red
-          },
-        },
-      }}
-    />
-  )}
-/>
-
 
     {/* Buttons */}
-    <div className="flex justify-between mt-4">
+    <div className="flex flex-col md:flex-row justify-between mt-4 gap-2">
       <Button
         variant="contained"
         type="submit"
@@ -432,6 +444,7 @@ if (currentUserData.uid === id) {
           px: 4,
           bgcolor: "green",
           "&:hover": { bgcolor: "darkgreen" },
+          flex: 1,
         }}
       >
         Save
@@ -445,6 +458,7 @@ if (currentUserData.uid === id) {
           borderColor: "red",
           color: "red",
           "&:hover": { borderColor: "darkred", color: "darkred" },
+          flex: 1,
         }}
       >
         Cancel
@@ -452,6 +466,7 @@ if (currentUserData.uid === id) {
     </div>
   </form>
 </div>
+
 
 
   );
@@ -551,23 +566,48 @@ useEffect(() => {
     <>
       {/* Profile Card */}
       <Sidebar />
-      <div className="max-w-sm mx-auto mt-20 p-6  rounded-xl text-center">
-        <img src={userData.image} alt={`Avatar of ${userData.name}`} className="w-24 h-24 mx-auto rounded-full mb-4 border-4 border-[#00ff99]" />
-       
-        {isSelf && <button className="text-sm absolute top-44 bg-gradient-to-tr from-black to-gray-800 p-1 rounded-full mt-4 translate-x-6 text-gray-400"><ModeEditTwoToneIcon onClick={() => setEditing(true)} /></button>}
-        {editing && <EditProfile currentUserData={currentUserData}  setUserData={setUserData} docIds={docIds} setEditing={setEditing} setCurrentUserData={setCurrentUserData} />}
-        <h2 className="text-2xl font-bold text-white">{userData.name}</h2>
-         {userData.tags && userData.tags.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-2 mb-4">
-            {userData.tags.map((tag) => ( 
-              <span key={tag} className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-xs">#{tag}</span>
+      <div className="max-w-full md:mx-28 mx-4 flex  mt-10 p-6 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-lg text-center relative">
+        {/* Profile Image */}
+        <img
+          src={userData.image}
+          alt={`Avatar of ${userData.name}`}
+          className="md:w-28 md:h-28 h-20 w-20 mx-auto rounded-full border-4 border-gradient-to-tr from-green-400 to-green-500 mb-4 object-cover"
+        />
+
+        {/* Edit Icon */}
+        {isSelf && (
+          <button
+            className="absolute top-6 right-6 text-gray-400 hover:text-white p-1 rounded-full bg-black/50"
+            onClick={() => setEditing(true)}
+          >
+            <ModeEditTwoToneIcon />
+          </button>
+        )}
+        {editing && (<EditProfile currentUserData={currentUserData} setUserData={setUserData} docIds={docIds} setEditing={setEditing} setCurrentUserData={setCurrentUserData} />)}
+        <div className="mt-20 md:mt-0 -translate-x-14 md:translate-x-0">
+        {/* Name */}
+        <h2 className="md:text-2xl text-xl font-bold text-white truncate">{userData.name}</h2>
+
+        {/* Tags */}
+        <div>
+        {userData.tags && userData.tags.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2 my-2  ">
+            {userData.tags.map((tag) => (
+              <span key={tag} className="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-xs">
+                #{tag}
+              </span>
             ))}
           </div>
         )}
-          {userData.bio && <p className="text-gray-400 text-sm mb-2">{userData.bio}</p>}
-        <p className="text-gray-400 text-sm">{userData.email}</p>
-        <p className="text-sm text-[#00ff99] mt-2">Joined {userData.createdAt}</p>
 
+        {/* Bio */}
+        {userData.bio && <p className="text-gray-300 text-sm mb-2">{userData.bio}</p>}
+
+        {/* Email & Joined */}
+        <p className="text-gray-400 text-sm">{userData.email}</p>
+        <p className="text-sm text-green-400 mt-1">Joined {userData.createdAt}</p>
+
+        {/* Followers / Following */}
         <div className="flex justify-center gap-6 mt-3 text-sm text-gray-300">
           <div><b>{userData.followers.length}</b> Followers</div>
           <div><b>{userData.following.length}</b> Following</div>
@@ -575,18 +615,59 @@ useEffect(() => {
 
         <div className="my-4 border-t border-gray-700" />
 
-        {isSelf ? (
-          <Logout1 className="bg-[#ff4d4d] px-6 py-2 rounded-lg text-white" />
-        ) : (
-          <button
-            onClick={handleFollowToggle}
-            className={`px-4 py-2 rounded-lg text-sm text-white ${isFollowing ? "bg-green-600" : "bg-[#ff4d4d]"}`}
-          >
-            {isFollowing ? "Following" : "Follow"}
-          </button>
-        )}
+        {/* Action Buttons */}
+        <div className="flex justify-center gap-3">
+          {isSelf ? (
+            <>
+              <Logout1 className="bg-red-500 px-4 py-2 rounded-lg text-white hover:bg-red-600 transition-colors" />
+              <button
+                onClick={() => setShareModal(true)}
+                className="flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-500 text-gray-300 hover:bg-gray-700 transition-colors"
+              >
+                <ShareIcon fontSize="small" /> Share
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleFollowToggle}
+              className={`px-6 py-2 rounded-lg text-white text-sm font-medium ${
+                isFollowing ? "bg-green-600 hover:bg-green-700" : "bg-red-500 hover:bg-red-600"
+              } transition-colors`}
+            >
+              {isFollowing ? "Following" : "Follow"}
+            </button>
+          )}
+        </div>
       </div>
 
+      {/* Share Modal */}
+      {shareModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-gray-900 p-6 rounded-xl w-[90%] max-w-sm text-center">
+            <h3 className="text-lg font-semibold text-white mb-4">Share Profile</h3>
+            <p className="text-gray-300 text-sm mb-4">Copy the link below to share this profile:</p>
+            <div className="flex items-center gap-2 mb-4 bg-gray-800 px-4 py-2 rounded-lg">
+              <input
+                type="text"
+                value={profileLink}
+                readOnly
+                className="bg-transparent text-gray-200 w-full outline-none truncate"
+              />
+              <button onClick={copyLink} className="text-green-400 hover:text-green-500">
+                <ContentCopyIcon />
+              </button>
+            </div>
+            <button
+              onClick={() => setShareModal(false)}
+              className="mt-2 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-white"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      </div>
+      </div>
       {/* Watchlist */}
       {isSelf && watchlistItems.length > 0 && (
         <div className="mt-10 px-6 *:max-w-full sm:mx-40">

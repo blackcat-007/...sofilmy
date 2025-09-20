@@ -12,7 +12,7 @@ function Header() {
    const { login, username } = useContext(Appstate);
 
   return (
-    <div className="sticky top-0 z-20 bg-gradient-to-br from-black from-50% to-gray-900 text-red-500   px-4 py-2 flex flex-row items-center justify-between gap-2 overflow-x-auto whitespace-nowrap">
+    <div className="sticky top-0 z-20 bg-gradient-to-br from-black from-50% to-green-900/20 text-red-500   px-4 py-2 flex flex-row items-center justify-between gap-2 overflow-x-auto whitespace-nowrap">
 
       {/* Logo */}
      < div className="flex flex-col">
