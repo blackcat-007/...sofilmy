@@ -232,21 +232,21 @@ function ProjectorDust() {
 }
 // ---------- 3d title ----------
 function Title3D() {
-  const group = useRef();
+  const group = useRef()
 
   useFrame(({ clock }) => {
     if (group.current) {
-      group.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.6) * 0.2;
+      group.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.6) * 0.2
       group.current.rotation.x =
-        Math.cos(clock.getElapsedTime() * 0.4) * 0.05 - 0.1;
+        Math.cos(clock.getElapsedTime() * 0.4) * 0.05 - 0.1
     }
-  });
+  })
 
   return (
     <group ref={group} position={[0, 0.9, 0]}>
-      {/* "...SO" in red glow */}
+      {/* "...So" in Open Sans Italic (red glow) */}
       <Text
-        font="/fonts/helvetiker_regular.typeface.json"
+        font="/fonts/OpenSans.ttf" // point directly to TTF
         fontSize={0.7}
         color="#ff003c"
         anchorX="center"
@@ -257,21 +257,21 @@ function Title3D() {
         ...So
       </Text>
 
-      {/* Offset "FILMY" slightly to the right */}
+      {/* "Filmy" in Pacifico Regular (green glow) */}
       <Text
-       font="/fonts/helvetiker_regular.typeface.json"
+        font="/fonts/Pacifico-Regular.ttf" // direct TTF
         fontSize={0.7}
-        position={[1.8, 0, 0]} // adjust spacing as needed
+        position={[1.8, 0, 0]} // adjust spacing
         color="#ffffff"
         anchorX="center"
         anchorY="middle"
         outlineWidth={0.02}
-        outlineColor="#00ff88" // greenish glow
+        outlineColor="#00ff88"
       >
         Filmy
       </Text>
     </group>
-  );
+  )
 }
 //------3D posters ------
 function Poster3D({ imageUrl, position, rotation }) {

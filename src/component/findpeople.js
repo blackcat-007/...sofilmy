@@ -160,44 +160,49 @@ const getCache = (key, maxAgeMs) => {
       const isFollowing = currentUser?.following?.includes(user.uid);
 
       return (
-        <li
-          key={user.id}
-          className="flex items-center justify-between p-5 rounded-2xl 
-                     bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] 
-                     border border-gray-800 hover:border-[#ff4d4d] 
-                     hover:shadow-lg hover:shadow-[#ff4d4d33] 
-                     transition-all duration-300"
-        >
-          {/* Left Section (Avatar + Info) */}
-          <Link
-            to={`/profile/${user.uid}`}
-            className="flex items-center space-x-4 flex-1"
-          >
-            <img
-              src={user.image || "/cinephile.png"}
-              alt={user.name || "User"}
-              className="w-14 h-14 rounded-full object-cover border-2 border-[#00ff99]"
-            />
-            <div>
-              <p className="font-semibold text-white text-lg">{user.name}</p>
-              <p className="text-sm text-gray-400">
-                {user.email?.slice(0, 22) || "No email"}
-              </p>
-            </div>
-          </Link>
+     <li
+  key={user.id}
+  className="flex flex-col sm:flex-row items-center justify-between p-4 rounded-2xl 
+             bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] 
+             border border-gray-800 hover:border-[#ff4d4d] 
+             hover:shadow-lg hover:shadow-[#ff4d4d33] 
+             transition-all duration-300 w-full max-w-full overflow-hidden gap-3"
+>
+  {/* Left Section (Avatar + Info) */}
+  <Link
+    to={`/profile/${user.uid}`}
+    className="flex flex-col sm:flex-row items-center sm:items-start flex-1 min-w-0 gap-2 sm:gap-4"
+  >
+    <img
+      src={user.image || "/cinephile.png"}
+      alt={user.name || "User"}
+      className="w-14 h-14 rounded-full object-cover border-2 border-[#00ff99] flex-shrink-0"
+    />
+    <div className="text-center sm:text-left min-w-0">
+      <p className="font-semibold text-white text-lg truncate">{user.name}</p>
+      <p className="text-sm text-gray-400 truncate">{user.email || "No email"}</p>
+    </div>
+  </Link>
 
-          {/* Right Section (Follow Button) */}
-          <button
-            onClick={() => handleFollowToggle(user)}
-            className={`ml-4 px-5 py-2.5 rounded-xl text-sm font-medium transition-all shadow-md ${
-              isFollowing
-                ? "bg-gradient-to-r from-green-400 to-green-600 text-white hover:from-green-500 hover:to-green-700"
-                : "bg-[#ff4d4d] hover:bg-red-600 text-white"
-            }`}
-          >
-            {isFollowing ? "Following" : "Follow"}
-          </button>
-        </li>
+  {/* Right Section (Follow Button) */}
+  <div className="mt-2 sm:mt-0 flex-shrink-0">
+    <button
+      onClick={() => handleFollowToggle(user)}
+      className={`px-4 sm:px-5 py-2.5 rounded-xl text-sm font-medium transition-all shadow-md whitespace-nowrap
+        ${
+          isFollowing
+            ? "bg-gradient-to-r from-green-400 to-green-600 text-white hover:from-green-500 hover:to-green-700"
+            : "bg-[#ff4d4d] hover:bg-red-600 text-white"
+        }`}
+    >
+      {isFollowing ? "Following" : "Follow"}
+    </button>
+  </div>
+</li>
+
+
+
+
       );
     })}
   </ul>

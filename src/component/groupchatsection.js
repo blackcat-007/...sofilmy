@@ -253,7 +253,7 @@ const GroupChatSection = ({ selectedUser, onBack }) => {
 )}
         {/* Input */}
         <div className="w-full px-4 py-2  bg-red-700 bg-opacity-80 flex items-center sticky bottom-0 z-10">
-          <div className="flex mx-auto w-[70%]">
+          <div className="flex md:mx-auto md:w-[70%]">
           <div className="mx-2">
             <EmojiButton onEmojiClick={handleEmojiClick} emojihistory={emojiHistory} />
           </div>

@@ -88,35 +88,61 @@ function Details() {
       <p className="mt-4 text-gray-300 leading-relaxed">{movie.description}</p>
 
       {/* Analysis */}
-      {movie.analysis && (
-        <div className="mt-6 bg-gray-800 p-6 rounded-lg">
-          <h2 className="text-2xl font-bold text-gray-200 mb-4">
-            Thoughts of {movie.postedBy}
-            <img
-              src="/icons/wired-lineal-237-star-rating-hover-pinch.gif"
-              alt="Arrow right"
-              className="inline-block ml-2 h-6 w-6 bg-transparent"
-            />
-          </h2>
+{movie.analysis && (
+  <div className="mt-6 bg-gray-800 p-6 rounded-lg">
+    <h2 className="text-2xl font-bold text-gray-200 mb-4">
+      Thoughts of {movie.postedBy}
+      <img
+        src="/icons/wired-lineal-237-star-rating-hover-pinch.gif"
+        alt="Arrow right"
+        className="inline-block ml-2 h-6 w-6 bg-transparent"
+      />
+    </h2>
 
-          {typeof movie.analysis === "string" ? (
+    <div className="space-y-6">
+      {[
+        "Story / Plot",
+        "Screenplay & Dialogues",
+        "Pacing",
+        "Themes / Symbolism",
+        "Social & Political Commentary",
+        "Acting",
+        "Direction",
+        "Character Development",
+        "Background Score",
+        "Sound Design",
+        "Songs & Lyrics",
+        "Emotional Impact",
+        "Rewatch Value",
+        "Plot Holes",
+        "World Building & Setting",
+        "Genre Execution",
+        "Director's Style",
+        "Comparison to Others",
+        "Final Verdict",
+        "If I Could Change One Thing",
+        "Favourite Scene"
+      ].map((heading) => {
+        const value =
+          typeof movie.analysis === "string"
+            ? null
+            : movie.analysis[heading];
+
+        if (!value) return null; // skip if data doesn't exist
+
+        return (
+          <div key={heading}>
+            <h3 className="text-xl font-semibold text-gray-100 mb-2">{heading}</h3>
             <p className="text-gray-300 text-base leading-relaxed">
-              {movie.analysis}
+              {String(value)}
             </p>
-          ) : (
-            <div className="space-y-6">
-              {Object.entries(movie.analysis).map(([key, value]) => (
-                <div key={key}>
-                  <h3 className="text-xl font-semibold text-gray-100 mb-2">{key}</h3>
-                  <p className="text-gray-300 text-base leading-relaxed">
-                    {String(value)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)}
+
 
       {/* Cast */}
       {movie.cast?.length > 0 && (

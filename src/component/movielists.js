@@ -246,7 +246,7 @@ const getCache = (key, maxAgeMs) => {
     <h1 className="text-2xl font-bold mt-4 ml-3 text-white mb-4 text-left relative  z-10">Top Featured Lists</h1>
 
     {/* Scrollable container */}
-    <div className="relative z-10 h-[calc(2*20rem)] overflow-y-auto space-y-4 p-0 md:p-8 animated-bg">
+    <div className="relative z-10 h-[calc(2*14rem)] overflow-y-auto space-y-4 p-0 md:p-8 animated-bg">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {datas.map((list) => {
           const user = getUserDetails(list.createdBy);

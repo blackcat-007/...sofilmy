@@ -276,6 +276,16 @@ const detailsCache = new Map();  // id/imdbId -> details
       navigate("/login");
       return;
     }
+    if (!hasAnalysisContent) {
+    swal({
+      title: "Incomplete",
+      text: "Please fill at least one analysis section before submitting.",
+      icon: "warning",
+      buttons: false,
+      timer: 2500,
+    });
+    return;
+  }
 
     const { name, year, description, image } = form;
     if (!name.trim() || !year.trim() || !description.trim() || !image.trim()) {
@@ -363,6 +373,10 @@ const detailsCache = new Map();  // id/imdbId -> details
     }
     setLoading(false);
   };
+  const hasAnalysisContent = Object.values(analysis).some(
+  (text) => text && text.trim() !== ""
+);
+
 
   return (
     <div className="min-h-screen">
@@ -725,14 +739,19 @@ Repeat for any other points you want to analyze to build a structured review.</p
           </div>
 
           {/* ======= Submit ======= */}
-          <div className="lg:w-3/4 mx-auto mt-8">
-            <button
-              onClick={addmovies}
-              className="flex mx-auto text-white bg-green-500 border-0 py-3 px-10 focus:outline-none hover:bg-green-600 rounded-lg text-lg"
-            >
-              {loading ? <TailSpin height={22} color="white" /> : "Submit"}
-            </button>
-          </div>
+          <button
+  onClick={addmovies}
+  disabled={!hasAnalysisContent || loading} // disable if no analysis or loading
+  className={cls(
+    "flex mx-auto text-white border-0 py-3 px-10 focus:outline-none rounded-lg text-lg transition",
+    hasAnalysisContent && !loading
+      ? "bg-green-500 hover:bg-green-600"
+      : "bg-gray-500 cursor-not-allowed"
+  )}
+>
+  {loading ? <TailSpin height={22} color="white" /> : "Submit"}
+</button>
+
         </div>
       </section>
     </div>

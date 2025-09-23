@@ -59,7 +59,15 @@ const getCache = (key, maxAgeMs) => {
     const cached = getCache(cacheKey, 10 * 60 * 1000); // cache for 10 minutes
 
     if (cached) {
-      setData(cached);
+      // Sort cached data by rating first, then recent
+      const sortedCache = [...cached].sort((a, b) => {
+        if ((b.rating / b.user) !== (a.rating / a.user)) {
+          return (b.rating / b.user) - (a.rating / a.user); // highest rating first
+        } else {
+          return new Date(b.createdAt) - new Date(a.createdAt); // most recent first
+        }
+      });
+      setData(sortedCache);
       setLoader(false);
       return;
     }
@@ -71,6 +79,16 @@ const getCache = (key, maxAgeMs) => {
       movieData.forEach((docs) =>
         results.push({ ...(docs.data()), id: docs.id })
       );
+
+      // Sort results by rating first, then most recent
+      results.sort((a, b) => {
+        if ((b.rating / b.user) !== (a.rating / a.user)) {
+          return (b.rating / b.user) - (a.rating / a.user);
+        } else {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        }
+      });
+
       setData(results);
       setCache(cacheKey, results); // save to cache
     } catch (error) {
@@ -81,6 +99,7 @@ const getCache = (key, maxAgeMs) => {
   }
   getData();
 }, []);
+
 
 
   // ✅ Horizontal scroll with mouse wheel
@@ -176,12 +195,12 @@ const getCache = (key, maxAgeMs) => {
             className="flex gap-3 overflow-x-auto overflow-y-hidden whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pb-4 snap-x snap-mandatory"
           >
             {datas.map((e, i) => (
-              <Link to={`/details/${e.id}`} key={i} className="shrink-0 snap-start">
+              <Link to={`/details/${e.id}`} key={i} className="shrink-0 snap-start w-64 sm:w-72 md:w-80">
                 <div
                   ref={(el) => (cardRefs.current[i] = el)}
   data-image={e.image}
   data-index={i}
-  className={`w-64 scale-90 sm:w-72 md:w-80 card hover p-4  rounded shadow-lg transition-transform duration-300 transform h-full
+  className={`w-64 scale-90 sm:w-72 md:w-80 card hover p-3 h-3/6 rounded shadow-lg transition-transform duration-300 transform 
     ${
       isMobile
         ? activeIndex === i
@@ -194,14 +213,14 @@ const getCache = (key, maxAgeMs) => {
                 >
                   <div className="flex justify-center">
                     <img
-                      className="w-full h-72 object-cover mb-3 rounded"
+                      className="w-auto h-44 object-cover mb-3 rounded"
                       src={e.image}
                       alt={e.name}
                     />
                   </div>
-
+                  <div className="bg-gray-500/20 p-3">
                   <div className="border-t-2 border-green-500 border-dashed my-3"></div>
-
+              
                   <h1 className="truncate">
                     <span className="text-red-400 mr-1">Name:</span>
                     {e.name}
@@ -224,9 +243,11 @@ const getCache = (key, maxAgeMs) => {
                     {e.year}
                   </h3>
 
-                  <div className="mt-3 text-sm text-gray-400">
-                    {e.sarcasm && <span>😏 Sarcasm Included </span>}
-                    {e.spoilerFree && <span>🚫 Spoiler Free </span>}
+                  <div className="mt-3 text-sm text-gray-400 flex gap-2">
+                    {e.sarcasm && <span className="bg-red-900 text-red-400 p-1 rounded-lg ">  Sarcasm Included </span>}
+                      {!e.sarcasm && <span className="bg-green-900 text-green-400 p-1 rounded-lg "> No Sarcasm </span>}
+                    {e.spoilerFree && <span className="bg-green-900 text-green-400 p-1 rounded-lg ">Spoiler Free </span>}
+                     {!e.spoilerFree && <span className="bg-red-900 text-red-400 p-1 rounded-lg ">Spoiler Ahead </span>}
                   </div>
 
                   <span className="text-gray-500 text-left font-thin">
@@ -243,6 +264,7 @@ const getCache = (key, maxAgeMs) => {
                       </>
                     )}
                   </span>
+                </div>
                 </div>
               </Link>
             ))}

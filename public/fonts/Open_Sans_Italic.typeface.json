@@ -6073,6 +6073,7 @@
         "xMax": 1707
     },
     "resolution": 1000,
+    "unitsPerEm": 1024,
     "original_font_information": {
         "format": 0,
         "copyright": "Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans)",

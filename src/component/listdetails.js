@@ -11,6 +11,8 @@ import {
 } from "firebase/firestore";
 import { movielistRef, usersRef } from "../firebase/firebase";
 import { BallTriangle } from "react-loader-spinner";
+import SpinLoader from "../ui/loader2";
+import { SpaceIcon } from "lucide-react";
 
 const TMDB_API = process.env.REACT_APP_TMDB_API_KEY;
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
@@ -148,7 +150,7 @@ function ListDetails() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-black text-white">
-        <BallTriangle height={80} width={80} color="#FF0000" ariaLabel="loading" />
+        <SpinLoader/>
       </div>
     );
   }

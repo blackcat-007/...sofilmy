@@ -93,7 +93,7 @@ function Header() {
         ) : (
           <Link to={'/login'}>
             <Button className="hover:bg-slate-900 flex items-center px-3 py-2">
-              <span className="block bg-gradient-to-b from-green-400 to-green-600 bg-clip-text text-xl tracking-tight text-transparent">
+              <span className="block bg-gradient-to-b from-green-400 to-green-600 bg-clip-text md:text-xl text-sm tracking-tight text-transparent">
                 Login/Signup</span>
 
              
