@@ -9,7 +9,7 @@ import Loader from "../ui/loader";
 import CardSkeleton from "../ui/cardskeleton";
 import "../App.css"
 
-function Analysis() {
+function Analysis({selectedId}) {
   const [datas, setData] = useState([]);
   const [loading, setLoader] = useState(false);
   const [bgImage, setBgImage] = useState(null);
@@ -53,18 +53,17 @@ const getCache = (key, maxAgeMs) => {
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  useEffect(() => {
+ useEffect(() => {
   async function getData() {
-    const cacheKey = "movies-data";
-    const cached = getCache(cacheKey, 10 * 60 * 1000); // cache for 10 minutes
+    const cacheKey = selectedId ? `movies-data-${selectedId}` : "movies-data";
+    const cached = getCache(cacheKey, 2 * 60 * 1000); // 2 minutes cache
 
     if (cached) {
-      // Sort cached data by rating first, then recent
       const sortedCache = [...cached].sort((a, b) => {
         if ((b.rating / b.user) !== (a.rating / a.user)) {
-          return (b.rating / b.user) - (a.rating / a.user); // highest rating first
+          return (b.rating / b.user) - (a.rating / a.user);
         } else {
-          return new Date(b.createdAt) - new Date(a.createdAt); // most recent first
+          return new Date(b.createdAt) - new Date(a.createdAt);
         }
       });
       setData(sortedCache);
@@ -75,10 +74,13 @@ const getCache = (key, maxAgeMs) => {
     setLoader(true);
     try {
       const movieData = await getDocs(moviesRef);
-      const results = [];
-      movieData.forEach((docs) =>
-        results.push({ ...(docs.data()), id: docs.id })
-      );
+      let results = [];
+      movieData.forEach((docs) => {
+        const movie = { ...(docs.data()), id: docs.id };
+        if (!selectedId || movie.createdBy === selectedId) {
+          results.push(movie);
+        }
+      });
 
       // Sort results by rating first, then most recent
       results.sort((a, b) => {
@@ -97,8 +99,10 @@ const getCache = (key, maxAgeMs) => {
       setLoader(false);
     }
   }
+
   getData();
-}, []);
+}, [selectedId]); // <-- run whenever selectedid changes
+
 
 
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
   getFirestore,
@@ -25,6 +25,14 @@ import {
   Paper,
   
 } from "@mui/material";
+import { Link } from "react-router-dom";
+import SummarizeTwoToneIcon from '@mui/icons-material/SummarizeTwoTone';
+import DynamicFeedTwoToneIcon from '@mui/icons-material/DynamicFeedTwoTone';
+import SummarizeIcon from '@mui/icons-material/Summarize';
+import DynamicFeedIcon from '@mui/icons-material/DynamicFeed';
+import { CircleArrowDown,CircleArrowOutDownRight } from "lucide-react";
+import ListSkeleton from "../ui/listskeleton";
+import ReactStars from "react-stars";
 import Logout1 from "./logout";
 import Sidebar from "./sidebar";
 import DoneOutlineTwoToneIcon from '@mui/icons-material/DoneOutlineTwoTone';
@@ -34,6 +42,9 @@ import { Edit } from "lucide-react";
 import ShareIcon from '@mui/icons-material/Share';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import "../App.css";
+import Analysis from "./analysis";
+import MovieLists from "./movielists";
+
 const TMDB_API = process.env.REACT_APP_TMDB_API_KEY;
 const db = getFirestore();
 
@@ -93,6 +104,8 @@ export default function Profile() {
   const [watchedItems, setWatchedItems] = useState([]);
   const [shareModal, setShareModal] = useState(false);
   const profileLink = `${window.location.origin}/profile/${id}`;
+   const [activeTab, setActiveTab] = useState("analysis"); // default: Analysis
+ 
 
   const copyLink = () => {
     navigator.clipboard.writeText(profileLink);
@@ -477,6 +490,7 @@ if (currentUserData.uid === id) {
 useEffect(() => {
   fetchWatchedItems();
   }, [docIds.profile]);
+   
 
   // ✅ Follow/unfollow handler
   const handleFollowToggle = async () => {
@@ -719,6 +733,36 @@ useEffect(() => {
       ) : (
         <div className="mt-10 px-6 sm:mx-40 text-center text-gray-400">Watched items list is empty.</div>
       )}
+      {/* Toggle Buttons */}
+     {/* Toggle Buttons */}
+<div className="flex flex-wrap justify-center sm:justify-between gap-4 mb-6 mt-5 px-4 sm:px-60">
+  <button
+    onClick={() => setActiveTab("analysis")}
+    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-110
+     `}
+  >
+    
+    {activeTab==="analysis"? <SummarizeIcon className="text-3xl sm:text-3xl" fontSize="large"/> : <SummarizeTwoToneIcon  className="text-3xl sm:text-3xl" fontsize="medium" /> }
+   
+  </button>
+
+  <button
+    onClick={() => setActiveTab("lists")}
+    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-110
+      `}
+  >
+    
+    {activeTab==="lists"?<DynamicFeedTwoToneIcon className="text-3xl sm:text-3xl" fontSize="large"/>:<DynamicFeedIcon className="text-3xl sm:text-3xl" fontsize="medium"/>}
+    
+  </button>
+</div>
+
+
+      <section className="mt-10 sm:mt-20 px-4 sm:px-6 md:px-12 space-y-10 sm:space-y-20 mx-auto">
+  {activeTab === "analysis" && <Analysis selectedId={id} />}
+  {activeTab === "lists" && <MovieLists selectedId={id} />}
+</section>
+
 
       {/* Modal */}
       {selectedItemDetails && (

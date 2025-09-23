@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { getDocs, query, limit, startAfter, orderBy, updateDoc, doc } from "firebase/firestore";
+import { getDocs, query, limit, startAfter, orderBy, updateDoc, doc,where } from "firebase/firestore";
 import { movielistRef, usersRef } from "../firebase/firebase";
 import { Link } from "react-router-dom";
 import { BallTriangle } from "react-loader-spinner";
@@ -7,7 +7,7 @@ import ListSkeleton from "../ui/listskeleton";
 import { CircleArrowDown } from "lucide-react";
 import "../App.css"
 
-function MovieLists() {
+function MovieLists({selectedId}) {
   const [datas, setDatas] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -124,8 +124,8 @@ const getCache = (key, maxAgeMs) => {
   setLoading(true);
 
   const pageKey = lastDoc ? lastDoc.id : "firstPage";
-  const cacheKey = `movieLists-${pageKey}`;
-  const cachedLists = getCache(cacheKey, 30 * 60 * 1000); // 30 min cache
+  const cacheKey = selectedId ? `movieLists-${selectedId}-${pageKey}` : `movieLists-${pageKey}`;
+  const cachedLists = getCache(cacheKey, 2 * 60 * 1000); // 2 min cache
 
   if (cachedLists) {
     setDatas((prev) => [...prev, ...cachedLists]);
@@ -134,35 +134,47 @@ const getCache = (key, maxAgeMs) => {
     return;
   }
 
-  const q = query(
-    movielistRef,
+  // Build query dynamically
+  const baseQuery = [
     orderBy("upvoted", "desc"),
     orderBy("createdAt", "asc"),
     limit(6),
     ...(lastDoc ? [startAfter(lastDoc)] : [])
-  );
-  const querySnapshot = await getDocs(q);
-  const newLists = [];
-  querySnapshot.forEach((doc) => {
-    newLists.push({ id: doc.id, ...doc.data() });
-  });
+  ];
 
-  setDatas((prev) => [...prev, ...newLists]);
-  setCache(cacheKey, newLists);
+  if (selectedId) {
+    baseQuery.unshift(where("createdBy", "==", selectedId)); // Add filter at start
+  }
 
-  if (querySnapshot.docs.length > 0) {
-    setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
+  const q = query(movielistRef, ...baseQuery);
+
+  try {
+    const querySnapshot = await getDocs(q);
+    const newLists = [];
+    querySnapshot.forEach((doc) => {
+      newLists.push({ id: doc.id, ...doc.data() });
+    });
+
+    setDatas((prev) => [...prev, ...newLists]);
+    setCache(cacheKey, newLists);
+
+    if (querySnapshot.docs.length > 0) {
+      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
+    }
+    if (querySnapshot.docs.length < 6) {
+      setHasMore(false);
+    }
+  } catch (err) {
+    console.error("Error fetching movie lists:", err);
+  } finally {
+    setLoading(false);
   }
-  if (querySnapshot.docs.length < 6) {
-    setHasMore(false);
-  }
-  setLoading(false);
 };
 
   const fetchPostersForList = async (list) => {
   const listId = list.id;
   const cacheKey = `posters-${listId}`;
-  const cachedPosters = getCache(cacheKey, 24 * 60 * 60 * 1000); // 1 day cache
+  const cachedPosters = getCache(cacheKey, 24*60* 60 * 1000); // 1 day cache
 
   if (cachedPosters) {
     setPosters(prev => ({ ...prev, [listId]: cachedPosters }));
@@ -196,29 +208,96 @@ const getCache = (key, maxAgeMs) => {
     return user || { name: "Unknown", image: "https://via.placeholder.com/40" };
   };
 
-  const handleUpvote = async (listId, currentCount) => {
-    const listDoc = doc(movielistRef.firestore, "movielist", listId);
-    await updateDoc(listDoc, {
-      upvoted: currentCount + 1
-    });
-    setDatas((prev) =>
-      prev.map((list) =>
-        list.id === listId ? { ...list, upvoted: currentCount + 1 } : list
-      )
-    );
-  };
+ const userId = localStorage.getItem("userId"); // Current user ID
 
-  const handleDownvote = async (listId, currentCount) => {
-    const listDoc = doc(movielistRef.firestore, "movielist", listId);
-    await updateDoc(listDoc, {
-      downvoted: currentCount + 1
-    });
-    setDatas((prev) =>
-      prev.map((list) =>
-        list.id === listId ? { ...list, downvoted: (currentCount || 0) + 1 } : list
-      )
-    );
-  };
+const handleUpvote = async (list) => {
+  const listDoc = doc(movielistRef.firestore, "movielist", list.id);
+
+  const hasUpvoted = list.upvotedBy?.includes(userId);
+  const hasDownvoted = list.downvotedBy?.includes(userId);
+
+  let newUpvotedBy = list.upvotedBy ? [...list.upvotedBy] : [];
+  let newDownvotedBy = list.downvotedBy ? [...list.downvotedBy] : [];
+
+  let newUpvotes = list.upvoted || 0;
+  let newDownvotes = list.downvoted || 0;
+
+  if (!hasUpvoted) {
+    // Remove from downvote if present
+    if (hasDownvoted) {
+      newDownvotedBy = newDownvotedBy.filter(id => id !== userId);
+      newDownvotes = Math.max(newDownvotes - 1, 0);
+    }
+
+    // Add to upvote
+    newUpvotedBy.push(userId);
+    newUpvotes += 1;
+  } else {
+    // Optional: Remove upvote if clicked again (toggle behavior)
+    newUpvotedBy = newUpvotedBy.filter(id => id !== userId);
+    newUpvotes = Math.max(newUpvotes - 1, 0);
+  }
+
+  await updateDoc(listDoc, {
+    upvoted: newUpvotes,
+    downvoted: newDownvotes,
+    upvotedBy: newUpvotedBy,
+    downvotedBy: newDownvotedBy,
+  });
+
+  setDatas(prev =>
+    prev.map(item =>
+      item.id === list.id
+        ? { ...item, upvoted: newUpvotes, downvoted: newDownvotes, upvotedBy: newUpvotedBy, downvotedBy: newDownvotedBy }
+        : item
+    )
+  );
+};
+
+const handleDownvote = async (list) => {
+  const listDoc = doc(movielistRef.firestore, "movielist", list.id);
+
+  const hasDownvoted = list.downvotedBy?.includes(userId);
+  const hasUpvoted = list.upvotedBy?.includes(userId);
+
+  let newUpvotedBy = list.upvotedBy ? [...list.upvotedBy] : [];
+  let newDownvotedBy = list.downvotedBy ? [...list.downvotedBy] : [];
+
+  let newUpvotes = list.upvoted || 0;
+  let newDownvotes = list.downvoted || 0;
+
+  if (!hasDownvoted) {
+    // Remove from upvote if present
+    if (hasUpvoted) {
+      newUpvotedBy = newUpvotedBy.filter(id => id !== userId);
+      newUpvotes = Math.max(newUpvotes - 1, 0);
+    }
+
+    // Add to downvote
+    newDownvotedBy.push(userId);
+    newDownvotes += 1;
+  } else {
+    // Optional: Remove downvote if clicked again (toggle behavior)
+    newDownvotedBy = newDownvotedBy.filter(id => id !== userId);
+    newDownvotes = Math.max(newDownvotes - 1, 0);
+  }
+
+  await updateDoc(listDoc, {
+    upvoted: newUpvotes,
+    downvoted: newDownvotes,
+    upvotedBy: newUpvotedBy,
+    downvotedBy: newDownvotedBy,
+  });
+
+  setDatas(prev =>
+    prev.map(item =>
+      item.id === list.id
+        ? { ...item, upvoted: newUpvotes, downvoted: newDownvotes, upvotedBy: newUpvotedBy, downvotedBy: newDownvotedBy }
+        : item
+    )
+  );
+};
+
 
   const formatDate = (timestamp) => {
   if (!timestamp) return "Unknown date";
@@ -296,24 +375,26 @@ const getCache = (key, maxAgeMs) => {
                   Created at: {formatDate(list.createdAt)}
                 </div>
                 <div className="flex items-center gap-4">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleUpvote(list.id, list.upvoted);
-                    }}
-                    className="flex items-center gap-1 text-white hover:text-red-500"
-                  >
-                    ▲ {list.upvoted}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleDownvote(list.id, list.downvoted || 0);
-                    }}
-                    className="flex items-center gap-1 text-white hover:text-blue-500"
-                  >
-                    ▼ {list.downvoted || 0}
-                  </button>
+                 <button
+  onClick={(e) => {
+    e.preventDefault();
+    handleUpvote(list);
+  }}
+  className={`flex items-center gap-1 ${list.upvotedBy?.includes(userId) ? "text-green-500" : "text-white"} hover:text-red-500`}
+>
+  ▲ {list.upvoted || 0}
+</button>
+
+<button
+  onClick={(e) => {
+    e.preventDefault();
+    handleDownvote(list);
+  }}
+  className={`flex items-center gap-1 ${list.downvotedBy?.includes(userId) ? "text-red-500" : "text-white"} hover:text-blue-500`}
+>
+  ▼ {list.downvoted || 0}
+</button>
+
                 </div>
               </div>
             </Link>
