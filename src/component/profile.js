@@ -33,7 +33,7 @@ import ModeEditTwoToneIcon from '@mui/icons-material/ModeEditTwoTone';
 import { Edit } from "lucide-react";
 import ShareIcon from '@mui/icons-material/Share';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-
+import "../App.css";
 const TMDB_API = process.env.REACT_APP_TMDB_API_KEY;
 const db = getFirestore();
 
@@ -263,6 +263,7 @@ export default function Profile() {
               const details = await res.json();
               return {
                 ...details,
+                type,
                 counter,
                 poster: details.poster_path ? `https://image.tmdb.org/t/p/w200${details.poster_path}` : "https://via.placeholder.com/200x300?text=No+Image"
               };
@@ -566,13 +567,17 @@ useEffect(() => {
     <>
       {/* Profile Card */}
       <Sidebar />
-      <div className="max-w-full md:mx-28 mx-4 flex  mt-10 p-6 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-lg text-center relative">
+      <div className="max-w-screen-md md:mx-auto  mx-4 flex md:flex-col md:items-center mt-10 p-6 bg-gradient-to-b from-gray-950 via-gray-700 to-gray-950 rounded-2xl shadow-lg text-center relative">
         {/* Profile Image */}
-        <img
-          src={userData.image}
-          alt={`Avatar of ${userData.name}`}
-          className="md:w-28 md:h-28 h-20 w-20 mx-auto rounded-full border-4 border-gradient-to-tr from-green-400 to-green-500 mb-4 object-cover"
-        />
+      
+  {/* Avatar Image */}
+  <img
+    src={userData.image}
+    alt={`Avatar of ${userData.name}`}
+    className="md:w-28 md:h-28 h-20 w-20 rounded-full object-cover relative z-10 gradspin"
+  />
+
+
 
         {/* Edit Icon */}
         {isSelf && (
@@ -584,21 +589,25 @@ useEffect(() => {
           </button>
         )}
         {editing && (<EditProfile currentUserData={currentUserData} setUserData={setUserData} docIds={docIds} setEditing={setEditing} setCurrentUserData={setCurrentUserData} />)}
-        <div className="mt-20 md:mt-0 -translate-x-14 md:translate-x-0">
+        <div className="mt-24 md:mt-0 -translate-x-14 md:translate-x-0 mr-0     flex flex-col items-center justify-center">
         {/* Name */}
         <h2 className="md:text-2xl text-xl font-bold text-white truncate">{userData.name}</h2>
 
-        {/* Tags */}
-        <div>
-        {userData.tags && userData.tags.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-2 my-2  ">
-            {userData.tags.map((tag) => (
-              <span key={tag} className="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-xs">
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
+       {/* Tags */}
+       
+{userData.tags && userData.tags.length > 0 && (
+  <div className="flex flex-wrap justify-center md:justify-start gap-2 my-2 max-w-[280px] md:max-w-[400px] mx-auto md:mx-0">
+    {userData.tags.map((tag) => (
+      <span
+        key={tag}
+        className="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-xs"
+      >
+        #{tag}
+      </span>
+    ))}
+  </div>
+)}
+
 
         {/* Bio */}
         {userData.bio && <p className="text-gray-300 text-sm mb-2">{userData.bio}</p>}
@@ -667,7 +676,7 @@ useEffect(() => {
         </div>
       )}
       </div>
-      </div>
+      
       {/* Watchlist */}
       {isSelf && watchlistItems.length > 0 && (
         <div className="mt-10 px-6 *:max-w-full sm:mx-40">
@@ -708,7 +717,7 @@ useEffect(() => {
           </div>
         </div>
       ) : (
-        <div className="mt-10 px-6 sm:mx-40 text-center text-gray-400">Your watched items list is empty.</div>
+        <div className="mt-10 px-6 sm:mx-40 text-center text-gray-400">Watched items list is empty.</div>
       )}
 
       {/* Modal */}

@@ -16,16 +16,21 @@ function Header() {
 
       {/* Logo */}
      < div className="flex flex-col">
-      <Link to={'/'} className="flex-shrink-0">
-      <span className="flex "> <span className="block bg-gradient-to-b py-2 font-opensans from-red-500 to-red-900 bg-clip-text  text-2xl  font-extrabold tracking-tight text-transparent">
-                ...SO</span><span className="bg-gradient-to-bl from-green-600 to-85% to-white bg-clip-text text-2xl font-extrabold tracking-tight text-transparent font-cursive py-2">
-  Filmy
-</span>
-<AnimatedSubtitle />
-</span>
-              
-              
-      </Link>
+     <Link to={"/"} className="flex-shrink-0">
+  <span className="flex items-center">
+    {/* ...SO (Red Glow) */}
+    <span className="block py-2 font-opensans bg-gradient-to-b from-red-400 to-red-700 bg-clip-text text-2xl font-extrabold tracking-tight text-transparent drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]">
+      ...SO
+    </span>
+
+    {/* Filmy (Green Glow) */}
+    <span className="py-2 font-cursive bg-gradient-to-bl from-green-600 to-white bg-clip-text text-2xl font-extrabold tracking-tight text-transparent drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]">
+      Filmy
+    </span>
+
+    <AnimatedSubtitle />
+  </span>
+</Link>
 
 {login ? (<span className=" md:ml-2 sm:text-xs text-[10px] bg-gradient-to-b from-red-400 to-red-600 bg-clip-text">Welcome, {username} 👋</span>) : null}
 </div>

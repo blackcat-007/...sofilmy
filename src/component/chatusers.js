@@ -1,16 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import {
+  getFirestore,
+  collection,
+  onSnapshot,
+  doc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+} from 'firebase/firestore';
 import PersonalChatSection from './personalchatsection';
 import GroupChatSection from './groupchatsection';
 import AddGroup from './addgroup';
 import GroupDetails from './groupdetails';
 import ChatSkeleton from '../ui/chatskeleton';
 
-
 const db = getFirestore();
 
 const ChatUsers = () => {
-  const [mode, setMode] = useState('people'); // 'people' or 'groups'
+  const [mode, setMode] = useState('people');
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
   const [search, setSearch] = useState('');
@@ -18,159 +25,166 @@ const ChatUsers = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserList, setShowUserList] = useState(true);
-  const [joinedGroups, setJoinedGroups] = useState(new Set()); // ✅ store joined group IDs
+  const [joinedGroups, setJoinedGroups] = useState(new Set());
   const [addGroupOpen, setAddGroupOpen] = useState(false);
-  const [openGroupDetailsId, setOpenGroupDetailsId] = useState(null); // ✅ per-group details open
+  const [openGroupDetailsId, setOpenGroupDetailsId] = useState(null);
 
-  const fetchPeople = async (searchTerm = '') => {
+  const currentUserId = localStorage.getItem("userId");
+
+  /** 🔹 Realtime People listener */
+  useEffect(() => {
+    if (mode !== "people") return;
+
     setLoading(true);
-    try {
-      const currentUserId = localStorage.getItem("userId");
-      const usersRef = collection(db, 'users');
-      const snapshot = await getDocs(usersRef);
-      let userList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      userList = userList.filter(user => user.uid !== currentUserId);
 
-      if (searchTerm.trim()) {
-        const term = searchTerm.toLowerCase();
-        userList = userList.filter(user =>
-          (user.name && user.name.toLowerCase().includes(term)) ||
-          (user.email && user.email.toLowerCase().includes(term))
-        );
-      }
+    const unsubUsers = onSnapshot(collection(db, "users"), (userSnap) => {
+      const userList = userSnap.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(user => user.uid !== currentUserId);
 
-      setUsers(userList);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    }
-    setLoading(false);
-  };
+      const unsubChats = onSnapshot(collection(db, "chats"), (chatSnap) => {
+        let chatsMap = {};
+        chatSnap.docs.forEach(docSnap => {
+          chatsMap[docSnap.id] = { id: docSnap.id, ...docSnap.data() };
+        });
 
-  const fetchGroups = async (searchTerm = '') => {
-  setLoading(true);
-  try {
-    const currentUserId = localStorage.getItem("userId");
-    const groupRef = collection(db, 'group');
-    const snapshot = await getDocs(groupRef);
-    let groupList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        let enriched = userList.map(user => {
+          const chatId = [currentUserId, user.uid].sort().join("_");
+          const chatMeta = chatsMap[chatId];
+          return {
+            ...user,
+            lastMessage: chatMeta?.lastMessage || null,
+            lastMessageTimestamp: chatMeta?.lastMessageTimestamp || null,
+            unread: chatMeta?.unreadCounts?.[currentUserId] || 0,
+          };
+        });
 
-    // ✅ filter public/private groups
-    groupList = groupList.filter(group => {
-      if (group.access === "private") {
-        return group.members?.includes(currentUserId); // only if user is in members
-      }
-      return true; // public groups always shown
+        enriched.sort((a, b) => {
+          if (!a.lastMessageTimestamp && !b.lastMessageTimestamp) return 0;
+          if (!a.lastMessageTimestamp) return 1;
+          if (!b.lastMessageTimestamp) return -1;
+          return b.lastMessageTimestamp.toMillis() - a.lastMessageTimestamp.toMillis();
+        });
+
+        setUsers(enriched);
+        setLoading(false);
+      });
+
+      return () => unsubChats();
     });
 
-    // ✅ apply search filter
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      groupList = groupList.filter(group =>
-        group.name && group.name.toLowerCase().includes(term)
-      );
-    }
+    return () => unsubUsers();
+  }, [mode, currentUserId]);
 
-    setGroups(groupList);
-  } catch (error) {
-    console.error('Error fetching groups:', error);
-  }
-  setLoading(false);
-};
-
-
+  /** 🔹 Realtime Groups listener */
   useEffect(() => {
-    if (mode === 'people') fetchPeople();
-    else fetchGroups();
-  }, [mode]);
-   const refreshGroups = () => {
-    fetchGroups(search);
-  };
+    if (mode !== "groups") return;
 
+    setLoading(true);
+
+    const unsubGroups = onSnapshot(collection(db, "group"), (groupSnap) => {
+      const groupList = groupSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const visibleGroups = groupList.filter(group => {
+        if (group.access === "private") {
+          return group.members?.includes(currentUserId);
+        }
+        return true;
+      });
+
+      const unsubChats = onSnapshot(collection(db, "chats"), (chatSnap) => {
+        let chatsMap = {};
+        chatSnap.docs.forEach(docSnap => {
+          chatsMap[docSnap.id] = { id: docSnap.id, ...docSnap.data() };
+        });
+
+        let enriched = visibleGroups.map(group => {
+          const chatMeta = chatsMap[group.id];
+          return {
+            ...group,
+            lastMessage: chatMeta?.lastMessage || null,
+            lastMessageTimestamp: chatMeta?.lastMessageTimestamp || null,
+            unread: chatMeta?.unreadCounts?.[currentUserId] || 0,
+          };
+        });
+
+        enriched.sort((a, b) => {
+          if (!a.lastMessageTimestamp && !b.lastMessageTimestamp) return 0;
+          if (!a.lastMessageTimestamp) return 1;
+          if (!b.lastMessageTimestamp) return -1;
+          return b.lastMessageTimestamp.toMillis() - a.lastMessageTimestamp.toMillis();
+        });
+
+        setGroups(enriched);
+        setLoading(false);
+      });
+
+      return () => unsubChats();
+    });
+
+    return () => unsubGroups();
+  }, [mode, currentUserId]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (mode === 'people') fetchPeople(search);
-    else fetchGroups(search);
+    const term = search.toLowerCase();
+    if (mode === "people") {
+      setUsers(prev => prev.filter(u =>
+        (u.name && u.name.toLowerCase().includes(term)) ||
+        (u.email && u.email.toLowerCase().includes(term))
+      ));
+    } else {
+      setGroups(prev => prev.filter(g =>
+        g.name && g.name.toLowerCase().includes(term)
+      ));
+    }
   };
 
   const handleUserSelect = (id, from = 'people') => {
     let data = (from === 'people' ? users : groups).find(u => u.id === id);
     setSelectedUserId(id);
     setSelectedUser(data || null);
-    setShowUserList(false);
+    setShowUserList(false); // hide sidebar on small devices
   };
 
   const handleJoinGroup = async (groupId) => {
-    const currentUserId = localStorage.getItem("userId");
     const groupRef = doc(db, 'group', groupId);
-
-    try {
-      await updateDoc(groupRef, {
-        members: arrayUnion(currentUserId)
-      });
-
-      setGroups((prevGroups) =>
-        prevGroups.map((g) =>
-          g.id === groupId ? { ...g, members: [...(g.members || []), currentUserId] } : g
-        )
-      );
-
-      setJoinedGroups((prev) => new Set(prev).add(groupId)); // ✅ mark this group as joined
-    } catch (error) {
-      console.error("Error joining group:", error);
-    }
+    await updateDoc(groupRef, { members: arrayUnion(currentUserId) });
+    setJoinedGroups(prev => new Set(prev).add(groupId));
   };
 
   const handleLeaveGroup = async (groupId) => {
-    const currentUserId = localStorage.getItem("userId");
     const groupRef = doc(db, 'group', groupId);
-
-    try {
-      await updateDoc(groupRef, {
-        members: arrayRemove(currentUserId)
-      });
-
-      setGroups((prevGroups) =>
-        prevGroups.map((g) =>
-          g.id === groupId
-            ? { ...g, members: (g.members || []).filter((m) => m !== currentUserId) }
-            : g
-        )
-      );
-
-      setJoinedGroups((prev) => {
-        const updated = new Set(prev);
-        updated.delete(groupId);
-        return updated;
-      });
-    } catch (error) {
-      console.error("Error leaving group:", error);
-    }
+    await updateDoc(groupRef, { members: arrayRemove(currentUserId) });
+    setJoinedGroups(prev => {
+      const updated = new Set(prev);
+      updated.delete(groupId);
+      return updated;
+    });
   };
+
+  // Back to sidebar (mobile)
+  const handleBack = () => {
+    setSelectedUserId(null);
+    setSelectedUser(null);
+    setShowUserList(true);
+  };
+  // Reset selected chat when mode changes
+useEffect(() => {
+  setSelectedUser(null);
+  setSelectedUserId(null);
+  setShowUserList(true); // optional: show the sidebar again
+}, [mode]);
 
   return (
     <div className="sm:w-auto w-full h-full bg-gray-900 text-white flex flex-col md:flex-row">
-      
-      {/* Mobile Top Bar */}
-      <div className="md:hidden flex justify-between items-center px-4 py-2 bg-black border-b border-gray-700">
-        <h2 className="text-lg font-bold">Filmy Chat</h2>
-        {selectedUser && (
-          <button
-            onClick={() => setShowUserList(!showUserList)}
-            className="bg-green-600 px-3 py-1 rounded text-sm"
-          >
-            {showUserList ? 'Go to Chat' : 'Back to List'}
-          </button>
-        )}
-      </div>
-
-      {/* User/Group List Panel */}
+      {/* Sidebar */}
       <section
-        className={`md:block w-full md:max-w-sm p-4 bg-black shadow-lg md:rounded-md transition-all duration-300 ease-in-out ${
+        className={`md:block w-full md:max-w-sm p-4 bg-black shadow-lg md:rounded-md transition-all duration-300 ${
           showUserList ? 'block' : 'hidden'
         }`}
       >
-        {/* Toggle Buttons */}
+        {/* Toggle */}
         <div className="flex gap-2 mb-4">
           <button
             className={`px-3 py-1 rounded-md ${mode === 'people' ? 'bg-green-600' : 'bg-gray-700'}`}
@@ -185,9 +199,9 @@ const ChatUsers = () => {
             Groups
           </button>
           <button onClick={() => setAddGroupOpen(true)}>
-            <span className="px-3 flex justify-center items-center py-1 rounded-md bg-green-600">+ Create Group</span>
+            <span className="px-3 py-1 rounded-md bg-green-600">+ Create Group</span>
           </button>
-          {addGroupOpen && <AddGroup onClose={() => setAddGroupOpen(false)} refreshGroups={refreshGroups} />}
+          {addGroupOpen && <AddGroup onClose={() => setAddGroupOpen(false)} />}
         </div>
 
         {/* Search */}
@@ -207,97 +221,78 @@ const ChatUsers = () => {
         {/* List */}
         {loading ? (
           <div className="space-y-2">
-    {/* You can render multiple skeletons to simulate a list */}
-    <ChatSkeleton />
-    <ChatSkeleton />
-    <ChatSkeleton />
-    <ChatSkeleton />
-    <ChatSkeleton />
-    <ChatSkeleton />
-    <ChatSkeleton />
-    <ChatSkeleton />
-    
-  </div>
+            <ChatSkeleton /><ChatSkeleton /><ChatSkeleton /><ChatSkeleton />
+          </div>
         ) : (
           <ul className="divide-y divide-gray-700">
             {(mode === 'people' ? users : groups).length === 0 ? (
               <li className="p-2 text-gray-500 text-center">No {mode} found</li>
             ) : (
               (mode === 'people' ? users : groups).map((item) => {
-                const currentUserId = localStorage.getItem("userId");
-                const isMember = item.members?.includes(currentUserId) || joinedGroups.has(item.id);
+                const isMember = mode === "people" 
+                  ? true
+                  : item.members?.includes(currentUserId) || joinedGroups.has(item.id);
 
                 return (
-                <li
-  key={item.id}
-  className={`p-3 transition rounded-md flex justify-between ${
-    selectedUserId === item.id ? 'bg-red-800' : 'hover:bg-gray-700'
-  }`}
->
-  <div className="flex flex-col w-full">
-    <button
-      onClick={() => {
-        if (mode === "people") {
-          // ✅ Directly open personal chat
-          handleUserSelect(item.id, "people");
-        } else {
-          const currentUserId = localStorage.getItem("userId");
-          const isMember = item.members?.includes(currentUserId) || joinedGroups.has(item.id);
+                  <li
+                    key={item.id}
+                    className={`p-3 transition rounded-md flex justify-between items-center ${
+                      selectedUserId === item.id ? 'bg-red-800' : 'hover:bg-gray-700'
+                    }`}
+                  >
+                    <button
+                      onClick={() => {
+                        if (mode === "people") handleUserSelect(item.id, "people");
+                        else if (isMember) handleUserSelect(item.id, "groups");
+                        else setOpenGroupDetailsId(openGroupDetailsId === item.id ? null : item.id);
+                      }}
+                      className="flex flex-col text-left flex-1"
+                    >
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={item.image || (mode === "people" ? '/cinephile.png' : '/cinephile_group.png')}
+                          alt={item.name}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                        <div className="flex flex-col">
+                          <span className="font-medium">{item.name || item.email}</span>
+                          {item.lastMessage && (
+                            <span className="text-xs text-gray-400 truncate max-w-[160px]">
+                              {item.lastMessage}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
 
-          if (isMember) {
-            // ✅ If joined, open group chat
-            handleUserSelect(item.id, "groups");
-          } else {
-            // ✅ If not joined, open details
-            setOpenGroupDetailsId(openGroupDetailsId === item.id ? null : item.id);
-          }
-        }
-      }}
-      className="text-left w-full"
-    >
-      <div className="font-medium">
-        {item.name || item.email || item.id}
-        {mode === "groups" && (
-          <div className="text-sm text-gray-400">
-            {item.members?.length || 0} members
-          </div>
-        )}
-      </div>
-    </button>
+                    {item.unread > 0 && (
+                      <span className="ml-2 bg-green-600 text-xs rounded-full px-2 py-0.5">
+                        {item.unread}
+                      </span>
+                    )}
 
-    {/* Group Details - only if not joined */}
-    {mode === "groups" &&
-      openGroupDetailsId === item.id &&
-      !item.members?.includes(localStorage.getItem("userId")) &&
-      !joinedGroups.has(item.id) && (
-        <GroupDetails
-          selected={item.id}
-          onClose={() => setOpenGroupDetailsId(null)}
-        />
-      )}
-  </div>
+                    {mode === "groups" && (
+                      isMember ? (
+                        <button
+                          onClick={() => handleLeaveGroup(item.id)}
+                          className="ml-2 px-3 py-1 bg-red-500 rounded-md"
+                        >
+                          Leave
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleJoinGroup(item.id)}
+                          className="ml-2 px-3 py-1 bg-green-500 rounded-md"
+                        >
+                          Join
+                        </button>
+                      )
+                    )}
 
-  {/* Join/Leave button (groups only) */}
-  {mode === "groups" &&
-    (item.members?.includes(localStorage.getItem("userId")) ||
-    joinedGroups.has(item.id) ? (
-      <button
-        onClick={() => handleLeaveGroup(item.id)}
-        className="px-6 rounded-md bg-red-500"
-      >
-        Leave
-      </button>
-    ) : (
-      <button
-        onClick={() => handleJoinGroup(item.id)}
-        className="px-6 rounded-md bg-green-500"
-      >
-        Join
-      </button>
-    ))}
-</li>
-
-
+                    {mode === "groups" && openGroupDetailsId === item.id && !isMember && (
+                      <GroupDetails selected={item.id} onClose={() => setOpenGroupDetailsId(null)} />
+                    )}
+                  </li>
                 );
               })
             )}
@@ -306,41 +301,32 @@ const ChatUsers = () => {
       </section>
 
       {/* Chat Section */}
-     <div
-  className={`flex-1 p-4 relative overflow-hidden rounded-xl transition-all duration-500
-    ${
-      showUserList && !window.matchMedia('(min-width: 768px)').matches
-        ? 'hidden'
-        : 'block'
-    }`}
->
-  {/* Glowing background gradients */}
-  <div className="absolute inset-0 bg-black rounded-xl z-0 overflow-hidden">
-    {/* Animated gradient */}
-    <div className="absolute inset-0 bg-gradient-to-r from-red-600 via-red-400 to-red-800 opacity-40 animate-gradientX blur-3xl"></div>
-    {/* Glowing highlights */}
-    <div className="absolute top-10 left-[-50px] w-72 h-72 rounded-full bg-red-500 opacity-20 animate-pulseSlow"></div>
+      <div className={`flex-1 p-0 md:p-1 bg-black relative ${showUserList ? 'hidden md:block' : 'block'}`}>
+        
+        {selectedUser ? (
+          mode === 'groups' ? (
+            <GroupChatSection selectedUser={selectedUser} onBack={handleBack} />
+          ) : (
+            <PersonalChatSection selectedUser={selectedUser} onBack={handleBack} />
+          )
+        ) : (
+          <div>
+            {/* Glowing background gradients */}
+            <div className="absolute inset-0 bg-black rounded-xl z-0 overflow-hidden">
+              {/* Animated gradient */}
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600 via-red-400 to-red-800 opacity-40 animate-gradientX blur-3xl"></div>
+              {/* Glowing highlights */}
+              <div className="absolute top-10 left-[-50px] w-72 h-72 rounded-full bg-red-500 opacity-20 animate-pulseSlow"></div>
     <div className="absolute bottom-10 right-[-40px] w-64 h-64 rounded-full bg-red-700 opacity-20 animate-pulseSlow"></div>
   </div>
-
-  {/* Content */}
-  <div className="relative z-10 flex flex-col h-full">
-    {selectedUser ? (
-      mode === 'groups' ? (
-        selectedUser.members?.includes(localStorage.getItem("userId")) ||
-        joinedGroups.has(selectedUser.id) ? (
-          <GroupChatSection selectedUser={selectedUser} />
-        ) : null
-      ) : (
-        <PersonalChatSection selectedUser={selectedUser} />
-      )
-    ) : (
-      <div className="text-gray-300 text-center mt-16 text-lg font-semibold tracking-wider drop-shadow-lg">
-        Select a {mode === 'people' ? 'user' : 'group'} to start chatting
+          <div className="text-gray-300 text-center mt-16 text-lg font-semibold tracking-wider drop-shadow-lg">
+            
+            Select a {mode === 'people' ? 'user' : 'group'} to start chatting
+          </div>
+          </div>
+        )
+        }
       </div>
-    )}
-  </div>
-</div>
     </div>
   );
 };

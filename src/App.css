@@ -36,6 +36,36 @@
 .glow {
   animation: driftRedGlow 4s infinite linear;
 }
+@keyframes gradientGlowSpin {
+  0% {
+    box-shadow: 3px 3px 10px 2px rgba(238, 10, 10, 0.675),
+                -3px -2px 5px 1px rgba(11, 110, 11, 0.642),
+                2px -3px 8px 2px rgba(255, 0, 0, 0.389);
+  }
+  25% {
+    box-shadow: -4px 3px 12px 3px rgba(88, 217, 24, 0.56),
+                3px -4px 6px 2px rgba(216, 25, 25, 0.422),
+                -2px 2px 10px 2px rgba(255, 71, 71, 0.337);
+  }
+  50% {
+    box-shadow: 4px -3px 15px 4px rgba(226, 39, 39, 0.714),
+                -3px 4px 7px 2px rgba(30, 166, 5, 0.345),
+                1px -2px 12px 3px rgba(16, 91, 3, 0.305);
+  }
+  75% {
+    box-shadow: -3px -4px 10px 2px rgba(39, 226, 55, 0.526),
+                4px 3px 8px 2px rgba(216, 25, 25, 0.64),
+                -1px 2px 6px 2px rgba(18, 202, 5, 0.792);
+  }
+  100% {
+    box-shadow: 3px 3px 10px 2px rgba(215, 8, 8, 0.555),
+                -3px -2px 5px 1px rgba(51, 216, 25, 0.2),
+                2px -3px 8px 2px rgba(225, 37, 3, 0.421);
+  }
+}
+.gradspin {
+  animation: gradientGlowSpin 5s infinite linear;
+}
 @keyframes backgroundDrift {
   0% {
     background: conic-gradient(

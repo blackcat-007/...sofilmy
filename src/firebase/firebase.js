@@ -20,4 +20,5 @@ export const moviesRef=collection(db,"movies");
 export const movielistRef=collection(db,"movielist");
 export const reviewsRef=collection(db,"reviews");
 export const usersRef=collection(db,"users");
+export const chatsRef=collection(db,"chats");
 export default app;
