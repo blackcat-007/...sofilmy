@@ -217,7 +217,7 @@ const PersonalChatSection = ({ selectedUser, onBack }) => {
   }, [selectedUser, currentUserId]);
 
   return (
-    <div className="relative w-full h-[calc(100vh-6rem)] bg-black text-white flex flex-col">
+    <div className="relative w-full h-[calc(100vh-6rem)] bg-black text-white flex flex-col z-20">
       <img
         className="absolute top-0 left-0 w-full h-full object-cover z-0"
         src="/images/sofilmywallpaper.jpg"

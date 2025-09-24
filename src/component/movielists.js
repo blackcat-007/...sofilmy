@@ -123,53 +123,53 @@ const getCache = (key, maxAgeMs) => {
   if (!hasMore) return;
   setLoading(true);
 
-  const pageKey = lastDoc ? lastDoc.id : "firstPage";
-  const cacheKey = selectedId ? `movieLists-${selectedId}-${pageKey}` : `movieLists-${pageKey}`;
-  const cachedLists = getCache(cacheKey, 2 * 60 * 1000); // 2 min cache
-
-  if (cachedLists) {
-    setDatas((prev) => [...prev, ...cachedLists]);
-    setLoading(false);
-    if (cachedLists.length < 6) setHasMore(false);
-    return;
-  }
-
-  // Build query dynamically
-  const baseQuery = [
-    orderBy("upvoted", "desc"),
-    orderBy("createdAt", "asc"),
-    limit(6),
-    ...(lastDoc ? [startAfter(lastDoc)] : [])
-  ];
-
-  if (selectedId) {
-    baseQuery.unshift(where("createdBy", "==", selectedId)); // Add filter at start
-  }
-
-  const q = query(movielistRef, ...baseQuery);
-
   try {
+    const baseQuery = [
+      orderBy("createdBy"),
+      orderBy("upvoted", "desc"),
+      orderBy("createdAt", "asc"),
+      orderBy("__name__"),
+      ...(lastDoc ? [startAfter(lastDoc)] : []),
+      limit(7), // always overfetch 1
+    ];
+
+    if (selectedId) {
+      baseQuery.unshift(where("createdBy", "==", selectedId));
+    }
+
+    const q = query(movielistRef, ...baseQuery);
     const querySnapshot = await getDocs(q);
-    const newLists = [];
-    querySnapshot.forEach((doc) => {
-      newLists.push({ id: doc.id, ...doc.data() });
-    });
+
+    if (querySnapshot.empty) {
+      setHasMore(false);
+      setLoading(false);
+      return;
+    }
+
+    const docs = querySnapshot.docs;
+    const mapped = docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    // 👉 use first 6 for display
+    const newLists = mapped.slice(0, 6);
 
     setDatas((prev) => [...prev, ...newLists]);
-    setCache(cacheKey, newLists);
 
-    if (querySnapshot.docs.length > 0) {
-      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
-    }
-    if (querySnapshot.docs.length < 6) {
+    // 👉 if we got 7, store that last one as cursor
+    if (docs.length === 7) {
+      setLastDoc(docs[6]); // the 7th
+      setHasMore(true);
+    } else {
+      setLastDoc(null);
       setHasMore(false);
     }
+
   } catch (err) {
     console.error("Error fetching movie lists:", err);
   } finally {
     setLoading(false);
   }
 };
+
 
   const fetchPostersForList = async (list) => {
   const listId = list.id;
@@ -404,7 +404,7 @@ const handleDownvote = async (list) => {
 
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[1, 2, 3, 4].map((_, index) => (
+          {[1, 2, 3, 4,5,6].map((_, index) => (
             <div
               key={index}
               className=" rounded-lg overflow-hidden hover:scale-100 transition-transform"
@@ -418,7 +418,7 @@ const handleDownvote = async (list) => {
 
     {!loading && hasMore && (
       <div className="flex justify-center mt-4 relative z-10">
-        <button onClick={fetchMovieLists} className="bg-gradient-to-r from-red-500 to-red-900 hover:from-red-800 hover:to-red-950 text-white sm:px-4 px-2 sm:h-10 h-7 w-auto sm:text-base text-xs rounded">
+        <button onClick={fetchMovieLists} className="bg-gradient-to-r flex items-center justify-center from-red-500 to-red-900 hover:from-red-800 hover:to-red-950 text-white sm:px-4 px-2 sm:h-10 h-7 w-auto sm:text-base text-xs rounded">
           Load More<CircleArrowDown className="ml-2" />
         </button>
       </div>
