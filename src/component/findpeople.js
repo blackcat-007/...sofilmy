@@ -139,7 +139,7 @@ const getCache = (key, maxAgeMs) => {
   <div className="max-w-3xl mt-16 sm:mx-auto flex items-center mb-10">
     <input
       type="text"
-      placeholder="Search people..."
+      placeholder="Search Filmies..."
       value={searchTerm}
       onChange={(e) => {
         setSearchTerm(e.target.value);

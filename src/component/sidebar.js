@@ -25,7 +25,7 @@ const Profileicon = ({ isExpanded }) => {
         className="flex items-center gap-2 py-3 px-5 sm:p-3 text-white w-full hover:bg-red-600 rounded-md"
       >
         <PersonAddAltTwoToneIcon className="text-white text-3xl" />
-        {isExpanded && <span className="text-sm">Find People</span>}
+        {isExpanded && <span className="text-sm">Find Filmies</span>}
       </Link>
     </div>
   );

@@ -190,7 +190,7 @@ useEffect(() => {
             className={`px-3 py-1 rounded-md ${mode === 'people' ? 'bg-green-600' : 'bg-gray-700'}`}
             onClick={() => setMode('people')}
           >
-            People
+            Filmies
           </button>
           <button
             className={`px-3 py-1 rounded-md ${mode === 'groups' ? 'bg-green-600' : 'bg-gray-700'}`}
