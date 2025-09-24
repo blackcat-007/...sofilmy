@@ -43,7 +43,17 @@ const GroupChatSection = ({ selectedUser, onBack }) => {
       return newHistory;
     });
   };
-
+// Helper to format timestamp
+  const formatTime = (timestamp) => {
+    if (!timestamp) return "";
+    try {
+      // Firestore Timestamp has toDate()
+      const date = typeof timestamp.toDate === "function" ? timestamp.toDate() : new Date(timestamp);
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    } catch (e) {
+      return "";
+    }
+  };
   // Load messages
   useEffect(() => {
     if (!currentUserId || !groupId) return;
@@ -227,6 +237,13 @@ const GroupChatSection = ({ selectedUser, onBack }) => {
               <span className="whitespace-pre-wrap break-words">
                 {msg.text}
               </span>
+              <div className="flex items-center justify-end gap-1 mt-1">
+                        <span className={`text-[11px] text-black ${
+                      isSender
+                        ? " text-white "
+                        : " text-black "
+                    }`  }>{formatTime(msg.createdAt)}</span>
+                    </div>
             </div>
           </div>
         </div>
