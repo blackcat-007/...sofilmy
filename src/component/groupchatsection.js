@@ -135,7 +135,7 @@ const GroupChatSection = ({ selectedUser, onBack }) => {
   const getReplyMessage = (replyId) => messages.find((m) => m.id === replyId);
 
   return (
-    <div className="relative w-full h-[calc(100vh-8rem)] bg-black text-white flex flex-col">
+    <div className="relative w-full h-[calc(100vh)] md:h-[calc(100vh-6rem)] z-20 bg-black text-white flex flex-col">
       <img
         className="absolute top-0 left-0 w-full h-full object-cover z-0"
         src="/images/sofilmywallpaper.jpg"
