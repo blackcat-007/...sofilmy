@@ -264,7 +264,10 @@ useEffect(() => {
                         </div>
                       </div>
                     </button>
-
+                     {mode === "groups" && item.members?.length > 0 && (
+  <span>{item.members.length} filmies</span>
+)}
+  
                     {item.unread > 0 && (
                       <span className="ml-2 bg-green-600 text-xs rounded-full px-2 py-0.5">
                         {item.unread}
